@@ -1,0 +1,46 @@
+# ============================================================
+# Baseline v2 快速版: 减少 folds 数量用于快速调试
+# ============================================================
+
+experiment:
+  name: "baseline_v2_quick"
+  description: "基线v2快速版：全特征但减少folds，用于调试验证"
+  tags: ["baseline", "v2", "quick"]
+  category: "baseline"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - onchain
+    - sentiment
+    - lag_rolling
+
+label:
+  T: 14
+  X: 0.08
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+
+evaluation:
+  init_train: 1500
+  oos_window: 63
+  step: 63        # 增大步长，减少 folds

@@ -1,0 +1,42 @@
+# ============================================================
+# Baseline v2: 全特征体系 + LightGBM (对标旧项目ForecastLab最佳模型)
+# ============================================================
+# 继承 configs/base.yaml, 使用全部 7 个特征集
+
+experiment:
+  name: "baseline_v2_full"
+  description: "基线v2：全部特征（技术+量+资金流+市场结构+链上+情绪+lag_rolling），T=14，X=0.08，LightGBM-1000轮"
+  tags: ["baseline", "v2", "full_features"]
+  category: "baseline"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - onchain
+    - sentiment
+    - lag_rolling
+
+label:
+  T: 14
+  X: 0.08
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 1000
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1

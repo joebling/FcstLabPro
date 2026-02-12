@@ -53,7 +53,8 @@ def run_experiment(
         config = apply_overrides(config, overrides)
 
     experiment_id = generate_experiment_id(config)
-    exp_dir = create_experiment_dir(experiment_id)
+    category = config.get("experiment", {}).get("category", "default")
+    exp_dir = create_experiment_dir(experiment_id, category=category)
 
     # 保存配置快照
     save_config(config, exp_dir / "config.yaml")

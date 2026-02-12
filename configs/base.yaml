@@ -1,5 +1,5 @@
 # ============================================================
-# FcstLabPro 基础默认配置
+# FcstLabPro 基础默认配置（增强版）
 # 所有实验配置会继承此文件，实验配置中的值会覆盖这里的默认值
 # ============================================================
 
@@ -7,29 +7,37 @@ experiment:
   name: ""
   description: ""
   tags: []
+  category: "default"   # 实验大类: baseline / feature_study / param_tuning / model_compare / production
 
 data:
-  source: "binance"          # binance | yahoo
+  source: "binance"
   symbol: "BTCUSDT"
-  interval: "1d"             # 1d | 1w (预留周线)
+  interval: "1d"
   start: "2018-01-01"
   end: "2025-12-31"
-  path: null                 # 如指定则直接加载本地文件，不下载
+  path: null
 
 features:
-  sets: ["technical", "volume"]   # 可选: technical, volume, flow
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - onchain
+    - sentiment
+    - lag_rolling
   drop_na_method: "ffill_then_drop"
-  scaling: null                   # null | standard | minmax
+  scaling: null
 
 label:
-  strategy: "reversal"       # 标签策略名称
-  T: 14                      # 窗口长度（天数）
-  X: 0.08                    # 反转阈值
+  strategy: "reversal"
+  T: 14
+  X: 0.08
 
 model:
-  type: "lightgbm"           # 模型类型
+  type: "lightgbm"
   params:
-    n_estimators: 500
+    n_estimators: 1000
     max_depth: 6
     learning_rate: 0.05
     num_leaves: 31
@@ -42,10 +50,10 @@ model:
     verbose: -1
 
 evaluation:
-  method: "walk_forward"     # walk_forward | time_series_cv
-  init_train: 1500           # 初始训练集大小
-  oos_window: 63             # 样本外窗口
-  step: 21                   # 步进
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
   metrics:
     - accuracy
     - f1_macro

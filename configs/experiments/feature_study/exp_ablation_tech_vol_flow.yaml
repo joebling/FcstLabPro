@@ -1,0 +1,19 @@
+# ============================================================
+# 特征研究：技术+成交量+资金流 (不含链上和情绪)
+# ============================================================
+
+experiment:
+  name: "ablation_tech_vol_flow"
+  description: "消融实验：技术+成交量+资金流特征"
+  tags: ["feature_study", "ablation", "tech_vol_flow"]
+  category: "feature_study"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure

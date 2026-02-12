@@ -54,6 +54,7 @@ from src.experiment.tracker import (
     cleanup_failed,
     archive_experiments,
     get_experiment_summary,
+    get_experiment_dir,
     get_best_experiment,
     EXPERIMENTS_DIR,
 )
@@ -112,6 +113,7 @@ def _format_experiment_row(entry: dict) -> dict:
         "id": entry.get("experiment_id", "")[-20:],  # 截短显示
         "full_id": entry.get("experiment_id", ""),
         "name": entry.get("name", ""),
+        "category": entry.get("category", ""),
         "tags": ",".join(entry.get("tags", [])),
         "created": created,
         "duration": _duration_str(entry.get("duration_seconds")),
@@ -129,6 +131,7 @@ def cmd_list(args):
     """列出实验."""
     results = filter_experiments(
         status=args.status,
+        category=getattr(args, 'category', None),
         tags=args.tags,
         name_contains=args.search,
         sort_by=args.sort,
@@ -146,6 +149,7 @@ def cmd_list(args):
 
     columns = [
         ("status", "St", 2),
+        ("category", "Category", 14),
         ("name", "Name", 18),
         ("created", "Created", 11),
         ("duration", "Time", 7),
@@ -153,7 +157,6 @@ def cmd_list(args):
         ("f1", "F1", 6),
         ("kappa", "Kappa", 6),
         ("git", "Git", 7),
-        ("tags", "Tags", 15),
         ("id", "ID (last 20)", 20),
     ]
     _print_table(rows, columns)
@@ -181,6 +184,7 @@ def cmd_show(args):
     print(f"{'='*60}")
     print(f"  状态:     {_status_icon(summary.get('status', ''))} {summary.get('status', '')}")
     print(f"  名称:     {summary.get('name', '')}")
+    print(f"  大类:     {summary.get('category', 'default')}")
     print(f"  描述:     {summary.get('description', '')}")
     print(f"  标签:     {summary.get('tags', [])}")
     print(f"  创建时间: {summary.get('created_at', '')}")
@@ -200,8 +204,8 @@ def cmd_show(args):
         print(f"\n  ❌ 错误: {summary['error']}")
 
     # 检查产物
-    exp_dir = EXPERIMENTS_DIR / experiment_id
-    if exp_dir.exists():
+    exp_dir = get_experiment_dir(experiment_id)
+    if exp_dir and exp_dir.exists():
         files = sorted(exp_dir.iterdir())
         print(f"\n  📁 产物 ({len(files)} 文件):")
         for f in files:
@@ -355,6 +359,7 @@ def main():
     # list
     p_list = subparsers.add_parser("list", aliases=["ls"], help="列出实验")
     p_list.add_argument("--status", choices=["completed", "failed", "running"], help="按状态筛选")
+    p_list.add_argument("--category", help="按大类筛选 (baseline/feature_study/param_tuning/model_compare/production)")
     p_list.add_argument("--tags", nargs="+", help="按标签筛选（必须包含所有指定标签）")
     p_list.add_argument("--search", help="搜索名称/ID")
     p_list.add_argument("--sort", help="排序字段 (created_at/duration_seconds/accuracy/f1_macro/...)")

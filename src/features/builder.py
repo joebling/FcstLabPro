@@ -7,9 +7,13 @@ import pandas as pd
 from src.features.registry import get_feature_set
 
 # 触发所有特征集的注册（导入即注册）
-import src.features.technical  # noqa: F401
-import src.features.volume     # noqa: F401
-import src.features.flow       # noqa: F401
+import src.features.technical         # noqa: F401
+import src.features.volume            # noqa: F401
+import src.features.flow              # noqa: F401
+import src.features.market_structure  # noqa: F401
+import src.features.onchain           # noqa: F401
+import src.features.sentiment         # noqa: F401
+import src.features.lag_rolling       # noqa: F401
 
 logger = logging.getLogger(__name__)
 

@@ -55,9 +55,12 @@ def get_git_info() -> dict:
     return info
 
 
-def create_experiment_dir(experiment_id: str) -> Path:
-    """创建实验目录."""
-    exp_dir = EXPERIMENTS_DIR / experiment_id
+def create_experiment_dir(experiment_id: str, category: str = "default") -> Path:
+    """创建实验目录（按 category 分级）.
+
+    目录结构: experiments/{category}/{experiment_id}/
+    """
+    exp_dir = EXPERIMENTS_DIR / category / experiment_id
     exp_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"实验目录已创建: {exp_dir}")
     return exp_dir
@@ -70,6 +73,7 @@ def build_meta(config: dict, experiment_id: str) -> dict:
         "name": config.get("experiment", {}).get("name", ""),
         "description": config.get("experiment", {}).get("description", ""),
         "tags": config.get("experiment", {}).get("tags", []),
+        "category": config.get("experiment", {}).get("category", "default"),
         "created_at": datetime.now().isoformat(),
         "git": get_git_info(),
         "seed": config.get("seed", None),
@@ -96,6 +100,7 @@ def update_registry(experiment_id: str, meta: dict) -> None:
         "experiment_id": experiment_id,
         "name": meta.get("name", ""),
         "description": meta.get("description", ""),
+        "category": meta.get("category", "default"),
         "tags": meta.get("tags", []),
         "created_at": meta.get("created_at", ""),
         "status": meta.get("status", "unknown"),
@@ -142,6 +147,7 @@ def list_experiments() -> list[dict]:
 
 def filter_experiments(
     status: str | None = None,
+    category: str | None = None,
     tags: list[str] | None = None,
     name_contains: str | None = None,
     sort_by: str | None = None,
@@ -153,6 +159,7 @@ def filter_experiments(
     Parameters
     ----------
     status : 按状态筛选 (completed / failed / running)
+    category : 按大类筛选 (baseline / feature_study / param_tuning / ...)
     tags : 必须包含所有指定标签
     name_contains : 名称包含指定子串
     sort_by : 排序字段，支持 'created_at', 'duration_seconds',
@@ -164,6 +171,9 @@ def filter_experiments(
 
     if status:
         registry = [e for e in registry if e.get("status") == status]
+
+    if category:
+        registry = [e for e in registry if e.get("category") == category]
 
     if tags:
         registry = [e for e in registry
@@ -193,6 +203,31 @@ def filter_experiments(
     return registry
 
 
+def _find_experiment_dir(experiment_id: str) -> Path | None:
+    """在 experiments/ 下递归查找实验目录."""
+    # 先检查直接子目录（旧格式兼容）
+    d = EXPERIMENTS_DIR / experiment_id
+    if d.exists() and d.is_dir():
+        return d
+    # 再检查分类子目录
+    for category_dir in EXPERIMENTS_DIR.iterdir():
+        if category_dir.is_dir() and not category_dir.name.startswith("."):
+            candidate = category_dir / experiment_id
+            if candidate.exists() and candidate.is_dir():
+                return candidate
+    # 归档目录
+    if ARCHIVE_DIR.exists():
+        d = ARCHIVE_DIR / experiment_id
+        if d.exists():
+            return d
+        for category_dir in ARCHIVE_DIR.iterdir():
+            if category_dir.is_dir():
+                candidate = category_dir / experiment_id
+                if candidate.exists() and candidate.is_dir():
+                    return candidate
+    return None
+
+
 def delete_experiment(experiment_id: str, delete_files: bool = True) -> bool:
     """删除实验（从注册表移除，并可选删除目录）.
 
@@ -208,8 +243,8 @@ def delete_experiment(experiment_id: str, delete_files: bool = True) -> bool:
     _save_registry(new_registry)
 
     if delete_files:
-        exp_dir = EXPERIMENTS_DIR / experiment_id
-        if exp_dir.exists():
+        exp_dir = _find_experiment_dir(experiment_id)
+        if exp_dir and exp_dir.exists():
             shutil.rmtree(exp_dir)
             logger.info(f"已删除实验目录: {exp_dir}")
 
@@ -292,25 +327,19 @@ def archive_experiments(
 
 def get_experiment_summary(experiment_id: str) -> dict | None:
     """获取单个实验的完整摘要（从 meta.json 读取）."""
-    meta_path = EXPERIMENTS_DIR / experiment_id / "meta.json"
+    exp_dir = _find_experiment_dir(experiment_id)
+    if exp_dir is None:
+        return None
+    meta_path = exp_dir / "meta.json"
     if not meta_path.exists():
-        # 也检查归档
-        meta_path = ARCHIVE_DIR / experiment_id / "meta.json"
-        if not meta_path.exists():
-            return None
+        return None
     with open(meta_path, encoding="utf-8") as f:
         return json.load(f)
 
 
 def get_experiment_dir(experiment_id: str) -> Path | None:
     """获取实验目录路径."""
-    d = EXPERIMENTS_DIR / experiment_id
-    if d.exists():
-        return d
-    d = ARCHIVE_DIR / experiment_id
-    if d.exists():
-        return d
-    return None
+    return _find_experiment_dir(experiment_id)
 
 
 def get_best_experiment(

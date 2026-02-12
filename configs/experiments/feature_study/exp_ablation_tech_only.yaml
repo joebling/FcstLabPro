@@ -1,0 +1,16 @@
+# ============================================================
+# 特征研究：仅技术指标 (消融实验，对比全特征效果)
+# ============================================================
+
+experiment:
+  name: "ablation_tech_only"
+  description: "消融实验：仅使用技术指标特征"
+  tags: ["feature_study", "ablation", "tech_only"]
+  category: "feature_study"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical

@@ -1,0 +1,16 @@
+# ============================================================
+# 参数调优：标签阈值 T=21, X=0.10
+# ============================================================
+
+experiment:
+  name: "tune_T21_X10"
+  description: "参数调优：标签窗口21天、阈值10%"
+  tags: ["param_tuning", "label_params"]
+  category: "param_tuning"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+label:
+  T: 21
+  X: 0.10
