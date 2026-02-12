@@ -1,0 +1,56 @@
+# ============================================================
+# FcstLabPro 基础默认配置
+# 所有实验配置会继承此文件，实验配置中的值会覆盖这里的默认值
+# ============================================================
+
+experiment:
+  name: ""
+  description: ""
+  tags: []
+
+data:
+  source: "binance"          # binance | yahoo
+  symbol: "BTCUSDT"
+  interval: "1d"             # 1d | 1w (预留周线)
+  start: "2018-01-01"
+  end: "2025-12-31"
+  path: null                 # 如指定则直接加载本地文件，不下载
+
+features:
+  sets: ["technical", "volume"]   # 可选: technical, volume, flow
+  drop_na_method: "ffill_then_drop"
+  scaling: null                   # null | standard | minmax
+
+label:
+  strategy: "reversal"       # 标签策略名称
+  T: 14                      # 窗口长度（天数）
+  X: 0.08                    # 反转阈值
+
+model:
+  type: "lightgbm"           # 模型类型
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+
+evaluation:
+  method: "walk_forward"     # walk_forward | time_series_cv
+  init_train: 1500           # 初始训练集大小
+  oos_window: 63             # 样本外窗口
+  step: 21                   # 步进
+  metrics:
+    - accuracy
+    - f1_macro
+    - precision_macro
+    - recall_macro
+    - cohen_kappa
+
+seed: 42

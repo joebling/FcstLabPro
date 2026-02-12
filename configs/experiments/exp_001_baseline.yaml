@@ -1,0 +1,19 @@
+# ============================================================
+# 实验 001: Baseline — 技术指标 + 成交量, T=14, X=0.08
+# ============================================================
+# 继承 configs/base.yaml, 只需写需要覆盖的部分
+
+experiment:
+  name: "baseline_T14_X8"
+  description: "基线实验：技术指标+成交量特征，14天窗口，8%阈值"
+  tags: ["baseline", "v1"]
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets: ["technical", "volume"]
+
+label:
+  T: 14
+  X: 0.08

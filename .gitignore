@@ -1,0 +1,36 @@
+# Data
+data/raw/*.csv
+data/raw/*.parquet
+
+# Experiments outputs (keep configs, ignore large files)
+experiments/*/model.joblib
+experiments/*/predictions.csv
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual env
+.venv/
+venv/
+lab-venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log

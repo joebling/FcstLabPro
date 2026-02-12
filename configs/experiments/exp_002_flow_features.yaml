@@ -1,0 +1,18 @@
+# ============================================================
+# 实验 002: 加入资金流特征, T=14, X=0.08
+# ============================================================
+
+experiment:
+  name: "flow_T14_X8"
+  description: "在baseline基础上加入资金流特征，对比特征集效果"
+  tags: ["flow", "v1", "ablation"]
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets: ["technical", "volume", "flow"]
+
+label:
+  T: 14
+  X: 0.08

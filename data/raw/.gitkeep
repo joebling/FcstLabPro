@@ -1,0 +1,2 @@
+# 此目录存放原始数据文件（CSV/Parquet）
+# 大文件已在 .gitignore 中排除
