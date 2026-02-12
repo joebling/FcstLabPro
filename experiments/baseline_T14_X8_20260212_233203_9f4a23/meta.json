@@ -1,0 +1,25 @@
+{
+  "experiment_id": "baseline_T14_X8_20260212_233203_9f4a23",
+  "name": "baseline_T14_X8",
+  "description": "基线实验：技术指标+成交量特征，14天窗口，8%阈值",
+  "tags": [
+    "baseline",
+    "v1"
+  ],
+  "created_at": "2026-02-12T23:32:03.608814",
+  "git": {
+    "commit": "9c31aa3",
+    "branch": "master",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 201.33,
+  "aggregate_metrics": {
+    "accuracy": 0.3745474798106377,
+    "f1_macro": 0.35461275720098984,
+    "precision_macro": 0.3619339680344729,
+    "recall_macro": 0.3712687843375737,
+    "cohen_kappa": 0.046599039315711965
+  }
+}
