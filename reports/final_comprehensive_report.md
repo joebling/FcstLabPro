@@ -1,144 +1,144 @@
-# 🚀 FcstLabPro: Final Comprehensive Report
+# 🚀 FcstLabPro: 最终综合报告
 
-**Date**: 2026-02-13
-**Project**: Bitcoin Price Prediction Experiment Platform (Refactored & Extended)
-**Repo**: [FcstLabPro](https://github.com/joebling/FcstLabPro)
-
----
-
-## 1. Project Overview & Achievements
-
-### 🎯 Goal
-To rebuild and extend the Bitcoin price prediction platform ("FcstLabPro") by benchmarking against best practices from legacy projects. The objective was to create a structured, traceable, scalable, and easy-to-compare machine learning experiment platform.
-
-### 🏗 Architecture & Infrastructure
-We have successfully implemented a robust infrastructure:
-- **Multi-level Experiment Structure**: Organized experiments into `baseline`, `feature_study`, `param_tuning`, etc., allowing for clear separation of concerns.
-- **Enhanced Feature Registry**: A central `FeatureBuilder` capable of generating **340+ features** across 7 distinct categories (Technical, Volume, Market Structure, On-chain, Sentiment, Flow, Lag/Rolling).
-- **Advanced Experiment Tracker**: A `Tracker` class that supports recursive discovery, category filtering, and enhanced metadata logging (Git commit, duration, detailed metrics).
-- **CLI Management**: A `manage_experiments.py` script for listing, cleaning, and deleting experiments with powerful filters.
-- **Reproducibility**: Strict dependency management via `.venv` and Git integration for tracking codebase state per experiment.
+**日期**: 2026-02-13
+**项目**: 比特币价格预测实验平台 (重构与扩展版)
+**代码库**: [FcstLabPro](https://github.com/joebling/FcstLabPro)
 
 ---
 
-## 2. Feature System Expansion
+## 1. 项目概览与成果
 
-We expanded the feature space significantly to capture more market dynamics:
+### 🎯 目标
+对标旧项目的最佳实践，重建并扩展比特币价格预测平台 ("FcstLabPro")。目标是打造一个结构清晰、可追溯、可扩展且便于对比的机器学习实验平台。
 
-| Feature Set | Count | Description |
+### 🏗 架构与基础设施
+我们已成功实施了稳健的基础设施：
+- **多级实验结构**：将实验组织为 `baseline`（基线）、`feature_study`（特征研究）、`param_tuning`（参数调优）等，实现关注点分离。
+- **增强型特征注册表**：中央 `FeatureBuilder` 能够生成跨 7 个不同类别的 **340+ 特征**（技术指标、成交量、市场结构、链上数据、情绪、资金流、滞后/滚动窗口）。
+- **高级实验追踪器**：支持递归查找、类别筛选和增强元数据记录（Git commit、耗时、详细指标）的 `Tracker` 类。
+- **CLI 管理工具**：用于列出、清理和删除实验的 `manage_experiments.py` 脚本，配备强大的过滤器。
+- **可复现性**：通过 `.venv` 进行严格的依赖管理，并利用 Git 集成追踪每个实验的代码库状态。
+
+---
+
+## 2. 特征体系扩展
+
+我们大幅扩展了特征空间，以捕捉更多市场动态：
+
+| 特征集 | 数量 | 描述 |
 |:---|---:|:---|
-| **Technical** | 35 | Standard indicators (RSI, MACD, BB, SMA crosses, etc.) |
-| **Volume** | 15 | OBV, Volume SMA, Volume Volatility, Price-Volume Correlation |
-| **Market Structure** | 12 | Distance from Highs/Lows, Regime detection (Bull/Bear) |
-| **On-chain** | 20 | SOPR (STH/LTH), MVRV, Exchange Flows (Simulated/Real) |
-| **Sentiment** | 5 | Fear & Greed Index (proxies), Social Volume |
-| **Flow** | 10 | CVD (Cumulative Volume Delta), Buying Pressure |
-| **Lag & Rolling** | 240+ | Rolling stats (mean, std, min, max) for key indicators over multiple windows |
+| **Technical (技术指标)** | 35 | 标准指标 (RSI, MACD, BB, SMA crosses 等) |
+| **Volume (成交量)** | 15 | OBV, Volume SMA, Volume Volatility, 量价相关性 |
+| **Market Structure (市场结构)** | 12 | 距离高/低点的距离, 市场状态检测 (牛/熊) |
+| **On-chain (链上数据)** | 20 | SOPR (STH/LTH), MVRV, 交易所流量 (模拟/真实) |
+| **Sentiment (情绪)** | 5 | 恐惧贪婪指数 (代理), 社交声量 |
+| **Flow (资金流)** | 10 | CVD (累积成交量增量), 买入压力 |
+| **Lag & Rolling (滞后与滚动)** | 240+ | 关键指标在多个窗口期下的滚动统计量 (mean, std, min, max) |
 
-**Total Features**: Increased from **77** (Legacy) to **340+** (FcstLabPro v2).
+**特征总数**：从 **77** (旧版) 增加到 **340+** (FcstLabPro v2)。
 
 ---
 
-## 3. Key Experiment Findings
+## 3. 关键实验发现
 
-We conducted extensive experiments ranging from infrastructure verification to deep daily optimization and weekly strategy exploration.
+我们进行了广泛的实验，从基础设施验证到深度的日线优化，再到周线策略的探索。
 
-### 3.1 Phase 1: Infrastructure & Baseline Comparison
-We first validated the new v2 infrastructure by comparing the legacy-style baseline against the new expanded feature set.
+### 3.1 第一阶段：基础设施与基线对比
+我们首先通过对比旧版风格的基线与新扩展特征集，验证了新的 v2 基础设施。
 
-#### Experiments Compared
+#### 对比实验
 1.  **`baseline_T14_X8` (v1)**:
-    -   **Features**: 77 (Technical + Volume only).
-    -   **Model**: LightGBM (500 estimators).
-    -   **Strategy**: Reversal Label (14d window, 8% threshold).
+    -   **特征**: 77 (仅技术指标 + 成交量)。
+    -   **模型**: LightGBM (500 estimators)。
+    -   **策略**: 反转标签 (14天窗口, 8% 阈值)。
 2.  **`baseline_v2_quick` (v2)**:
-    -   **Features**: 340+ (All 7 feature sets).
-    -   **Model**: LightGBM (200 estimators - "Quick" run).
-    -   **Strategy**: Reversal Label (14d window, 8% threshold).
+    -   **特征**: 340+ (全部 7 个特征集)。
+    -   **模型**: LightGBM (200 estimators - "快速" 运行)。
+    -   **策略**: 反转标签 (14天窗口, 8% 阈值)。
 
-#### Performance Metrics (v1 vs v2)
+#### 性能指标 (v1 vs v2)
 
-| Metric | Baseline v1 (77 feats) | Baseline v2 (340 feats) | Change |
+| 指标 | Baseline v1 (77 特征) | Baseline v2 (340 特征) | 变化 |
 |:---|:---:|:---:|:---:|
 | **Accuracy** | **37.45%** | 35.09% | 📉 -2.4% |
 | **F1 Macro** | **0.3546** | 0.3193 | 📉 -0.035 |
 | **Cohen Kappa** | **0.0466** | -0.0130 | 📉 -0.059 |
 
-**Insight**: The initial v2 run ("quick") underperformed due to noise from unselected features and reduced model estimators, prompting the need for the optimizations seen in Phase 2.
+**洞察**: 初始的 v2 运行 ("quick") 表现不佳，原因为未筛选的特征引入了噪声以及模型 estimators 数量减少。这促使了第二阶段的优化。
 
 ---
 
-### 3.2 Phase 2: Daily Optimization Loop (Daily)
+### 3.2 第二阶段：日线优化循环 (Daily)
 
-We iteratively optimized the daily prediction models, moving from multi-class to binary classification, selecting features, and tuning parameters.
+我们迭代优化了日线预测模型，从多分类转向二分类，筛选特征并调优参数。
 
-| Stage | Experiment | Accuracy | Kappa | Improvement/Notes |
+| 阶段 | 实验名 | Accuracy | Kappa | 改进/备注 |
 |:---|:---|:---|:---|:---|
-| **Initial baseline** | `baseline_T14_X8` (3-class) | 0.375 | 0.047 | Legacy benchmark |
-| **Label Optimization** | `binary_T14_X8` | 0.527 | 0.042 | **Accuracy +40%** (Switch to Binary) |
-| **Feature Selection** | `top30_binary` | 0.541 | 0.064 | **Kappa +52%** (Reduced noise) |
-| **Param Tuning** | `conservative` | **0.551** | **0.090** | **Kappa +41%** (Best Daily Model) |
-| **On-chain Data** | `onchain_enhanced` | 0.546 | 0.081 | No immediate gain vs. technicals |
-| **Model Comparison** | XGBoost/CatBoost/RF | 0.531-0.540 | 0.051-0.069 | LightGBM remains SOTA |
-| **Ensemble** | Voting/Stacking | 0.541-0.547 | 0.071-0.082 | Complexity did not yield significant ROI |
+| **初始基线** | `baseline_T14_X8` (3分类) | 0.375 | 0.047 | 旧版基准 |
+| **标签优化** | `binary_T14_X8` | 0.527 | 0.042 | **Accuracy +40%** (切换至二分类) |
+| **特征筛选** | `top30_binary` | 0.541 | 0.064 | **Kappa +52%** (减少噪声) |
+| **参数调优** | `conservative` | **0.551** | **0.090** | **Kappa +41%** (最佳日线模型) |
+| **链上数据** | `onchain_enhanced` | 0.546 | 0.081 | 相比纯技术指标无即时提升 |
+| **模型对比** | XGBoost/CatBoost/RF | 0.531-0.540 | 0.051-0.069 | LightGBM 仍是 SOTA |
+| **集成模型** | Voting/Stacking | 0.541-0.547 | 0.071-0.082 | 复杂度未带来显著回报 |
 
-**Key Takeaway**: Complex features (On-chain/Ensemble) struggled to beat a well-tuned, feature-selected LightGBM on Daily data.
+**关键结论**: 复杂的特征（链上/集成）在日线数据上难以击败经过精细调优且特征筛选后的 LightGBM。
 
 ---
 
-### 3.3 Phase 3: Weekly Prediction Breakthrough (Weekly) 🌟
+### 3.3 第三阶段：周线预测突破 (Weekly) 🌟
 
-shifting focus to a Weekly horizon proved to be a major breakthrough, yielding the highest stability and signal quality.
+将关注点转移到周线（Weekly）周期被证明是一个重大突破，产生了最高的稳定性和信号质量。
 
-| Experiment | Label | Features | Accuracy | Kappa | F1 Macro |
+| 实验名 | 标签 | 特征数 | Accuracy | Kappa | F1 Macro |
 |:---|:---|:---|:---|:---|:---|
-| `weekly_T4_X5` | T4, X5% | All | 0.571 | 0.127 | 0.564 |
-| `weekly_T4_X8` | T4, X8% | All | 0.548 | 0.083 | 0.537 |
-| `weekly_T3_X5` | T3, X5% | All | 0.565 | 0.116 | 0.558 |
-| `weekly_T2_X3` | T2, X3% | All | 0.548 | 0.082 | 0.535 |
-| `weekly_conservative` | T4, X5% + Opt | All | 0.569 | 0.124 | 0.562 |
-| `weekly_enhanced` | T4, X5% + Ext | All + Onchain | 0.554 | 0.096 | 0.545 |
+| `weekly_T4_X5` | T4, X5% | 全量 | 0.571 | 0.127 | 0.564 |
+| `weekly_T4_X8` | T4, X8% | 全量 | 0.548 | 0.083 | 0.537 |
+| `weekly_T3_X5` | T3, X5% | 全量 | 0.565 | 0.116 | 0.558 |
+| `weekly_T2_X3` | T2, X3% | 全量 | 0.548 | 0.082 | 0.535 |
+| `weekly_conservative` | T4, X5% + Opt | 全量 | 0.569 | 0.124 | 0.562 |
+| `weekly_enhanced` | T4, X5% + Ext | 全量 + Onchain | 0.554 | 0.096 | 0.545 |
 | `weekly_refined_top25` | **T4, X5% + Top25** | **25** | **0.576** | **0.138** | **0.570** |
 | `weekly_top15` | T4, X5% + Top15 | 15 | 0.564 | 0.113 | 0.556 |
 
-**Breakthrough**: The `weekly_refined_top25` experiment achieved the project's highest scores (**Accuracy 57.6%, Kappa 0.138**), validating that weekly trends are cleaner and more predictable than daily noise.
+**突破**: `weekly_refined_top25` 实验取得了项目最高分 (**Accuracy 57.6%, Kappa 0.138**)，验证了周线趋势比日线噪声更清晰、更可预测。
 
 ---
 
-### 3.4 Supplementary Analysis Reports
+### 3.4 补充分析报告
 
-Detailed breakdowns of specific study areas can be found in the `reports/` directory:
+特定研究领域的详细细分可以在 `reports/` 目录中找到：
 
--   📄 **`phase2_summary.md`**: Comprehensive summary of the Daily optimization phase.
--   📄 **`label_study_summary.md`**: Analysis of different labeling parameters (T14 vs T7, X5 vs X8).
--   📄 **`feature_study_summary.md`**: Deep dive into feature importance and selection (Top 30 vs Full).
--   📄 **`derivatives_analysis.md`**: Specific analysis of utilizing derivatives data (Funding Rates, CVD).
--   📄 **`diagnostic_analysis.md`**: Model diagnostic checks and error analysis.
--   📄 **`compare_baseline_...md`**: The initial v1 vs v2 detailed comparison.
-
----
-
-## 4. Recommendations & Future Work
-
-Based on the current state, the following roadmap is recommended:
-
-### short-term (Optimization)
-1.  **Feature Selection**: Run a recursive feature elimination (RFE) or permutation importance experiment to prune the 340 features down to the most effective ~50-100.
-2.  **Full Training**: Run `baseline_v2` with full hyperparameters (`n_estimators=1000+`, lower learning rate) to see if the complex feature set shines with more compute.
-3.  **Hyperparameter Tuning**: Use the `param_tuning` category to optimize LightGBM parameters for the new feature sets.
-
-### Long-term (Expansion)
-1.  **Ensemble Methods**: Implement Stacking or Voting classifiers combining XGBoost, CatBoost, and Random Forests (classes already exist in code).
-2.  **Real Data Integration**: Connect the `download_onchain.py` scripts to live APIs (Glassnode/CryptoQuant) for production inference.
-3.  **Deep Learning**: Explore LSTM/Transformer models using the sequence data prepared by the `LagRolling` feature generator.
+-   📄 **`phase2_summary.md`**: 日线优化阶段的综合总结。
+-   📄 **`label_study_summary.md`**: 不同标签参数 (T14 vs T7, X5 vs X8) 的分析。
+-   📄 **`feature_study_summary.md`**: 特征重要性与筛选 (Top 30 vs Full) 的深度剖析。
+-   📄 **`derivatives_analysis.md`**: 利用衍生品数据 (资金费率, CVD) 的具体分析。
+-   📄 **`diagnostic_analysis.md`**: 模型诊断检查与错误分析。
+-   📄 **`compare_baseline_...md`**: 初始 v1 vs v2 的详细对比。
 
 ---
 
-## 5. Deliverables
+## 4. 建议与未来工作
 
-- **Codebase**: Full Python source in `src/`.
-- **Configs**: YAML configurations for all experiment stages in `configs/`.
-- **Reports**: Detailed markdown reports in `reports/`.
-- **Registry**: JSON registry of all experiments in `experiments/registry.json`.
+基于当前状态，建议遵循以下路线图：
 
-**Status**: ✅ Platform Ready for Advanced Research.
+### 短期 (优化)
+1.  **特征筛选**: 运行递归特征消除 (RFE) 或排列重要性实验，将 340 个特征精简至最有效的 ~50-100 个。
+2.  **全量训练**: 使用完整超参数 (`n_estimators=1000+`, 更低学习率) 运行 `baseline_v2`，观察复杂特征集在更多算力下是否表现更好。
+3.  **超参数调优**: 使用 `param_tuning` 类别为新特征集优化 LightGBM 参数。
+
+### 长期 (扩展)
+1.  **集成方法**: 实现结合 XGBoost, CatBoost, 和 Random Forests 的 Stacking 或 Voting 分类器 (代码中已存在类)。
+2.  **实盘数据集成**: 将 `download_onchain.py` 脚本连接到实时 API (Glassnode/CryptoQuant) 进行生产推理。
+3.  **深度学习**: 利用 `LagRolling` 特征生成器准备的序列数据，探索 LSTM/Transformer 模型。
+
+---
+
+## 5. 交付物
+
+- **代码库**: `src/` 目录下的完整 Python 源码。
+- **配置**: `configs/` 目录下所有实验阶段的 YAML 配置文件。
+- **报告**: `reports/` 目录下详细的 Markdown 报告。
+- **注册表**: `experiments/registry.json` 中所有实验的 JSON 注册表。
+
+**状态**: ✅ 平台已准备好用于高级研究。
