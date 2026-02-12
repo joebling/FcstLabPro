@@ -41,9 +41,12 @@ We expanded the feature space significantly to capture more market dynamics:
 
 ## 3. Key Experiment Findings
 
-We conducted a comparative analysis between the legacy-style baseline and the new expanded feature set.
+We conducted extensive experiments ranging from infrastructure verification to deep daily optimization and weekly strategy exploration.
 
-### Experiments Compared
+### 3.1 Phase 1: Infrastructure & Baseline Comparison
+We first validated the new v2 infrastructure by comparing the legacy-style baseline against the new expanded feature set.
+
+#### Experiments Compared
 1.  **`baseline_T14_X8` (v1)**:
     -   **Features**: 77 (Technical + Volume only).
     -   **Model**: LightGBM (500 estimators).
@@ -53,7 +56,7 @@ We conducted a comparative analysis between the legacy-style baseline and the ne
     -   **Model**: LightGBM (200 estimators - "Quick" run).
     -   **Strategy**: Reversal Label (14d window, 8% threshold).
 
-### Performance Metrics
+#### Performance Metrics (v1 vs v2)
 
 | Metric | Baseline v1 (77 feats) | Baseline v2 (340 feats) | Change |
 |:---|:---:|:---:|:---:|
@@ -61,13 +64,57 @@ We conducted a comparative analysis between the legacy-style baseline and the ne
 | **F1 Macro** | **0.3546** | 0.3193 | 📉 -0.035 |
 | **Cohen Kappa** | **0.0466** | -0.0130 | 📉 -0.059 |
 
-### 💡 Insight & Analysis
-- **Quality > Quantity?** The v1 baseline with fewer features performed better than the "quick" v2 run. This suggests that simply adding hundreds of features without careful selection or sufficient regularization/tuning can introduce noise.
-- **Model Tuning**: The v2 run used fewer estimators (200 vs 500) for speed. It is likely that the model underfitted the complex 340-feature space.
-- **Feature Importance Shift**:
-    -   **v1 Top Features**: `sma_cross_50_200`, `low_50d_dist`, `vol_volatility_20`.
-    -   **v2 Top Features**: `sth_sopr_std30` (On-chain), `rsi_14_std30`, `buy_pressure_std30` (Flow).
-    -   **New Signals**: The model *did* pick up on new feature sets (On-chain and Flow) as important, finding distinct signals that were not present in v1.
+**Insight**: The initial v2 run ("quick") underperformed due to noise from unselected features and reduced model estimators, prompting the need for the optimizations seen in Phase 2.
+
+---
+
+### 3.2 Phase 2: Daily Optimization Loop (Daily)
+
+We iteratively optimized the daily prediction models, moving from multi-class to binary classification, selecting features, and tuning parameters.
+
+| Stage | Experiment | Accuracy | Kappa | Improvement/Notes |
+|:---|:---|:---|:---|:---|
+| **Initial baseline** | `baseline_T14_X8` (3-class) | 0.375 | 0.047 | Legacy benchmark |
+| **Label Optimization** | `binary_T14_X8` | 0.527 | 0.042 | **Accuracy +40%** (Switch to Binary) |
+| **Feature Selection** | `top30_binary` | 0.541 | 0.064 | **Kappa +52%** (Reduced noise) |
+| **Param Tuning** | `conservative` | **0.551** | **0.090** | **Kappa +41%** (Best Daily Model) |
+| **On-chain Data** | `onchain_enhanced` | 0.546 | 0.081 | No immediate gain vs. technicals |
+| **Model Comparison** | XGBoost/CatBoost/RF | 0.531-0.540 | 0.051-0.069 | LightGBM remains SOTA |
+| **Ensemble** | Voting/Stacking | 0.541-0.547 | 0.071-0.082 | Complexity did not yield significant ROI |
+
+**Key Takeaway**: Complex features (On-chain/Ensemble) struggled to beat a well-tuned, feature-selected LightGBM on Daily data.
+
+---
+
+### 3.3 Phase 3: Weekly Prediction Breakthrough (Weekly) 🌟
+
+shifting focus to a Weekly horizon proved to be a major breakthrough, yielding the highest stability and signal quality.
+
+| Experiment | Label | Features | Accuracy | Kappa | F1 Macro |
+|:---|:---|:---|:---|:---|:---|
+| `weekly_T4_X5` | T4, X5% | All | 0.571 | 0.127 | 0.564 |
+| `weekly_T4_X8` | T4, X8% | All | 0.548 | 0.083 | 0.537 |
+| `weekly_T3_X5` | T3, X5% | All | 0.565 | 0.116 | 0.558 |
+| `weekly_T2_X3` | T2, X3% | All | 0.548 | 0.082 | 0.535 |
+| `weekly_conservative` | T4, X5% + Opt | All | 0.569 | 0.124 | 0.562 |
+| `weekly_enhanced` | T4, X5% + Ext | All + Onchain | 0.554 | 0.096 | 0.545 |
+| `weekly_refined_top25` | **T4, X5% + Top25** | **25** | **0.576** | **0.138** | **0.570** |
+| `weekly_top15` | T4, X5% + Top15 | 15 | 0.564 | 0.113 | 0.556 |
+
+**Breakthrough**: The `weekly_refined_top25` experiment achieved the project's highest scores (**Accuracy 57.6%, Kappa 0.138**), validating that weekly trends are cleaner and more predictable than daily noise.
+
+---
+
+### 3.4 Supplementary Analysis Reports
+
+Detailed breakdowns of specific study areas can be found in the `reports/` directory:
+
+-   📄 **`phase2_summary.md`**: Comprehensive summary of the Daily optimization phase.
+-   📄 **`label_study_summary.md`**: Analysis of different labeling parameters (T14 vs T7, X5 vs X8).
+-   📄 **`feature_study_summary.md`**: Deep dive into feature importance and selection (Top 30 vs Full).
+-   📄 **`derivatives_analysis.md`**: Specific analysis of utilizing derivatives data (Funding Rates, CVD).
+-   📄 **`diagnostic_analysis.md`**: Model diagnostic checks and error analysis.
+-   📄 **`compare_baseline_...md`**: The initial v1 vs v2 detailed comparison.
 
 ---
 
