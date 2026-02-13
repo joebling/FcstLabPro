@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_v5_20260213_020752_034069",
+  "name": "weekly_bull_v5",
+  "description": "全面优化版多头 v5：directional标签, purge, 特征选择, 全特征集",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v5",
+    "optimized"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T02:07:52.825691",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 75.03,
+  "aggregate_metrics": {
+    "accuracy": 0.7137287663603453,
+    "f1_binary": 0.20923076923076922,
+    "precision_binary": 0.25092250922509224,
+    "recall_binary": 0.17941952506596306,
+    "f1_macro": 0.5172301415007977,
+    "cohen_kappa": 0.040315829864494335
+  }
+}

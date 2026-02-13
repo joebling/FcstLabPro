@@ -1,44 +1,44 @@
-# ⚡ Derivatives Analysis
+# ⚡ 衍生品分析
 
-**Date**: 2026-02-13
-**Focus**: Investigating the predictive power of Futures Market data (Funding Rates, Open Interest, CVD).
-
----
-
-## 1. Hypothesis
-Derivatives markets often lead spot markets. We hypothesized that:
-1.  **Positive Funding Rate** -> Overheated (Bearish signal?)
-2.  **Rising Open Interest (OI)** -> Impending volatility.
-3.  **CVD Divergence** -> Smart money accumulating/distributing.
+**日期**: 2026-02-13
+**焦点**: 调查期货市场数据 (资金费率, 持仓量, CVD) 的预测能力。
 
 ---
 
-## 2. Experiments & Findings
-
-### 2.1 Funding Rate
--   **Observation**: Extreme funding rates (very high positive or negative) are mean-reverting.
--   **Signal**: `funding_rate_rolling_mean_30` showed weak correlation with future direction (Corr: 0.02).
--   **Result**: Not a strong primary predictor for *price direction*, but good for regime detection.
-
-### 2.2 Open Interest (OI)
--   **Observation**: High OI usually precedes a "flush" (rapid price move).
--   **Signal**: `oi_change_pct` was useful for predicting *volatility*, but not *direction*.
--   **Result**: Helpful for risk management, less so for profit targeting.
-
-### 2.3 Cumulative Volume Delta (CVD)
--   **Hypothesis**: Spot CVD > Futures CVD implies genuine demand.
--   **Feature**: `cvd_divergence` (Spot CVD - Perp CVD).
--   **Result**: This was the **most promising derivatives feature**.
-    -   When Spot buying > Perp buying, price tended to rise over T+7 days.
-    -   It ranked in the Top 40 features in the v2 baseline.
+## 1. 假设
+衍生品市场通常领先于现货市场。我们假设：
+1.  **正资金费率** -> 市场过热 (看跌信号?)
+2.  **持仓量 (OI) 上升** -> 即将到来的波动。
+3.  **CVD 背离** -> 聪明钱在累积/派发。
 
 ---
 
-## 3. Implementation Challenges
+## 2. 实验与发现
 
--   **Data Quality**: Historical derivatives data (especially prior to 2020) is sparse and often noisy across exchanges.
--   **Stationarity**: Interpreting raw OI is difficult as the market cap grows. We had to normalize OI by Market Cap (`oi_ratio`), which improved performance.
+### 2.1 资金费率 (Funding Rate)
+-   **观察**: 极端的资金费率（极高正值或负值）具有均值回归特性。
+-   **信号**: `funding_rate_rolling_mean_30` 显示与未来方向的相关性较弱 (Corr: 0.02)。
+-   **结果**: 不是 *价格方向* 的强力主要预测因子，但对于识别市场状态（体制检测）很有用。
 
-## 4. Conclusion
+### 2.2 持仓量 (Open Interest, OI)
+-   **观察**: 高 OI 通常先于“清洗” (价格快速移动)。
+-   **信号**: `oi_change_pct` 对于预测 *波动率* 很有用，但对 *方向* 用处不大。
+-   **结果**: 有助于风险管理，但对盈利目标帮助较小。
 
-Derivatives data adds value, but specifically the **Flow/CVD** components, not the headline "Funding Rate". Future work should focus on **Exchange Flows** (Stablecoin inflows) rather than just Funding/OI.
+### 2.3 累积成交量增量 (Cumulative Volume Delta, CVD)
+-   **假设**: 现货 CVD > 永续合约 CVD 暗示真正的需求。
+-   **特征**: `cvd_divergence` (现货 CVD - 永续 CVD)。
+-   **结果**: 这是 **最有前途的衍生品特征**。
+    -   当现货买入量 > 合约买入量时，价格倾向于在 T+7 天内上涨。
+    -   它在 v2 基线中排名前 40。
+
+---
+
+## 3. 实施挑战
+
+-   **数据质量**: 历史衍生品数据（尤其是 2020 年之前）在各交易所之间稀疏且常常充满噪声。
+-   **平稳性**: 随着市值增长，解释原始 OI 变得困难。我们需要通过市值进行归一化 (`oi_ratio`)，这提高了性能。
+
+## 4. 结论
+
+衍生品数据增加了价值，但具体来说是 **资金流/CVD** 组件，而不是标题性的“资金费率”。未来的工作应集中在 **交易所流量** (稳定币流入) 而非仅仅是资金费率/OI。

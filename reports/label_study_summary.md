@@ -1,23 +1,23 @@
-# 🏷️ Label Study Summary
+# 🏷️ 标签研究总结
 
-**Date**: 2026-02-13
-**Focus**: Analyzing the impact of different Labeling parameters (`T` days, `X` threshold).
-
----
-
-## 1. Experiment Setup
-
-We tested various combinations of:
--   **T (Horizon)**: How far into the future we look (7 days vs 14 days).
--   **X (Threshold)**: The minimum return required to trigger a "Buy" signal (5% vs 8%).
-
-*All experiments used the standard Binary LightGBM modelSetup.*
+**日期**: 2026-02-13
+**焦点**: 分析不同标签参数 (`T` 天数, `X` 阈值) 的影响。
 
 ---
 
-## 2. Results Matrix
+## 1. 实验设置
 
-| Label Config | Label Name | Accuracy | Kappa | F1 Macro | Precision | Recall |
+我们测试了以下多种组合：
+-   **T (预测窗口)**: 我们看多远的未来 (7天 vs 14天)。
+-   **X (阈值)**: 触发“买入”信号所需的最小回报率 (5% vs 8%)。
+
+*所有实验均使用标准的二分类 LightGBM 模型设置。*
+
+---
+
+## 2. 结果矩阵
+
+| 标签配置 | 标签名 | Accuracy | Kappa | F1 Macro | Precision | Recall |
 |:---|:---|:---|:---|:---|:---|:---|
 | **T=14, X=8%** | `14d_8pct` | **0.551** | **0.090** | 0.545 | 0.550 | 0.540 |
 | **T=14, X=5%** | `14d_5pct` | 0.533 | 0.055 | 0.530 | 0.532 | 0.528 |
@@ -26,22 +26,22 @@ We tested various combinations of:
 
 ---
 
-## 3. Analysis
+## 3. 分析
 
-### 3.1 Longer Horizon is Easier (`T=14` > `T=7`)
-Experiments consistently showed that predicting 14 days out is more accurate than predicting 7 days out.
--   **Reasoning**: Short-term price action (7 days) is dominated by market noise and random walk behavior. Over 14 days, the fundamental trends have more time to manifest and override the noise.
+### 3.1 长周期更容易 (`T=14` > `T=7`)
+实验一致表明，预测 14 天后的情况比 7 天后更准确。
+-   **理由**: 短期价格行为 (7天) 被市场噪声和随机游走主导。超过 14 天，基本面趋势有更多时间显现并压倒噪声。
 
-### 3.2 Higher Threshold is Cleaner (`X=8%` > `X=5%`)
-The stricter `X=8%` threshold outperformed the lower `X=5%`.
--   **Reasoning**: A 5% move in Crypto can happen due to random volatility. An 8% move is more likely to represent a genuine structural shift or trend. Using a higher threshold filters out "false positives" caused by regular volatility.
+### 3.2 高阈值更清晰 (`X=8%` > `X=5%`)
+更严格的 `X=8%` 阈值优于较低的 `X=5%`。
+-   **理由**: 加密货币 5% 的波动可能纯粹源于随机波动。8% 的波动更可能代表真正的结构性转变或趋势。使用较高阈值过滤掉了由常规波动引起的“假阳性”。
 
-### 3.3 Class Balance
--   `T=14, X=8%` provided a relatively balanced dataset (~45% positive samples).
--   `T=14, X=5%` resulted in too many positive labels (~60%+), causing the model to bias towards predicting "Buy" all the time, which hurt its ability to detect "Sell/Avoid" periods.
+### 3.3 类别平衡
+-   `T=14, X=8%` 提供了一个相对平衡的数据集 (~45% 正样本)。
+-   `T=14, X=5%` 导致正样本过多 (~60%+)，导致模型倾向于一直预测“买入”，损害了其检测“卖出/观望”时期的能力。
 
 ---
 
-## 4. Conclusion
+## 4. 结论
 
-For future experiments (including Weekly), we should favor **longer horizons** and **significant thresholds**. This confirms the pivot to Weekly data where we use `T=4 weeks` (28 days) and significant specific returns.
+对于未来的实验（包括周线），我们将倾向于 **更长的预测窗口** 和 **显著的阈值**。这证实了向周线数据的转型是正确的，我们将使用 `T=4周` (28天) 和显著的具体回报率。

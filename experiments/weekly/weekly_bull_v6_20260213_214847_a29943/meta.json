@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_v6_20260213_214847_a29943",
+  "name": "weekly_bull_v6",
+  "description": "综合最优版多头 v6：reversal T=14, SPW, 5特征集, 充分学习",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v6",
+    "best"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T21:48:47.390671",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 109.07,
+  "aggregate_metrics": {
+    "accuracy": 0.531328320802005,
+    "f1_binary": 0.454103146286085,
+    "precision_binary": 0.503959683225342,
+    "recall_binary": 0.4132231404958678,
+    "f1_macro": 0.5217575990030083,
+    "cohen_kappa": 0.05050461727279032
+  }
+}

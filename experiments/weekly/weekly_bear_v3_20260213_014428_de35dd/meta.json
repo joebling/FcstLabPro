@@ -1,0 +1,29 @@
+{
+  "experiment_id": "weekly_bear_v3_20260213_014428_de35dd",
+  "name": "weekly_bear_v3",
+  "description": "改良版空头模型 v3：binary objective, scale_pos_weight, T=14, X=0.05",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v3"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T01:44:28.967699",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 79.85,
+  "aggregate_metrics": {
+    "accuracy": 0.5536062378167641,
+    "f1_binary": 0.384172109104879,
+    "precision_binary": 0.3306878306878307,
+    "recall_binary": 0.458295142071494,
+    "f1_macro": 0.5170478366009217,
+    "cohen_kappa": 0.04824849223461758
+  }
+}

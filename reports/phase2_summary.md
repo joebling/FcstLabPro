@@ -1,48 +1,48 @@
-# 📊 Phase 2 Summary: Daily Optimization Loop
+# 📊 第二阶段总结：日线优化循环
 
-**Date**: 2026-02-13
-**Scope**: Daily Prediction Models (24h timeframe data)
-**Goal**: Improve upon the Baseline v1 performance through iterative optimization.
+**日期**: 2026-02-13
+**范围**: 日线预测模型 (24小时数据周期)
+**目标**: 通过迭代优化提高基线 v1 的性能。
 
 ---
 
-## 1. Overview of Experiments
+## 1. 实验概览
 
-In Phase 2, we moved from the initial infrastructure validation to aggressively optimizing the model for Daily data. We tested hypothesis across Label definitions, Feature Selection, and Model Tuning.
+在第二阶段，我们从初步的基础设施验证转向了对日线数据的激进模型优化。我们测试了包括标签定义、特征筛选和模型调优在内的多个假设。
 
-| Stage | Experiment ID | Accuracy | Kappa | Change vs Prev | Key Action |
+| 阶段 | 实验 ID | Accuracy | Kappa | 变化 vs 前值 | 关键动作 |
 |:---|:---|:---|:---|:---|:---|
-| **1. Baseline** | `baseline_T14_X8` | 0.375 | 0.047 | - | Initial Multi-class (3-class) setup. |
-| **2. Label Opt** | `binary_T14_X8` | **0.527** | 0.042 | Acc +40% | Switched to **Binary Classification** (0/1). |
-| **3. Feat Select**| `top30_binary` | 0.541 | 0.064 | Kappa +52% | Reduced features from 340+ to **Top 30**. |
-| **4. Tuning** | `conservative` | **0.551** | **0.090** | Kappa +41% | Tuned parameters to reduce overfitting. |
-| **5. Enhanced** | `onchain_enhanced`| 0.546 | 0.081 | - | Added On-chain/Derivative features. |
-| **6. Model** | `xgboost/catboost`| 0.531 | 0.051 | - | Tested alternative algorithms. |
+| **1. 基线** | `baseline_T14_X8` | 0.375 | 0.047 | - | 初始多分类 (3-class) 设置。 |
+| **2. 标签优化** | `binary_T14_X8` | **0.527** | 0.042 | Acc +40% | 切换至 **二分类** (0/1)。 |
+| **3. 特征筛选**| `top30_binary` | 0.541 | 0.064 | Kappa +52% | 特征数从 340+ 减少至 **Top 30**。 |
+| **4. 调优** | `conservative` | **0.551** | **0.090** | Kappa +41% | 调整参数以减少过拟合。 |
+| **5. 增强** | `onchain_enhanced`| 0.546 | 0.081 | - | 增加链上/衍生品特征。 |
+| **6. 模型** | `xgboost/catboost`| 0.531 | 0.051 | - | 测试其他算法。 |
 
 ---
 
-## 2. Key Insights
+## 2. 关键洞察
 
-### 2.1 The "Binary" Switch
-Transitioning from a 3-class problem (Buy/Sell/Hold) to a Binary problem (Signal/No-Signal) provided the largest jump in raw Accuracy (37.5% -> 52.7%).
--   The 3-class model struggled significantly to distinguish "Hold" from the other classes.
--   Binary classification simplified the decision boundary.
+### 2.1 "二分类" 切换
+从三分类问题 (买入/卖出/持有) 转换为二分类问题 (有信号/无信号) 提供了原始准确率的最大提升 (37.5% -> 52.7%)。
+-   三分类模型在区分“持有”与其他类别时非常困难。
+-   二分类简化了决策边界。
 
-### 2.2 Less is More (Feature Selection)
-The `top30_binary` experiment significantly outperformed the full feature set (Kappa 0.064 vs 0.042).
--   **Finding**: The 340+ feature set contains significant noise for Daily predictions.
--   **Action**: Using only the most predictive features (mostly volatility and technicals) improved signal stability.
+### 2.2 少即是多 (特征筛选)
+`top30_binary` 实验显著优于全特征集 (Kappa 0.064 vs 0.042)。
+-   **发现**: 340+ 特征集包含了大量日线预测的噪声。
+-   **动作**: 仅使用最具预测性的特征（主要是波动率和技术指标）提高了信号稳定性。
 
-### 2.3 Overfitting is the Enemy
-The `conservative` experiment, which purposely used a lower learning rate and constrained tree depth, achieved the **best Daily performance (Kappa 0.090)**.
--   This confirms that financial time-series data is extremely noisy, and flexible models (like default LightGBM) tend to memorize noise rather than learn patterns.
+### 2.3 过拟合是敌人
+`conservative` (保守策略) 实验特意使用了较低的学习率和受限的树深，取得了 **最佳日线表现 (Kappa 0.090)**。
+-   这证实了金融时间序列数据极具噪声，灵活的模型（如默认的 LightGBM）倾向于记忆噪声而非学习模式。
 
-### 2.4 Advanced Features & Models
--   **On-chain Data**: Did not yield immediate improvements for Daily trading (`onchain_enhanced` performed slightly worse than `conservative`). On-chain metrics likely move too slowly for daily precision.
--   **XGBoost/CatBoost**: LightGBM outperformed both in this specific setup, likely due to its better handling of the specific feature distribution or the limited sample size.
+### 2.4 高级特征与模型
+-   **链上数据**: 在日线交易中未产生即时提升 (`onchain_enhanced` 表现略逊于 `conservative`)。链上指标对于日线精度来说可能变化太慢。
+-   **XGBoost/CatBoost**: 在此特定设置下，LightGBM 优于这两者，可能是由于其对特定特征分布的处理更好或样本量限制。
 
 ---
 
-## 3. Conclusion for Phase 2
+## 3. 第二阶段结论
 
-While we squeezed significant performance out of the Daily models (Kappa 0.047 -> 0.090), the ceiling remained low. This difficulty in predicting Daily price action led to the strategic pivot in **Phase 3** (Weekly Predictions), which ultimately unlocked much higher performance.
+虽然我们挤出了日线模型的显著性能提升 (Kappa 0.047 -> 0.090)，但天花板仍然很低。这种预测日线价格行为的困难导致了 **第三阶段** (周线预测) 的战略转型，最终解锁了更高的性能。

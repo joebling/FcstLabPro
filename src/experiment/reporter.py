@@ -147,8 +147,20 @@ def generate_experiment_report(
     # ========== 混淆矩阵 ==========
     lines.append("## 9. 混淆矩阵")
     lines.append("")
-    cm_labels = ["顶部反转(0)", "正常(1)", "底部反转(2)"]
-    cm_df = pd.DataFrame(confusion_mat, index=cm_labels, columns=cm_labels)
+    n_classes = confusion_mat.shape[0]
+    if n_classes == 2:
+        # 二分类（Bull/Bear 模型）
+        label_map = label_cfg.get("map", {})
+        # 检测是 Bull 还是 Bear 模型
+        if label_map and label_map.get(2, label_map.get("2")) == 1:
+            cm_labels = ["非涨(0)", "大涨(1)"]
+        elif label_map and label_map.get(0, label_map.get("0")) == 1:
+            cm_labels = ["非跌(0)", "大跌(1)"]
+        else:
+            cm_labels = ["负例(0)", "正例(1)"]
+    else:
+        cm_labels = ["顶部反转(0)", "正常(1)", "底部反转(2)"]
+    cm_df = pd.DataFrame(confusion_mat, index=cm_labels[:n_classes], columns=cm_labels[:n_classes])
     lines.append(tabulate(cm_df, headers="keys", tablefmt="pipe"))
     lines.append("")
 

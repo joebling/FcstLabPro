@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v2_20260213_014223_a8e010",
+  "name": "weekly_bear_v2",
+  "description": "优化版空头模型 v2：T=14, X=0.03, binary objective, 类别平衡, 早停",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v2",
+    "optimized"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T01:42:23.355925",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 6.95,
+  "aggregate_metrics": {
+    "accuracy": 0.6892230576441103,
+    "f1_binary": 0.04288164665523156,
+    "precision_binary": 0.3333333333333333,
+    "recall_binary": 0.022914757103574702,
+    "f1_macro": 0.42868816375314767,
+    "cohen_kappa": 0.003951826489465904
+  }
+}

@@ -23,8 +23,6 @@ DEFAULT_PARAMS = {
     "reg_lambda": 0.1,
     "random_state": 42,
     "verbose": -1,
-    "objective": "multiclass",
-    "num_class": 3,
 }
 
 
@@ -34,12 +32,69 @@ class LightGBMModel(BaseModel):
 
     def __init__(self, params: dict[str, Any] | None = None):
         merged = {**DEFAULT_PARAMS, **(params or {})}
+        # 移除旧的硬编码 objective/num_class，让 fit 时自动判断
+        # 用户仍可通过 params 显式指定以覆盖
         super().__init__(merged)
-        self.model = lgb.LGBMClassifier(**self.params)
+        self.model = None
+        self._auto_scale_pos_weight = merged.pop("auto_scale_pos_weight", True)
+        self._early_stopping_rounds = merged.pop("early_stopping_rounds", None)
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "LightGBMModel":
-        """训练 LightGBM 模型."""
-        self.model.fit(X, y)
+        """训练 LightGBM 模型.
+
+        自动检测二分类/多分类，并对二分类自动设置 scale_pos_weight。
+        """
+        params = self.params.copy()
+        n_classes = len(np.unique(y))
+
+        # --- 自动设置 objective 和 num_class ---
+        if "objective" not in params:
+            if n_classes == 2:
+                params["objective"] = "binary"
+                # 移除 num_class（binary 不需要）
+                params.pop("num_class", None)
+            else:
+                params["objective"] = "multiclass"
+                params["num_class"] = n_classes
+        elif params.get("objective") == "binary":
+            params.pop("num_class", None)
+
+        # --- 自动处理类别不平衡 (仅二分类) ---
+        if n_classes == 2 and self._auto_scale_pos_weight and "scale_pos_weight" not in params:
+            n_pos = (y == 1).sum()
+            n_neg = (y == 0).sum()
+            if n_pos > 0 and n_neg > 0:
+                spw = n_neg / n_pos
+                params["scale_pos_weight"] = spw
+                logger.info(f"自动设置 scale_pos_weight={spw:.3f} (neg={n_neg}, pos={n_pos})")
+
+        logger.info(f"LightGBM objective={params.get('objective')}, n_classes={n_classes}")
+
+        # --- 早停机制 ---
+        fit_kwargs = {}
+        if self._early_stopping_rounds and X.shape[0] > 500:
+            # 用训练集最后 10% 作为 validation
+            val_size = max(int(X.shape[0] * 0.1), 50)
+            X_train, X_val = X[:-val_size], X[-val_size:]
+            y_train, y_val = y[:-val_size], y[-val_size:]
+
+            callbacks = [
+                lgb.early_stopping(self._early_stopping_rounds, verbose=False),
+                lgb.log_evaluation(period=0),
+            ]
+
+            self.model = lgb.LGBMClassifier(**params)
+            self.model.fit(
+                X_train,
+                y_train,
+                eval_set=[(X_val, y_val)],
+                callbacks=callbacks,
+            )
+            logger.info(f"LightGBM 早停训练完成, best_iteration={self.model.best_iteration_}")
+        else:
+            self.model = lgb.LGBMClassifier(**params)
+            self.model.fit(X, y)
+
         self.is_fitted = True
         logger.info(f"LightGBM 训练完成, n_features={X.shape[1]}, n_samples={X.shape[0]}")
         return self

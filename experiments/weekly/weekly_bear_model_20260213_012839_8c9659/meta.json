@@ -1,0 +1,28 @@
+{
+  "experiment_id": "weekly_bear_model_20260213_012839_8c9659",
+  "name": "weekly_bear_model",
+  "description": "周线空头模型：预测未来4周跌幅超过5%的风险 (T=28, X=0.05). 标签映射: {0:1, 1:0, 2:0} → 1=大跌",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T01:28:39.298208",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 155.81,
+  "aggregate_metrics": {
+    "accuracy": 0.5901360544217688,
+    "f1_binary": 0.33791208791208793,
+    "precision_binary": 0.3124470787468247,
+    "recall_binary": 0.3678963110667996,
+    "f1_macro": 0.5205570291777188,
+    "cohen_kappa": 0.04396085055919474
+  }
+}

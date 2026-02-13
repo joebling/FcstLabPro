@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v4_20260213_015200_1b51f9",
+  "name": "weekly_bear_v4",
+  "description": "平衡版空头模型 v4：T=7, X=0.05, binary, 最优标签平衡",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v4",
+    "balanced"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T01:52:00.720768",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 95.6,
+  "aggregate_metrics": {
+    "accuracy": 0.6594263436368699,
+    "f1_binary": 0.30154197601370647,
+    "precision_binary": 0.26693629929221435,
+    "recall_binary": 0.3464566929133858,
+    "f1_macro": 0.5381766223283411,
+    "cohen_kappa": 0.08133112859146496
+  }
+}

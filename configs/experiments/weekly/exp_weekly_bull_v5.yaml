@@ -1,0 +1,70 @@
+# ============================================================
+# Weekly Bull Model v5: 全面优化版
+# 关键改进 (针对前4版诊断的问题):
+#   1. directional 标签 (取代 reversal，避免涨跌互斥问题)
+#   2. T=7, X=0.05 (最佳标签平衡点)
+#   3. binary objective + scale_pos_weight
+#   4. purge_gap=7 (防止标签泄漏)
+#   5. 特征选择 top_n=40 (128→40，减少噪声)
+#   6. 更多特征集 (加入 onchain, market_structure, lag_rolling)
+# ============================================================
+experiment:
+  name: "weekly_bull_v5"
+  description: "全面优化版多头 v5：directional标签, purge, 特征选择, 全特征集"
+  tags: ["weekly", "bull", "binary", "v5", "optimized"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - sentiment
+    - onchain
+    - market_structure
+    - lag_rolling
+  selection:
+    top_n: 40
+
+label:
+  strategy: "directional"    # 基于 T 日后实际收盘价，方向明确
+  T: 7
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 800
+    max_depth: 5
+    learning_rate: 0.05
+    num_leaves: 24
+    subsample: 0.8
+    colsample_bytree: 0.7
+    min_child_samples: 30
+    reg_alpha: 0.2
+    reg_lambda: 0.2
+    min_split_gain: 0.005
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  purge_gap: 7             # 防止标签泄漏
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

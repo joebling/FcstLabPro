@@ -1,0 +1,63 @@
+experiment:
+  name: weekly_bear_v2
+  description: 优化版空头模型 v2：T=14, X=0.03, binary objective, 类别平衡, 早停
+  tags:
+  - weekly
+  - bear
+  - binary
+  - v2
+  - optimized
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - sentiment
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: reversal
+  T: 14
+  X: 0.03
+  map:
+    0: 1
+    1: 0
+    2: 0
+model:
+  type: lightgbm
+  params:
+    n_estimators: 2000
+    max_depth: 5
+    learning_rate: 0.03
+    num_leaves: 24
+    subsample: 0.7
+    colsample_bytree: 0.7
+    min_child_samples: 30
+    reg_alpha: 0.3
+    reg_lambda: 0.3
+    random_state: 42
+    verbose: -1
+    min_split_gain: 0.01
+    early_stopping_rounds: 50
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+seed: 42

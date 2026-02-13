@@ -3,8 +3,8 @@ data/raw/*.csv
 data/raw/*.parquet
 
 # Experiments outputs (keep configs, ignore large files)
-experiments/*/model.joblib
-experiments/*/predictions.csv
+experiments/**/model.joblib
+experiments/**/predictions.csv
 
 # Python
 __pycache__/
@@ -34,3 +34,11 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
+
+# Signals (generated output)
+signals/
+
+# Environment / Secrets
+.env
+.env.*

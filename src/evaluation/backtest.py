@@ -47,6 +47,7 @@ def run_walk_forward(
     oos_window: int = 63,
     step: int = 21,
     metric_names: list[str] | None = None,
+    purge_gap: int = 0,
 ) -> BacktestResult:
     """执行 Walk-Forward 回测.
 
@@ -66,6 +67,9 @@ def run_walk_forward(
         Walk-Forward 参数
     metric_names : list[str] | None
         要计算的评估指标
+    purge_gap : int
+        训练集与测试集之间的间隔天数（防止标签泄漏）。
+        当标签使用 T 日前瞻窗口时，应设置 purge_gap >= T。
 
     Returns
     -------
@@ -79,8 +83,13 @@ def run_walk_forward(
     importance_sum = None
 
     for fold in folds:
-        X_train = X[fold.train_start:fold.train_end]
-        y_train = y[fold.train_start:fold.train_end]
+        # 应用 purge gap: 截断训练集尾部，避免标签泄漏
+        train_end = fold.train_end - purge_gap if purge_gap > 0 else fold.train_end
+        if train_end <= fold.train_start:
+            continue
+            
+        X_train = X[fold.train_start:train_end]
+        y_train = y[fold.train_start:train_end]
         X_test = X[fold.test_start:fold.test_end]
         y_test = y[fold.test_start:fold.test_end]
 

@@ -172,7 +172,7 @@
 ## 附录: 实验产物清单
 
 ### baseline_T14_X8
-- **目录**: `/Users/qiubling/Desktop/projects/FcstLabPro/experiments/baseline/baseline_T14_X8_20260212_233203_9f4a23`
+- **目录**: `experiments/baseline/baseline_T14_X8_20260212_233203_9f4a23`
   - `config.yaml` (874B)
   - `feature_importance.csv` (1.2KB)
   - `fold_metrics.csv` (6.1KB)
@@ -183,7 +183,7 @@
   - `report.md` (10.9KB)
 
 ### baseline_v2_quick
-- **目录**: `/Users/qiubling/Desktop/projects/FcstLabPro/experiments/baseline/baseline_v2_quick_20260212_235941_760429`
+- **目录**: `experiments/baseline/baseline_v2_quick_20260212_235941_760429`
   - `config.yaml` (975B)
   - `feature_importance.csv` (5.7KB)
   - `fold_metrics.csv` (2.1KB)

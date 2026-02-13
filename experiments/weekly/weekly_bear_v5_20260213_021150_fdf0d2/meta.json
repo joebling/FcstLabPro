@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v5_20260213_021150_fdf0d2",
+  "name": "weekly_bear_v5",
+  "description": "全面优化版空头 v5：directional标签, purge, 特征选择, 全特征集",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v5",
+    "optimized"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T02:11:50.848769",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 76.16,
+  "aggregate_metrics": {
+    "accuracy": 0.7883597883597884,
+    "f1_binary": 0.14221218961625282,
+    "precision_binary": 0.16710875331564987,
+    "recall_binary": 0.1237721021611002,
+    "f1_macro": 0.5107503133595876,
+    "cohen_kappa": 0.02454750807765993
+  }
+}

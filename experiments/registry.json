@@ -47,5 +47,463 @@
       "cohen_kappa": -0.012985952125261102
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_model_20260213_012601_231189",
+    "name": "weekly_bull_model",
+    "description": "周线多头模型：预测未来4周涨幅超过5%的机会 (T=28, X=0.05). 标签映射: {0:0, 1:0, 2:1} → 1=大涨",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary"
+    ],
+    "created_at": "2026-02-13T01:26:01.744472",
+    "status": "completed",
+    "duration_seconds": 157.55,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5858843537414966,
+      "f1_binary": 0.6739567060923901,
+      "precision_binary": 0.6981044845122515,
+      "recall_binary": 0.6514236410698878,
+      "f1_macro": 0.5532890326578456,
+      "cohen_kappa": 0.10843443516164186
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_model_20260213_012839_8c9659",
+    "name": "weekly_bear_model",
+    "description": "周线空头模型：预测未来4周跌幅超过5%的风险 (T=28, X=0.05). 标签映射: {0:1, 1:0, 2:0} → 1=大跌",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary"
+    ],
+    "created_at": "2026-02-13T01:28:39.298208",
+    "status": "completed",
+    "duration_seconds": 155.81,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5901360544217688,
+      "f1_binary": 0.33791208791208793,
+      "precision_binary": 0.3124470787468247,
+      "recall_binary": 0.3678963110667996,
+      "f1_macro": 0.5205570291777188,
+      "cohen_kappa": 0.04396085055919474
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v2_20260213_014215_4dc674",
+    "name": "weekly_bull_v2",
+    "description": "优化版多头模型 v2：T=14, X=0.03, binary objective, 类别平衡, 早停",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v2",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T01:42:15.400152",
+    "status": "completed",
+    "duration_seconds": 7.95,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.6067947646895016,
+      "f1_binary": 0.7421475529583638,
+      "precision_binary": 0.6377903327055869,
+      "recall_binary": 0.8873362445414847,
+      "f1_macro": 0.45724024775702476,
+      "cohen_kappa": 0.0003832478122935967
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v2_20260213_014223_a8e010",
+    "name": "weekly_bear_v2",
+    "description": "优化版空头模型 v2：T=14, X=0.03, binary objective, 类别平衡, 早停",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v2",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T01:42:23.355925",
+    "status": "completed",
+    "duration_seconds": 6.95,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.6892230576441103,
+      "f1_binary": 0.04288164665523156,
+      "precision_binary": 0.3333333333333333,
+      "recall_binary": 0.022914757103574702,
+      "f1_macro": 0.42868816375314767,
+      "cohen_kappa": 0.003951826489465904
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v3_20260213_014308_5b1459",
+    "name": "weekly_bull_v3",
+    "description": "改良版多头模型 v3：binary objective, scale_pos_weight, T=14, X=0.05",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v3"
+    ],
+    "created_at": "2026-02-13T01:43:08.430323",
+    "status": "completed",
+    "duration_seconds": 80.54,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5304928989139516,
+      "f1_binary": 0.45472186287192756,
+      "precision_binary": 0.5028612303290415,
+      "recall_binary": 0.4149940968122786,
+      "f1_macro": 0.521248461998311,
+      "cohen_kappa": 0.04908505613678649
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v3_20260213_014428_de35dd",
+    "name": "weekly_bear_v3",
+    "description": "改良版空头模型 v3：binary objective, scale_pos_weight, T=14, X=0.05",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v3"
+    ],
+    "created_at": "2026-02-13T01:44:28.967699",
+    "status": "completed",
+    "duration_seconds": 79.85,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5536062378167641,
+      "f1_binary": 0.384172109104879,
+      "precision_binary": 0.3306878306878307,
+      "recall_binary": 0.458295142071494,
+      "f1_macro": 0.5170478366009217,
+      "cohen_kappa": 0.04824849223461758
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v4_20260213_014722_6bd3cf",
+    "name": "weekly_bull_v4",
+    "description": "平衡版多头模型 v4：T=7, X=0.05, binary, 最优标签平衡",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v4",
+      "balanced"
+    ],
+    "created_at": "2026-02-13T01:47:22.785123",
+    "status": "completed",
+    "duration_seconds": 77.08,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.619604566972988,
+      "f1_binary": 0.28854166666666664,
+      "precision_binary": 0.31441543700340524,
+      "recall_binary": 0.2666025024061598,
+      "f1_macro": 0.5144722776510833,
+      "cohen_kappa": 0.031338060293025105
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v4_20260213_014839_6e773a",
+    "name": "weekly_bear_v4",
+    "description": "平衡版空头模型 v4：T=7, X=0.05, binary, 最优标签平衡",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v4",
+      "balanced"
+    ],
+    "created_at": "2026-02-13T01:48:39.862893",
+    "status": "completed",
+    "duration_seconds": 82.67,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.6594263436368699,
+      "f1_binary": 0.30154197601370647,
+      "precision_binary": 0.26693629929221435,
+      "recall_binary": 0.3464566929133858,
+      "f1_macro": 0.5381766223283411,
+      "cohen_kappa": 0.08133112859146496
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v4_20260213_015043_93f7d8",
+    "name": "weekly_bull_v4",
+    "description": "平衡版多头模型 v4：T=7, X=0.05, binary, 最优标签平衡",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v4",
+      "balanced"
+    ],
+    "created_at": "2026-02-13T01:50:43.395478",
+    "status": "completed",
+    "duration_seconds": 77.32,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.619604566972988,
+      "f1_binary": 0.28854166666666664,
+      "precision_binary": 0.31441543700340524,
+      "recall_binary": 0.2666025024061598,
+      "f1_macro": 0.5144722776510833,
+      "cohen_kappa": 0.031338060293025105
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v4_20260213_015200_1b51f9",
+    "name": "weekly_bear_v4",
+    "description": "平衡版空头模型 v4：T=7, X=0.05, binary, 最优标签平衡",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v4",
+      "balanced"
+    ],
+    "created_at": "2026-02-13T01:52:00.720768",
+    "status": "completed",
+    "duration_seconds": 95.6,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.6594263436368699,
+      "f1_binary": 0.30154197601370647,
+      "precision_binary": 0.26693629929221435,
+      "recall_binary": 0.3464566929133858,
+      "f1_macro": 0.5381766223283411,
+      "cohen_kappa": 0.08133112859146496
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v5_20260213_020752_034069",
+    "name": "weekly_bull_v5",
+    "description": "全面优化版多头 v5：directional标签, purge, 特征选择, 全特征集",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v5",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T02:07:52.825691",
+    "status": "completed",
+    "duration_seconds": 75.03,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.7137287663603453,
+      "f1_binary": 0.20923076923076922,
+      "precision_binary": 0.25092250922509224,
+      "recall_binary": 0.17941952506596306,
+      "f1_macro": 0.5172301415007977,
+      "cohen_kappa": 0.040315829864494335
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v5_20260213_020915_183f09",
+    "name": "weekly_bear_v5",
+    "description": "全面优化版空头 v5：directional标签, purge, 特征选择, 全特征集",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v5",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T02:09:15.302449",
+    "status": "completed",
+    "duration_seconds": 75.28,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.7883597883597884,
+      "f1_binary": 0.14221218961625282,
+      "precision_binary": 0.16710875331564987,
+      "recall_binary": 0.1237721021611002,
+      "f1_macro": 0.5107503133595876,
+      "cohen_kappa": 0.02454750807765993
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v5_20260213_021150_fdf0d2",
+    "name": "weekly_bear_v5",
+    "description": "全面优化版空头 v5：directional标签, purge, 特征选择, 全特征集",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v5",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T02:11:50.848769",
+    "status": "completed",
+    "duration_seconds": 76.16,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.7883597883597884,
+      "f1_binary": 0.14221218961625282,
+      "precision_binary": 0.16710875331564987,
+      "recall_binary": 0.1237721021611002,
+      "f1_macro": 0.5107503133595876,
+      "cohen_kappa": 0.02454750807765993
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v6_20260213_214515_57cde6",
+    "name": "weekly_bull_v6",
+    "description": "综合最优版多头 v6：directional标签, T=14, 无purge, 全特征, 适度正则",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v6",
+      "best"
+    ],
+    "created_at": "2026-02-13T21:45:15.412882",
+    "status": "completed",
+    "duration_seconds": 99.45,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.6466165413533834,
+      "f1_binary": 0.23783783783783785,
+      "precision_binary": 0.35294117647058826,
+      "recall_binary": 0.1793478260869565,
+      "f1_macro": 0.5039107623120673,
+      "cohen_kappa": 0.03867834434206763
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v6_20260213_214847_a29943",
+    "name": "weekly_bull_v6",
+    "description": "综合最优版多头 v6：reversal T=14, SPW, 5特征集, 充分学习",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v6",
+      "best"
+    ],
+    "created_at": "2026-02-13T21:48:47.390671",
+    "status": "completed",
+    "duration_seconds": 109.07,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.531328320802005,
+      "f1_binary": 0.454103146286085,
+      "precision_binary": 0.503959683225342,
+      "recall_binary": 0.4132231404958678,
+      "f1_macro": 0.5217575990030083,
+      "cohen_kappa": 0.05050461727279032
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v6_20260213_215211_1928bd",
+    "name": "weekly_bear_v6",
+    "description": "综合最优版空头 v6：reversal T=14, SPW, 5特征集, 充分学习",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v6",
+      "best"
+    ],
+    "created_at": "2026-02-13T21:52:11.464190",
+    "status": "completed",
+    "duration_seconds": 107.62,
+    "git_commit": "85a1ee5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5625174046226677,
+      "f1_binary": 0.38895371450797356,
+      "precision_binary": 0.33783783783783783,
+      "recall_binary": 0.458295142071494,
+      "f1_macro": 0.5241233547599508,
+      "cohen_kappa": 0.06024219815725251
+    },
+    "error": null
   }
 ]

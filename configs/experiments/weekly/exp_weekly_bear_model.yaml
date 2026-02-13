@@ -1,0 +1,57 @@
+# ============================================================
+# Weekly Bear Model: 周线空头预测模型
+# 预测目标: 识别顶部反转 (Class 0)，规避大跌风险或做空
+# ============================================================
+experiment:
+  name: "weekly_bear_model"
+  description: "周线空头模型：预测未来4周跌幅超过5%的风险 (T=28, X=0.05). 标签映射: {0:1, 1:0, 2:0} → 1=大跌"
+  tags: ["weekly", "bear", "binary"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - sentiment
+
+label:
+  strategy: "reversal"
+  T: 28        # 4 weeks * 7 days
+  X: 0.05      # 5%
+  # 标签映射: 0(跌) -> 1(正例), 1(平) -> 0, 2(涨) -> 0
+  map:
+    0: 1
+    1: 0
+    2: 0
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 1000
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

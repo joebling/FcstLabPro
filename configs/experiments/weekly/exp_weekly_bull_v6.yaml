@@ -1,0 +1,71 @@
+# ============================================================
+# Weekly Bull Model v6: 综合最优版
+# 吸取 v1-v5 的教训:
+#   - v1 (T=28, reversal): F1高但标签严重不平衡(正例66%), Kappa虚高
+#   - v3 (T=14, reversal+SPW): 更真实但F1下降
+#   - v4 (T=7, reversal+SPW): 标签最平衡但信号太弱
+#   - v5 (T=7, directional+purge+top40): directional标签正例太少(25.7%), 过度限制
+#
+# v6 策略 (基于标签分布分析):
+#   1. reversal 标签 + T=14 (Bull正例51.8%, 接近平衡, 比directional的33%好)
+#   2. binary + scale_pos_weight (自动处理残余不平衡)
+#   3. 5个特征集 (tech+vol+flow+sentiment+market_structure, 不含高噪声的lag_rolling)
+#   4. 不做特征预选 (避免预选偏差)
+#   5. 不用 purge_gap (保留更多训练数据)
+#   6. 适度正则化 + 更多树 (充分学习)
+# ============================================================
+experiment:
+  name: "weekly_bull_v6"
+  description: "综合最优版多头 v6：reversal T=14, SPW, 5特征集, 充分学习"
+  tags: ["weekly", "bull", "binary", "v6", "best"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - sentiment
+    - market_structure
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 1000
+    max_depth: 5
+    learning_rate: 0.05
+    num_leaves: 24
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.15
+    reg_lambda: 0.15
+    min_split_gain: 0.003
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

@@ -1,53 +1,53 @@
-# 🧬 Feature Study Summary
+# 🧬 特征研究总结
 
-**Date**: 2026-02-13
-**Focus**: Feature Importance Analysis & Selection Strategy
+**日期**: 2026-02-13
+**焦点**: 特征重要性分析与筛选策略
 
 ---
 
-## 1. Feature Importance Ranking (Top 20)
+## 1. 特征重要性排名 (Top 20)
 
-Aggregated from the best performing models (`conservative` and `weekly_refined`).
+汇总自表现最佳的模型 (`conservative` 和 `weekly_refined`)。
 
-| Rank | Feature Name | Category | Description | Importance (Gain) |
+| 排名 | 特征名 | 类别 | 描述 | 重要性 (Gain) |
 |:---|:---|:---|:---|:---|
-| 1 | `sth_sopr_std30` | On-chain | Short-Term Holder SOPR Volatility (30d) | High |
-| 2 | `rsi_14_std30` | Technical | RSI Volatility / Uncertainty | High |
-| 3 | `sma_cross_50_200` | Technical | Golden/Death Cross status | High |
-| 4 | `buy_pressure_std30` | Flow | Volatility of Buy/Sell volume imbalance | Med-High |
-| 5 | `lth_sopr_ma30` | On-chain | Long-Term Holder Profitability Trend | Med-High |
-| 6 | `dist_from_low_180d` | Mkt Struct | How far price is above 6-month lows | Medium |
-| 7 | `vol_volatility_20` | Volume | Stability of trading volume | Medium |
+| 1 | `sth_sopr_std30` | 链上 (On-chain) | 短期持有者 SOPR 波动率 (30d) | 高 |
+| 2 | `rsi_14_std30` | 技术 (Technical) | RSI 波动率 / 不确定性 | 高 |
+| 3 | `sma_cross_50_200` | 技术 (Technical) | 金叉/死叉状态 | 高 |
+| 4 | `buy_pressure_std30` | 资金流 (Flow) | 买卖量不平衡的波动率 | 中高 |
+| 5 | `lth_sopr_ma30` | 链上 (On-chain) | 长期持有者盈利趋势 | 中高 |
+| 6 | `dist_from_low_180d` | 结构 (Mkt Struct) | 价格距离6个月低点的距离 | 中 |
+| 7 | `vol_volatility_20` | 成交量 (Volume) | 交易量的稳定性 | 中 |
 | ... | ... | ... | ... | ... |
 
-*(Full list available in experiment artifacts)*
+*(完整列表可在实验产物中查看)*
 
 ---
 
-## 2. Category Performance Analysis
+## 2. 类别表现分析
 
-### 🏆 Top Performers
-1.  **Volatility Metrics (`_std`)**: Features measuring the *standard deviation* of other indicators (e.g., `rsi_std`, `sth_sopr_std`) consistently ranked highest.
-    *   *Insight*: The model finds "change in stability" more predictive than the raw value itself.
-2.  **Market Structure**: Distance from long-term highs/lows (`dist_from_low`) provides critical context on where we are in the cycle.
-3.  **On-chain (SOPR)**: Profitability ratios for Short-Term Holders (STH-SOPR) are excellent at detecting local tops/bottoms.
+### 🏆 最佳表现者
+1.  **波动率指标 (`_std`)**: 测量其他指标 *标准差* 的特征 (如 `rsi_std`, `sth_sopr_std`) 始终排名最高。
+    *   *洞察*: 模型发现“稳定性的变化”比原始值本身更具预测性。
+2.  **市场结构**: 距离长期高点/低点的距离 (`dist_from_low`) 提供了我们在周期中所处位置的关键背景。
+3.  **链上 (SOPR)**: 短期持有者 (STH-SOPR) 的盈利率极佳地探测到了局部顶部/底部。
 
-### 📉 Underperformers
-1.  **Raw Price/Volume**: Raw `close`, `volume` values are not stationary and confuse tree models.
-2.  **Lag features (Raw)**: Simple lags (`close_lag_1`) added noise. Rolling stats (`close_rolling_std`) were much better.
-3.  **Sentiment (Social)**: Social volume data was too noisy/sparse in this dataset to be effective.
+### 📉 表现不佳者
+1.  **原始价格/成交量**: 原始的 `close`, `volume` 值是非平稳的，会混淆树模型。
+2.  **滞后特征 (原始)**: 简单的滞后 (`close_lag_1`) 增加了噪声。滚动统计量 (`close_rolling_std`) 要好得多。
+3.  **情绪 (社交)**: 在此数据集中，社交声量数据过于嘈杂/稀疏，无法发挥作用。
 
 ---
 
-## 3. Selection Strategy Impact
+## 3. 筛选策略影响
 
-Comparing "All Features" (340) vs "Top 30":
+对比 "全特征" (340) vs "Top 30":
 
--   **All Features**:
-    -   Training Score: 99.9% (Overfit)
-    -   Test Score: 52% (Random)
+-   **全特征**:
+    -   训练集得分: 99.9% (过拟合)
+    -   测试集得分: 52% (随机猜测)
 -   **Top 30**:
-    -   Training Score: 65% (Healthy)
-    -   Test Score: 55% (Predictive)
+    -   训练集得分: 65% (健康)
+    -   测试集得分: 55% (有预测力)
 
-**Conclusion**: Massive feature reduction is **mandatory**. The logic "throw everything at the model" failed. We successfully used Recursive Feature Elimination (RFE) to isolate the signal.
+**结论**: 大规模特征缩减是 **必须的**。“把所有东西都丢给模型”的逻辑失败了。我们要成功地使用递归特征消除 (RFE) 来分离信号。

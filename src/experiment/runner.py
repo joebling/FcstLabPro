@@ -23,6 +23,7 @@ from src.experiment.reporter import generate_experiment_report
 
 # 触发标签策略注册
 import src.labels.reversal  # noqa: F401
+import src.labels.directional  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,15 @@ def run_experiment(
         label_cfg = config["label"]
         label_func = get_label_strategy(label_cfg["strategy"])
         labels = label_func(df, T=label_cfg["T"], X=label_cfg["X"])
+        
+        # 处理标签映射 (Label Mapping)
+        # 例如: 将三分类 [0, 1, 2] 映射为二分类 [0, 0, 1] 用于多头预测
+        if "map" in label_cfg and label_cfg["map"]:
+            logger.info(f"应用标签映射: {label_cfg['map']}")
+            # key in yaml might be int or str, ensure consistency
+            mapping = {int(k): int(v) for k, v in label_cfg["map"].items()}
+            labels = labels.map(mapping)
+            
         df["label"] = labels
 
         # 丢弃无标签的行
@@ -95,15 +105,35 @@ def run_experiment(
 
         # 准备特征矩阵
         feature_cols = get_feature_columns(df)
+        
+        # ========== 5. Walk-Forward 回测 ==========
+        eval_cfg = config["evaluation"]
+        model_cfg = config["model"]
+        
+        # ========== 4b. 特征选择（可选）==========
+        feat_select_cfg = feat_cfg.get("selection", {})
+        top_n = feat_select_cfg.get("top_n", 0)
+        
+        if top_n > 0 and top_n < len(feature_cols):
+            logger.info(f"执行特征预筛选: 从 {len(feature_cols)} 个特征中选 Top-{top_n}")
+            from src.models.registry import create_model as _create
+            
+            # 用前 init_train 个样本快速训练一个模型评估特征重要性
+            _init = min(eval_cfg.get("init_train", 1500), len(df) - 100)
+            _X_pre = df[feature_cols].values[:_init]
+            _y_pre = df["label"].values[:_init]
+            _m = _create(model_cfg["type"], model_cfg.get("params", {}))
+            _m.fit(_X_pre, _y_pre)
+            _fi = _m.feature_importance()
+            _top_idx = np.argsort(_fi)[::-1][:top_n]
+            feature_cols = [feature_cols[i] for i in sorted(_top_idx)]
+            logger.info(f"特征筛选完成: 保留 {len(feature_cols)} 个特征")
+        
         X = df[feature_cols].values
         y = df["label"].values
 
         logger.info(f"数据准备完成: X.shape={X.shape}, y.shape={y.shape}")
         logger.info(f"标签分布: {pd.Series(y).value_counts().sort_index().to_dict()}")
-
-        # ========== 5. Walk-Forward 回测 ==========
-        eval_cfg = config["evaluation"]
-        model_cfg = config["model"]
 
         # 设置随机种子
         seed = config.get("seed", 42)
@@ -118,6 +148,7 @@ def run_experiment(
             oos_window=eval_cfg.get("oos_window", 63),
             step=eval_cfg.get("step", 21),
             metric_names=eval_cfg.get("metrics"),
+            purge_gap=eval_cfg.get("purge_gap", 0),
         )
 
         # ========== 6. 保存产物 ==========

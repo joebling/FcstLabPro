@@ -1,0 +1,61 @@
+experiment:
+  name: weekly_bull_v3
+  description: 改良版多头模型 v3：binary objective, scale_pos_weight, T=14, X=0.05
+  tags:
+  - weekly
+  - bull
+  - binary
+  - v3
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - sentiment
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: reversal
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+model:
+  type: lightgbm
+  params:
+    n_estimators: 800
+    max_depth: 5
+    learning_rate: 0.05
+    num_leaves: 24
+    subsample: 0.8
+    colsample_bytree: 0.7
+    min_child_samples: 30
+    reg_alpha: 0.2
+    reg_lambda: 0.2
+    random_state: 42
+    verbose: -1
+    min_split_gain: 0.005
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+seed: 42

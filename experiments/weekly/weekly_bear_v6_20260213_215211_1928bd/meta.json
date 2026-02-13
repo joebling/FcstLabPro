@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v6_20260213_215211_1928bd",
+  "name": "weekly_bear_v6",
+  "description": "综合最优版空头 v6：reversal T=14, SPW, 5特征集, 充分学习",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v6",
+    "best"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T21:52:11.464190",
+  "git": {
+    "commit": "85a1ee5",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 107.62,
+  "aggregate_metrics": {
+    "accuracy": 0.5625174046226677,
+    "f1_binary": 0.38895371450797356,
+    "precision_binary": 0.33783783783783783,
+    "recall_binary": 0.458295142071494,
+    "f1_macro": 0.5241233547599508,
+    "cohen_kappa": 0.06024219815725251
+  }
+}

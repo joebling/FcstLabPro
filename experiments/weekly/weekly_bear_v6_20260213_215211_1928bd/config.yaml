@@ -1,0 +1,63 @@
+experiment:
+  name: weekly_bear_v6
+  description: 综合最优版空头 v6：reversal T=14, SPW, 5特征集, 充分学习
+  tags:
+  - weekly
+  - bear
+  - binary
+  - v6
+  - best
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - sentiment
+  - market_structure
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: reversal
+  T: 14
+  X: 0.05
+  map:
+    0: 1
+    1: 0
+    2: 0
+model:
+  type: lightgbm
+  params:
+    n_estimators: 1000
+    max_depth: 5
+    learning_rate: 0.05
+    num_leaves: 24
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.15
+    reg_lambda: 0.15
+    random_state: 42
+    verbose: -1
+    min_split_gain: 0.003
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+seed: 42

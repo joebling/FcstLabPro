@@ -1,0 +1,13 @@
+.git
+__pycache__
+*.pyc
+lab-venv/
+.venv/
+notebooks/
+reports/
+logs/
+tests/
+*.md
+.DS_Store
+signals/
+data/raw/

@@ -41,8 +41,11 @@ def compute_metrics(
         "accuracy": lambda: accuracy_score(y_true, y_pred),
         "f1_macro": lambda: f1_score(y_true, y_pred, average="macro", zero_division=0),
         "f1_weighted": lambda: f1_score(y_true, y_pred, average="weighted", zero_division=0),
+        "f1_binary": lambda: f1_score(y_true, y_pred, average="binary", zero_division=0),
         "precision_macro": lambda: precision_score(y_true, y_pred, average="macro", zero_division=0),
+        "precision_binary": lambda: precision_score(y_true, y_pred, average="binary", zero_division=0),
         "recall_macro": lambda: recall_score(y_true, y_pred, average="macro", zero_division=0),
+        "recall_binary": lambda: recall_score(y_true, y_pred, average="binary", zero_division=0),
         "cohen_kappa": lambda: cohen_kappa_score(y_true, y_pred),
     }
 
@@ -66,7 +69,11 @@ def compute_classification_report(
 ) -> str:
     """生成分类报告文本."""
     if target_names is None:
-        target_names = ["顶部反转", "正常", "底部反转"]
+        n_classes = len(set(y_true) | set(y_pred))
+        if n_classes <= 2:
+            target_names = ["负例(0)", "正例(1)"]
+        else:
+            target_names = ["顶部反转", "正常", "底部反转"]
     return classification_report(y_true, y_pred, target_names=target_names, zero_division=0)
 
 
