@@ -1,0 +1,62 @@
+# ============================================================
+# 消融实验 A5: 基线 + 概率阈值优化 (不加任何外部特征)
+#
+# 目的: 单独测试概率阈值优化对 v1 基线的增量
+# 如果阈值优化有效，那它在好的基线上才值得用
+# ============================================================
+experiment:
+  name: "weekly_bull_ablation_threshold"
+  description: "消融实验: v1 基线 + 概率阈值优化 (无 external)"
+  tags: ["weekly", "bull", "binary", "ablation", "threshold"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  threshold_optimize: true
+  threshold_metric: "kappa"
+  threshold_val_ratio: 0.15
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

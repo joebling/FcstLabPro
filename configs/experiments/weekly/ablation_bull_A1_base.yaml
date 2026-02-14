@@ -1,0 +1,60 @@
+# ============================================================
+# 消融实验 A1: v1 基线复现
+# 
+# 目的: 确认 v1 的 kappa=0.1084 可复现，作为消融对照基线
+# 特征集: 仅 technical + volume + flow + market_structure (无 external)
+# ============================================================
+experiment:
+  name: "weekly_bull_ablation_base"
+  description: "消融实验: v1 基线复现 (无 external)"
+  tags: ["weekly", "bull", "binary", "ablation", "baseline"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+  # 不做特征筛选 — 保持和 v1 一致
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

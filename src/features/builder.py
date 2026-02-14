@@ -14,6 +14,7 @@ import src.features.market_structure  # noqa: F401
 import src.features.onchain           # noqa: F401
 import src.features.sentiment         # noqa: F401
 import src.features.lag_rolling       # noqa: F401
+import src.features.external          # noqa: F401
 
 logger = logging.getLogger(__name__)
 

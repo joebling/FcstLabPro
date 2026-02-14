@@ -1,0 +1,32 @@
+{
+  "experiment_id": "weekly_bull_v8b_20260213_235350_e97aaf",
+  "version": "weekly_bull_v8b_20260213_235350_e97aaf",
+  "name": "weekly_bull_v8b",
+  "description": "Bull v8b: Stacking 4-LightGBM + LogisticRegression 元学习器",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v8b",
+    "stacking",
+    "ensemble"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T23:53:50.340636",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 328.64,
+  "aggregate_metrics": {
+    "accuracy": 0.49206349206349204,
+    "f1_binary": 0.40271493212669685,
+    "precision_binary": 0.45817245817245816,
+    "recall_binary": 0.35923309788092833,
+    "f1_macro": 0.4804369639712982,
+    "cohen_kappa": -0.027984817793860417
+  }
+}

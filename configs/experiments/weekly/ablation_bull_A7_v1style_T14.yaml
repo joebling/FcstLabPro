@@ -1,0 +1,54 @@
+# Bull消融：v1配置+T=14，4特征集
+experiment:
+  name: "ablation_bull_A7_v1style_T14"
+  description: "Bull消融：v1配置+T=14，4特征集"
+  tags: ["weekly", "bull", "ablation", "v1style", "T14"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - sentiment
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

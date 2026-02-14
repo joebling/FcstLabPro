@@ -24,6 +24,11 @@ from src.experiment.reporter import generate_experiment_report
 # 触发标签策略注册
 import src.labels.reversal  # noqa: F401
 import src.labels.directional  # noqa: F401
+import src.labels.triple_barrier  # noqa: F401
+
+# 触发新模型注册
+import src.models.stacking  # noqa: F401
+import src.models.lgbm_regressor  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +92,14 @@ def run_experiment(
         # ========== 4. 标签生成 ==========
         label_cfg = config["label"]
         label_func = get_label_strategy(label_cfg["strategy"])
-        labels = label_func(df, T=label_cfg["T"], X=label_cfg["X"])
+        
+        # 构建标签函数的参数（支持 triple_barrier 等策略的额外参数）
+        label_kwargs = {"T": label_cfg["T"], "X": label_cfg["X"]}
+        for extra_key in ["sl_ratio", "dynamic_threshold", "atr_window", "atr_multiplier"]:
+            if extra_key in label_cfg:
+                label_kwargs[extra_key] = label_cfg[extra_key]
+        
+        labels = label_func(df, **label_kwargs)
         
         # 处理标签映射 (Label Mapping)
         # 例如: 将三分类 [0, 1, 2] 映射为二分类 [0, 0, 1] 用于多头预测
@@ -149,6 +161,9 @@ def run_experiment(
             step=eval_cfg.get("step", 21),
             metric_names=eval_cfg.get("metrics"),
             purge_gap=eval_cfg.get("purge_gap", 0),
+            threshold_optimize=eval_cfg.get("threshold_optimize", False),
+            threshold_metric=eval_cfg.get("threshold_metric", "f1"),
+            threshold_val_ratio=eval_cfg.get("threshold_val_ratio", 0.15),
         )
 
         # ========== 6. 保存产物 ==========

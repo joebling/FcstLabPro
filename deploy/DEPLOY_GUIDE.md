@@ -125,9 +125,13 @@ python scripts/weekly_signal.py
 # 下载最新数据 + 保存信号
 python scripts/weekly_signal.py --download --save
 
-# Docker 本地测试
+# Docker 本地测试（v6）
 docker build -t fcstlabpro-v6 .
 docker run --rm fcstlabpro-v6
+
+# Docker 本地测试（a6a8）
+docker build -t fcstlabpro-a6a8 .
+docker run --rm fcstlabpro-a6a8
 ```
 
 ---
@@ -179,19 +183,36 @@ docker run --rm fcstlabpro-v6
 
 ### 常用命令
 
+#### 手动触发一次 Cloud Run Job
+
 ```bash
-# 手动触发
-gcloud run jobs execute daily-btc-signal-v6 --region asia-east1
+# v6
+ gcloud run jobs execute daily-btc-signal-v6 --region asia-east1
+# a6a8
+ gcloud run jobs execute daily-btc-signal-a6a8 --region asia-east1
+```
 
-# 查看执行历史
-gcloud run jobs executions list --job=daily-btc-signal-v6 --region=asia-east1
+```bash
+# 手动触发 v6
+ gcloud run jobs execute daily-btc-signal-v6 --region asia-east1
+# 手动触发 a6a8
+ gcloud run jobs execute daily-btc-signal-a6a8 --region asia-east1
 
-# 查看日志
-gcloud logging read \
+# 查看执行历史 v6
+ gcloud run jobs executions list --job=daily-btc-signal-v6 --region=asia-east1
+# 查看执行历史 a6a8
+ gcloud run jobs executions list --job=daily-btc-signal-a6a8 --region=asia-east1
+
+# 查看日志 v6
+ gcloud logging read \
   'resource.type="cloud_run_job" AND resource.labels.job_name="daily-btc-signal-v6"' \
   --limit=50
+# 查看日志 a6a8
+ gcloud logging read \
+  'resource.type="cloud_run_job" AND resource.labels.job_name="daily-btc-signal-a6a8"' \
+  --limit=50
 
-# 暂停/恢复调度
+# 暂停/恢复调度（通用）
 gcloud scheduler jobs pause daily-btc-signal-trigger --location=asia-east1
 gcloud scheduler jobs resume daily-btc-signal-trigger --location=asia-east1
 ```
@@ -200,12 +221,18 @@ gcloud scheduler jobs resume daily-btc-signal-trigger --location=asia-east1
 
 ```bash
 # 1. 训练新模型后，更新 Dockerfile 中的路径，或更新环境变量
-# 2. 重新构建并推送镜像
+# 2. 重新构建并推送镜像（v6）
 gcloud builds submit --tag asia-east1-docker.pkg.dev/forecastlab-prod/fcstlabpro/fcstlabpro-v6:latest .
+# 2. 重新构建并推送镜像（a6a8）
+gcloud builds submit --tag asia-east1-docker.pkg.dev/forecastlab-prod/fcstlabpro/fcstlabpro-a6a8:latest .
 
-# 3. 更新 Job 镜像
+# 3. 更新 Job 镜像（v6）
 gcloud run jobs update daily-btc-signal-v6 \
   --image asia-east1-docker.pkg.dev/forecastlab-prod/fcstlabpro/fcstlabpro-v6:latest \
+  --region asia-east1
+# 3. 更新 Job 镜像（a6a8）
+gcloud run jobs update daily-btc-signal-a6a8 \
+  --image asia-east1-docker.pkg.dev/forecastlab-prod/fcstlabpro/fcstlabpro-a6a8:latest \
   --region asia-east1
 ```
 
@@ -251,4 +278,4 @@ export NOTIFICATION_URL="https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
 | 数据源 | 相同 (Binance) | 相同 (Binance) |
 | 输出格式 | CSV | JSON (更易集成) |
 | GCP 项目 | forecastlab-prod | 复用同一项目 |
-| Cloud Run Job | forecast-daily | daily-btc-signal-v6 |
+| Cloud Run Job | forecast-daily | daily-btc-signal-v6 / daily-btc-signal-a6a8 |

@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v8b_20260214_000427_6f0153",
+  "name": "weekly_bear_v8b",
+  "description": "Bear v8b: Stacking 4-LightGBM + LogisticRegression 元学习器",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v8b",
+    "stacking",
+    "ensemble"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-14T00:04:27.486672",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 398.21,
+  "aggregate_metrics": {
+    "accuracy": 0.48148148148148145,
+    "f1_binary": 0.36662749706227965,
+    "precision_binary": 0.3280757097791798,
+    "recall_binary": 0.41544607190412786,
+    "f1_macro": 0.4638512078145275,
+    "cohen_kappa": -0.06213389597242913
+  }
+}

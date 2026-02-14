@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v7c_20260213_234142_d747ce",
+  "name": "weekly_bear_v7c",
+  "description": "Bear v7c: 外部数据优化版 — 关闭早停, 适度正则",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v7c",
+    "external",
+    "optimized"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T23:41:42.957018",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 29.56,
+  "aggregate_metrics": {
+    "accuracy": 0.48484848484848486,
+    "f1_binary": 0.37478108581436076,
+    "precision_binary": 0.33367983367983367,
+    "recall_binary": 0.4274300932090546,
+    "f1_macro": 0.4683721379992049,
+    "cohen_kappa": -0.05207231325980932
+  }
+}

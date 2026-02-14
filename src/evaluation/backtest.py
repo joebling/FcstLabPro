@@ -48,6 +48,9 @@ def run_walk_forward(
     step: int = 21,
     metric_names: list[str] | None = None,
     purge_gap: int = 0,
+    threshold_optimize: bool = False,
+    threshold_metric: str = "f1",
+    threshold_val_ratio: float = 0.15,
 ) -> BacktestResult:
     """执行 Walk-Forward 回测.
 
@@ -70,6 +73,12 @@ def run_walk_forward(
     purge_gap : int
         训练集与测试集之间的间隔天数（防止标签泄漏）。
         当标签使用 T 日前瞻窗口时，应设置 purge_gap >= T。
+    threshold_optimize : bool
+        是否在每个 fold 中优化概率阈值
+    threshold_metric : str
+        阈值优化目标指标
+    threshold_val_ratio : float
+        用于阈值优化的验证集比例 (从训练集尾部切出)
 
     Returns
     -------
@@ -97,8 +106,27 @@ def run_walk_forward(
         model = create_model(model_type, model_params)
         model.fit(X_train, y_train)
 
-        # 预测
-        y_pred = model.predict(X_test)
+        # ---- 概率阈值优化 ----
+        if threshold_optimize:
+            from src.evaluation.threshold_optimizer import optimize_threshold, apply_threshold
+            # 用训练集尾部作为验证集来选阈值
+            val_size = max(int(len(X_train) * threshold_val_ratio), 50)
+            X_val = X_train[-val_size:]
+            y_val = y_train[-val_size:]
+            try:
+                val_proba = model.predict_proba(X_val)
+                best_t, _ = optimize_threshold(y_val, val_proba, metric=threshold_metric)
+                # 用优化后的阈值预测测试集
+                test_proba = model.predict_proba(X_test)
+                y_pred = apply_threshold(test_proba, best_t)
+                logger.info(f"  Fold {fold.fold_id}: 优化阈值={best_t:.3f}")
+            except Exception as e:
+                logger.warning(f"  阈值优化失败，回退默认预测: {e}")
+                y_pred = model.predict(X_test)
+        else:
+            # 预测
+            y_pred = model.predict(X_test)
+
         try:
             y_proba = model.predict_proba(X_test)
         except Exception:

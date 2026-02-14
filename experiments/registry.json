@@ -505,5 +505,687 @@
       "cohen_kappa": 0.06024219815725251
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v7b_20260213_233341_6e8fb3",
+    "name": "weekly_bull_v7b",
+    "description": "Bull v7b 对照: 外部数据 + reversal 标签 (隔离外部数据贡献)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v7b",
+      "external",
+      "control"
+    ],
+    "created_at": "2026-02-13T23:33:41.075646",
+    "status": "completed",
+    "duration_seconds": 8.02,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.4527986633249791,
+      "f1_binary": 0.5630420280186791,
+      "precision_binary": 0.4516589368533714,
+      "recall_binary": 0.7473435655253837,
+      "f1_macro": 0.41559922629984236,
+      "cohen_kappa": -0.06075497548692055
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v7b_20260213_233743_5541c4",
+    "name": "weekly_bull_v7b",
+    "description": "Bull v7b 对照: 外部数据 + reversal 标签 (隔离外部数据贡献)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v7b",
+      "external",
+      "control"
+    ],
+    "created_at": "2026-02-13T23:37:43.168362",
+    "status": "completed",
+    "duration_seconds": 5.99,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.493987493987494,
+      "f1_binary": 0.5792,
+      "precision_binary": 0.47978793903247186,
+      "recall_binary": 0.7305751765893037,
+      "f1_macro": 0.47235030156815444,
+      "cohen_kappa": 0.008861348045146933
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v7b_20260213_233756_07f2c9",
+    "name": "weekly_bear_v7b",
+    "description": "Bear v7b 对照: 外部数据 + reversal 标签 (隔离外部数据贡献)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v7b",
+      "external",
+      "control"
+    ],
+    "created_at": "2026-02-13T23:37:56.235286",
+    "status": "completed",
+    "duration_seconds": 5.55,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5824915824915825,
+      "f1_binary": 0.05652173913043478,
+      "precision_binary": 0.15384615384615385,
+      "recall_binary": 0.03462050599201065,
+      "f1_macro": 0.3942275156430432,
+      "cohen_kappa": -0.08785044024687116
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v7b_20260213_233806_16d662",
+    "name": "weekly_bear_v7b",
+    "description": "Bear v7b 对照: 外部数据 + reversal 标签 (隔离外部数据贡献)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v7b",
+      "external",
+      "control"
+    ],
+    "created_at": "2026-02-13T23:38:06.024880",
+    "status": "completed",
+    "duration_seconds": 5.26,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5824915824915825,
+      "f1_binary": 0.05652173913043478,
+      "precision_binary": 0.15384615384615385,
+      "recall_binary": 0.03462050599201065,
+      "f1_macro": 0.3942275156430432,
+      "cohen_kappa": -0.08785044024687116
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v7_20260213_233817_306728",
+    "name": "weekly_bull_v7",
+    "description": "Bull v7: 外部数据 + Triple Barrier + 动态阈值",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v7",
+      "external",
+      "triple_barrier"
+    ],
+    "created_at": "2026-02-13T23:38:17.507331",
+    "status": "completed",
+    "duration_seconds": 6.42,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.6329365079365079,
+      "f1_binary": 0.01856763925729443,
+      "precision_binary": 0.7777777777777778,
+      "recall_binary": 0.009395973154362415,
+      "f1_macro": 0.39641011615091687,
+      "cohen_kappa": 0.00983238354658722
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v7_20260213_233830_72f154",
+    "name": "weekly_bear_v7",
+    "description": "Bear v7: 外部数据 + Triple Barrier + 动态阈值",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v7",
+      "external",
+      "triple_barrier"
+    ],
+    "created_at": "2026-02-13T23:38:30.268274",
+    "status": "completed",
+    "duration_seconds": 5.96,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.597718253968254,
+      "f1_binary": 0.1307609860664523,
+      "precision_binary": 0.3388888888888889,
+      "recall_binary": 0.08100929614873838,
+      "f1_macro": 0.4345318321748848,
+      "cohen_kappa": -0.015608927053982757
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v7_20260213_233839_7b4ed9",
+    "name": "weekly_bear_v7",
+    "description": "Bear v7: 外部数据 + Triple Barrier + 动态阈值",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v7",
+      "external",
+      "triple_barrier"
+    ],
+    "created_at": "2026-02-13T23:38:39.682284",
+    "status": "completed",
+    "duration_seconds": 5.95,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.597718253968254,
+      "f1_binary": 0.1307609860664523,
+      "precision_binary": 0.3388888888888889,
+      "recall_binary": 0.08100929614873838,
+      "f1_macro": 0.4345318321748848,
+      "cohen_kappa": -0.015608927053982757
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v7c_20260213_234039_79cead",
+    "name": "weekly_bull_v7c",
+    "description": "Bull v7c: 外部数据优化版 — 关闭早停, 适度正则",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v7c",
+      "external",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T23:40:39.656062",
+    "status": "completed",
+    "duration_seconds": 29.62,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5242905242905243,
+      "f1_binary": 0.4192601291837933,
+      "precision_binary": 0.5014044943820225,
+      "recall_binary": 0.3602421796165489,
+      "f1_macro": 0.5082044026774364,
+      "cohen_kappa": 0.034386971065859084
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v7c_20260213_234112_627616",
+    "name": "weekly_bull_v7c",
+    "description": "Bull v7c: 外部数据优化版 — 关闭早停, 适度正则",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v7c",
+      "external",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T23:41:12.368190",
+    "status": "completed",
+    "duration_seconds": 29.69,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5242905242905243,
+      "f1_binary": 0.4192601291837933,
+      "precision_binary": 0.5014044943820225,
+      "recall_binary": 0.3602421796165489,
+      "f1_macro": 0.5082044026774364,
+      "cohen_kappa": 0.034386971065859084
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v7c_20260213_234142_d747ce",
+    "name": "weekly_bear_v7c",
+    "description": "Bear v7c: 外部数据优化版 — 关闭早停, 适度正则",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v7c",
+      "external",
+      "optimized"
+    ],
+    "created_at": "2026-02-13T23:41:42.957018",
+    "status": "completed",
+    "duration_seconds": 29.56,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.48484848484848486,
+      "f1_binary": 0.37478108581436076,
+      "precision_binary": 0.33367983367983367,
+      "recall_binary": 0.4274300932090546,
+      "f1_macro": 0.4683721379992049,
+      "cohen_kappa": -0.05207231325980932
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v8a_20260213_235201_95bb70",
+    "name": "weekly_bull_v8a",
+    "description": "Bull v8a: 回归目标 + 概率阈值优化",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v8a",
+      "regression",
+      "threshold"
+    ],
+    "created_at": "2026-02-13T23:52:01.471954",
+    "status": "completed",
+    "duration_seconds": 40.85,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.4757094757094757,
+      "f1_binary": 0.5681458003169572,
+      "precision_binary": 0.46771037181996084,
+      "recall_binary": 0.7235116044399597,
+      "f1_macro": 0.45053556845713216,
+      "cohen_kappa": -0.025857971290046633
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v8a_20260213_235256_b7ec5c",
+    "name": "weekly_bear_v8a",
+    "description": "Bear v8a: 回归目标 + 概率阈值优化",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v8a",
+      "regression",
+      "threshold"
+    ],
+    "created_at": "2026-02-13T23:52:56.510368",
+    "status": "completed",
+    "duration_seconds": 40.24,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.4247234247234247,
+      "f1_binary": 0.46938775510204084,
+      "precision_binary": 0.35196274118429804,
+      "recall_binary": 0.7043941411451398,
+      "f1_macro": 0.4206182472989196,
+      "cohen_kappa": -0.023851171064334542
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v8b_20260213_235350_e97aaf",
+    "name": "weekly_bull_v8b",
+    "description": "Bull v8b: Stacking 4-LightGBM + LogisticRegression 元学习器",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v8b",
+      "stacking",
+      "ensemble"
+    ],
+    "created_at": "2026-02-13T23:53:50.340636",
+    "status": "completed",
+    "duration_seconds": 328.64,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.49206349206349204,
+      "f1_binary": 0.40271493212669685,
+      "precision_binary": 0.45817245817245816,
+      "recall_binary": 0.35923309788092833,
+      "f1_macro": 0.4804369639712982,
+      "cohen_kappa": -0.027984817793860417
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v8b_20260214_000427_6f0153",
+    "name": "weekly_bear_v8b",
+    "description": "Bear v8b: Stacking 4-LightGBM + LogisticRegression 元学习器",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v8b",
+      "stacking",
+      "ensemble"
+    ],
+    "created_at": "2026-02-14T00:04:27.486672",
+    "status": "completed",
+    "duration_seconds": 398.21,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.48148148148148145,
+      "f1_binary": 0.36662749706227965,
+      "precision_binary": 0.3280757097791798,
+      "recall_binary": 0.41544607190412786,
+      "f1_macro": 0.4638512078145275,
+      "cohen_kappa": -0.06213389597242913
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_ablation_base_20260214_000920_1bbd52",
+    "name": "weekly_bull_ablation_base",
+    "description": "消融实验: v1 基线复现 (无 external)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "ablation",
+      "baseline"
+    ],
+    "created_at": "2026-02-14T00:09:20.791457",
+    "status": "completed",
+    "duration_seconds": 132.11,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5346700083542189,
+      "f1_binary": 0.4497859729996707,
+      "precision_binary": 0.5085629188384214,
+      "recall_binary": 0.40318772136953956,
+      "f1_macro": 0.5233248320969404,
+      "cohen_kappa": 0.05588957332243716
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v8c_20260214_001107_900cef",
+    "name": "weekly_bull_v8c",
+    "description": "Bull v8c: 分类器 + 概率阈值优化 + 精调",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v8c",
+      "threshold_opt",
+      "tuned"
+    ],
+    "created_at": "2026-02-14T00:11:07.112320",
+    "status": "completed",
+    "duration_seconds": 82.01,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.49975949975949974,
+      "f1_binary": 0.42731277533039647,
+      "precision_binary": 0.4703030303030303,
+      "recall_binary": 0.39152371342078707,
+      "f1_macro": 0.4916239367685287,
+      "cohen_kappa": -0.010206913565019127
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_ablation_fgi_only_20260214_001134_c4db65",
+    "name": "weekly_bull_ablation_fgi_only",
+    "description": "消融实验: 基线 + 仅 FGI",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "ablation",
+      "fgi"
+    ],
+    "created_at": "2026-02-14T00:11:34.247419",
+    "status": "completed",
+    "duration_seconds": 104.77,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5380116959064327,
+      "f1_binary": 0.4522944866292506,
+      "precision_binary": 0.5131086142322098,
+      "recall_binary": 0.40436835891381345,
+      "f1_macro": 0.5264121120841895,
+      "cohen_kappa": 0.062429976964693545
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_ablation_macro_only_20260214_001320_31cfea",
+    "name": "weekly_bull_ablation_macro_only",
+    "description": "消融实验: 基线 + 仅宏观因子",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "ablation",
+      "macro"
+    ],
+    "created_at": "2026-02-14T00:13:20.014334",
+    "status": "completed",
+    "duration_seconds": 106.35,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5140629351155667,
+      "f1_binary": 0.3647615580633418,
+      "precision_binary": 0.4757834757834758,
+      "recall_binary": 0.2957497048406139,
+      "f1_macro": 0.48565022660777013,
+      "cohen_kappa": 0.004862382567458079
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_ablation_fr_only_20260214_001507_45755c",
+    "name": "weekly_bull_ablation_fr_only",
+    "description": "消融实验: 基线 + 仅 Funding Rate",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "ablation",
+      "funding_rate"
+    ],
+    "created_at": "2026-02-14T00:15:07.610625",
+    "status": "completed",
+    "duration_seconds": 46.3,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.53006253006253,
+      "f1_binary": 0.4778193479422769,
+      "precision_binary": 0.5079545454545454,
+      "recall_binary": 0.4510595358224016,
+      "f1_macro": 0.5253110731840811,
+      "cohen_kappa": 0.05334796138604225
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_ablation_threshold_20260214_001554_c8b77d",
+    "name": "weekly_bull_ablation_threshold",
+    "description": "消融实验: v1 基线 + 概率阈值优化 (无 external)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "ablation",
+      "threshold"
+    ],
+    "created_at": "2026-02-14T00:15:54.912191",
+    "status": "completed",
+    "duration_seconds": 83.27,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5243664717348928,
+      "f1_binary": 0.5386277687736358,
+      "precision_binary": 0.4965139442231076,
+      "recall_binary": 0.588547815820543,
+      "f1_macro": 0.5239115855362433,
+      "cohen_kappa": 0.055055033464401215
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_ablation_triple_barrier_20260214_001719_ee6ac2",
+    "name": "weekly_bull_ablation_triple_barrier",
+    "description": "消融实验: v1 基线 + triple_barrier 标签 (无 external)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "ablation",
+      "triple_barrier"
+    ],
+    "created_at": "2026-02-14T00:17:19.216397",
+    "status": "completed",
+    "duration_seconds": 88.82,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5811751601225286,
+      "f1_binary": 0.43670411985018726,
+      "precision_binary": 0.48102310231023104,
+      "recall_binary": 0.3998628257887517,
+      "f1_macro": 0.5516853932584269,
+      "cohen_kappa": 0.1078523196588973
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "ablation_bull_A7_v1style_T14_20260214_001940_2e7f53",
+    "name": "ablation_bull_A7_v1style_T14",
+    "description": "Bull消融：v1配置+T=14，4特征集",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "ablation",
+      "v1style",
+      "T14"
+    ],
+    "created_at": "2026-02-14T00:19:40.145674",
+    "status": "completed",
+    "duration_seconds": 72.66,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5304928989139516,
+      "f1_binary": 0.4522417153996101,
+      "precision_binary": 0.5028901734104047,
+      "recall_binary": 0.41086186540731995,
+      "f1_macro": 0.5207115009746588,
+      "cohen_kappa": 0.0486604088618261
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "ablation_bear_A8_v4style_T14_20260214_002053_92a350",
+    "name": "ablation_bear_A8_v4style_T14",
+    "description": "Bear消融：v4配置+T=14，4特征集",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "ablation",
+      "v4style",
+      "T14"
+    ],
+    "created_at": "2026-02-14T00:20:53.816185",
+    "status": "completed",
+    "duration_seconds": 72.57,
+    "git_commit": "41bd739",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5692007797270955,
+      "f1_binary": 0.3964104564962934,
+      "precision_binary": 0.3451086956521739,
+      "recall_binary": 0.46562786434463793,
+      "f1_macro": 0.530744738964752,
+      "cohen_kappa": 0.07285788696573281
+    },
+    "error": null
   }
 ]

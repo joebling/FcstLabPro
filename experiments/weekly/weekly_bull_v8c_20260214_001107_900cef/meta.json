@@ -1,0 +1,32 @@
+{
+  "experiment_id": "weekly_bull_v8c_20260214_001107_900cef",
+  "version": "weekly_bull_v8c_20260214_001107_900cef",
+  "name": "weekly_bull_v8c",
+  "description": "Bull v8c: 分类器 + 概率阈值优化 + 精调",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v8c",
+    "threshold_opt",
+    "tuned"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-14T00:11:07.112320",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 82.01,
+  "aggregate_metrics": {
+    "accuracy": 0.49975949975949974,
+    "f1_binary": 0.42731277533039647,
+    "precision_binary": 0.4703030303030303,
+    "recall_binary": 0.39152371342078707,
+    "f1_macro": 0.4916239367685287,
+    "cohen_kappa": -0.010206913565019127
+  }
+}

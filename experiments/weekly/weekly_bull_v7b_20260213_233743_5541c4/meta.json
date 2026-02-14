@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bull_v7b_20260213_233743_5541c4",
+  "name": "weekly_bull_v7b",
+  "description": "Bull v7b 对照: 外部数据 + reversal 标签 (隔离外部数据贡献)",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v7b",
+    "external",
+    "control"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T23:37:43.168362",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 5.99,
+  "aggregate_metrics": {
+    "accuracy": 0.493987493987494,
+    "f1_binary": 0.5792,
+    "precision_binary": 0.47978793903247186,
+    "recall_binary": 0.7305751765893037,
+    "f1_macro": 0.47235030156815444,
+    "cohen_kappa": 0.008861348045146933
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_ablation_base_20260214_000920_1bbd52",
+  "name": "weekly_bull_ablation_base",
+  "description": "消融实验: v1 基线复现 (无 external)",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "ablation",
+    "baseline"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-14T00:09:20.791457",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 132.11,
+  "aggregate_metrics": {
+    "accuracy": 0.5346700083542189,
+    "f1_binary": 0.4497859729996707,
+    "precision_binary": 0.5085629188384214,
+    "recall_binary": 0.40318772136953956,
+    "f1_macro": 0.5233248320969404,
+    "cohen_kappa": 0.05588957332243716
+  }
+}

@@ -23,6 +23,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
 
 def _build_llm_section(llm_analysis: str | None) -> str:
     """生成 AI 策略解读的 HTML 区块."""
@@ -51,7 +53,7 @@ def _build_llm_section(llm_analysis: str | None) -> str:
 
 
 def build_html(data: dict) -> str:
-    """将信号 JSON 转为 HTML 邮件正文."""
+    """将信号 JSON 转为 HTML 邮件正文（含模型元信息）."""
 
     bull_prob = data["bull_prob"]
     bear_prob = data["bear_prob"]
@@ -62,6 +64,12 @@ def build_html(data: dict) -> str:
     action = data["action"]
     risk_level = data.get("risk_level", "")
     risk_notes = data.get("risk_notes", [])
+
+    # 新增：模型元信息
+    model_version = data.get("model_version", {})
+    kappa = data.get("kappa", {})
+    label_strategy = data.get("label_strategy", {})
+    feature_set = data.get("feature_set", {})
 
     # 概率条
     bull_pct = int(bull_prob * 100)
@@ -77,6 +85,16 @@ def build_html(data: dict) -> str:
     }
     signal_color = color_map.get(signal_code, "#6b7280")
 
+    # 新增：模型信息区块
+    model_info_html = f'''
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #374151;">
+            <b>模型版本</b>：Bull={model_version.get('bull','N/A')}, Bear={model_version.get('bear','N/A')}<br>
+            <b>Kappa</b>：Bull={kappa.get('bull','N/A')}, Bear={kappa.get('bear','N/A')}<br>
+            <b>标签策略</b>：Bull={label_strategy.get('bull','N/A')}, Bear={label_strategy.get('bear','N/A')}<br>
+            <b>特征集</b>：Bull={', '.join(feature_set.get('bull', []))}，Bear={', '.join(feature_set.get('bear', []))}
+        </div>
+    '''
+
     html = f"""
     <html>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9fafb;">
@@ -87,6 +105,9 @@ def build_html(data: dict) -> str:
             <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px;">
                 {date} · BTC/USDT · 预测窗口 14 天
             </p>
+
+            <!-- 模型信息 -->
+            {model_info_html}
 
             <!-- 价格 -->
             <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
@@ -142,7 +163,7 @@ def build_html(data: dict) -> str:
             <!-- 免责 -->
             <div style="border-top: 1px solid #e5e7eb; padding-top: 12px; margin-top: 12px;">
                 <p style="color: #9ca3af; font-size: 11px; margin: 0; line-height: 1.5;">
-                    ⚠️ 本信号由 FcstLabPro v6 模型自动生成，仅基于历史技术面特征的统计模型（Kappa≈0.05），
+                    ⚠️ 本信号由 FcstLabPro 自动生成，仅基于历史技术面特征的统计模型（Kappa: Bull={kappa.get('bull','N/A')}, Bear={kappa.get('bear','N/A')}），
                     不构成投资建议。请结合基本面、宏观环境、个人风险承受能力综合判断。
                 </p>
             </div>
@@ -182,21 +203,31 @@ def send_email(signal_path: str):
     signal_code = data.get("signal", "UNKNOWN")
     signal_display = data.get("signal_display", signal_code)
 
+    # 新增：模型元信息变量，供后续模板使用
+    model_version = data.get("model_version", {})
+    kappa = data.get("kappa", {})
+    label_strategy = data.get("label_strategy", {})
+    feature_set = data.get("feature_set", {})
+
     # 构建邮件
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"[BTC信号] {date} {signal_display} — FcstLabPro v6"
+    msg["Subject"] = f"[BTC信号] {date} {signal_display} — FcstLabPro Bull={model_version.get('bull','N/A')}, Bear={model_version.get('bear','N/A')}"
     msg["From"] = smtp_user
     msg["To"] = mail_to
 
     # 纯文本备用
     text_body = (
-        f"FcstLabPro v6 每日信号\n"
+        f"FcstLabPro 每日信号\n"
         f"日期: {date}\n"
         f"价格: ${data['price']:,.2f}\n"
         f"Bull: {data['bull_prob']:.1%}  Bear: {data['bear_prob']:.1%}\n"
         f"信号: {signal_display}\n"
         f"仓位: {data['position_pct']}%\n"
         f"操作: {data['action']}\n"
+        f"模型版本: Bull={model_version.get('bull','N/A')}, Bear={model_version.get('bear','N/A')}\n"
+        f"Kappa: Bull={kappa.get('bull','N/A')}, Bear={kappa.get('bear','N/A')}\n"
+        f"标签策略: Bull={label_strategy.get('bull','N/A')}, Bear={label_strategy.get('bear','N/A')}\n"
+        f"特征集: Bull={', '.join(feature_set.get('bull', []))}，Bear={', '.join(feature_set.get('bear', []))}\n"
     )
     msg.attach(MIMEText(text_body, "plain", "utf-8"))
 

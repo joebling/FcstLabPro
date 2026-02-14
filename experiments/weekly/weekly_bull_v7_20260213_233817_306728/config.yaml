@@ -1,0 +1,70 @@
+experiment:
+  name: weekly_bull_v7
+  description: 'Bull v7: 外部数据 + Triple Barrier + 动态阈值'
+  tags:
+  - weekly
+  - bull
+  - binary
+  - v7
+  - external
+  - triple_barrier
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: triple_barrier
+  T: 14
+  X: 0.05
+  dynamic_threshold: true
+  atr_window: 14
+  atr_multiplier: 2.0
+  sl_ratio: 1.0
+  map:
+    0: 0
+    1: 0
+    2: 1
+model:
+  type: lightgbm
+  params:
+    n_estimators: 1200
+    max_depth: 5
+    learning_rate: 0.03
+    num_leaves: 24
+    subsample: 0.8
+    colsample_bytree: 0.7
+    min_child_samples: 25
+    reg_alpha: 0.2
+    reg_lambda: 0.2
+    random_state: 42
+    verbose: -1
+    min_split_gain: 0.005
+    auto_scale_pos_weight: true
+    early_stopping_rounds: 50
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+  purge_gap: 14
+seed: 42

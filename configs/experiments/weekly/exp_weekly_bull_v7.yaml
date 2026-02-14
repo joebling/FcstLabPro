@@ -1,0 +1,74 @@
+# ============================================================
+# Weekly Bull Model v7: 外部数据 + Triple Barrier
+# 相比 v6 的改进:
+#   1. 引入真实外部数据 (FGI, 宏观因子, Funding Rate, L/S Ratio)
+#      - v6 的 onchain/sentiment 全是价格代理指标，与价格高度共线
+#      - v7 的 external 特征是独立信息源，打破信息量瓶颈
+#   2. Triple Barrier 标签替代 reversal
+#      - reversal 看窗口内极值，容易同时触发涨跌
+#      - triple_barrier 有止盈/止损/超时概念，更贴近真实交易
+#   3. 保留 market_structure（v6 中 Bear 模型有提升）
+#   4. 动态阈值 (ATR-based)：高波动期自动放宽阈值
+# ============================================================
+experiment:
+  name: "weekly_bull_v7"
+  description: "Bull v7: 外部数据 + Triple Barrier + 动态阈值"
+  tags: ["weekly", "bull", "binary", "v7", "external", "triple_barrier"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external      # 🆕 真实外部数据
+  drop_na_method: "ffill_then_drop"
+
+label:
+  strategy: "triple_barrier"   # 🆕 Triple Barrier
+  T: 14
+  X: 0.05                     # 固定阈值 fallback
+  dynamic_threshold: true      # 🆕 使用 ATR 动态阈值
+  atr_window: 14
+  atr_multiplier: 2.0
+  sl_ratio: 1.0               # 对称止盈止损
+  map:
+    0: 0    # 止损 → 0 (非多头机会)
+    1: 0    # 超时 → 0 (非多头机会)
+    2: 1    # 止盈 → 1 (多头机会)
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 1200
+    max_depth: 5
+    learning_rate: 0.03        # 🆕 更低学习率 + 更多树
+    num_leaves: 24
+    subsample: 0.8
+    colsample_bytree: 0.7     # 🆕 略降，增加多样性
+    min_child_samples: 25     # 🆕 略升，防止过拟合新特征
+    reg_alpha: 0.2
+    reg_lambda: 0.2
+    min_split_gain: 0.005
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+    early_stopping_rounds: 50  # 🆕 启用早停
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  purge_gap: 14               # 🆕 防止标签泄漏
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

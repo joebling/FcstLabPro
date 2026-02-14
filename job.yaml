@@ -1,0 +1,65 @@
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  annotations:
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 544.0.0
+    run.googleapis.com/creator: qiull1988@gmail.com
+    run.googleapis.com/lastModifier: qiull1988@gmail.com
+    run.googleapis.com/operation-id: 372fe2f5-d175-4c48-88dd-d42b6daee08a
+  creationTimestamp: '2026-02-13T17:04:23.570663Z'
+  generation: 3
+  labels:
+    cloud.googleapis.com/location: asia-east1
+    run.googleapis.com/lastUpdatedTime: '2026-02-13T17:23:55.065386Z'
+  name: daily-btc-signal-a6a8
+  namespace: '955286039748'
+  resourceVersion: AAZKt96sCng
+  selfLink: /apis/run.googleapis.com/v1/namespaces/955286039748/jobs/daily-btc-signal-a6a8
+  uid: 411c8fad-e013-43e5-8a9c-cc9297ddbc13
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 544.0.0
+        run.googleapis.com/execution-environment: gen2
+      labels:
+        client.knative.dev/nonce: hun_wuh_pam
+    spec:
+      taskCount: 1
+      template:
+        spec:
+          containers:
+          - command:
+            - /app/scripts/docker_entrypoint.sh
+            env:
+            - name: BULL_DIR
+              value: experiments/weekly/weekly_bull_ablation_triple_barrier_20260214_001719_ee6ac2
+            - name: BEAR_DIR
+              value: experiments/weekly/ablation_bear_A8_v4style_T14_20260214_002053_92a350
+            - name: SMTP_USER
+              value: 792680027@qq.com
+            - name: SMTP_PASS
+              value: mlefgnksjkafbfei
+            - name: MAIL_TO
+              value: 792680027@qq.com
+            image: asia-east1-docker.pkg.dev/forecastlab-prod/fcstlabpro/fcstlabpro-v6:latest
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+          maxRetries: 3
+          serviceAccountName: 955286039748-compute@developer.gserviceaccount.com
+          timeoutSeconds: '600'
+status:
+  conditions:
+  - status: 'True'
+    type: Ready
+  executionCount: 2
+  latestCreatedExecution:
+    completionStatus: EXECUTION_SUCCEEDED
+    completionTimestamp: '2026-02-13T17:14:21.958260Z'
+    creationTimestamp: '2026-02-13T17:14:03.879590Z'
+    name: daily-btc-signal-a6a8-kzs9x
+  observedGeneration: 3

@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_ablation_triple_barrier_20260214_001719_ee6ac2",
+  "name": "weekly_bull_ablation_triple_barrier",
+  "description": "消融实验: v1 基线 + triple_barrier 标签 (无 external)",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "ablation",
+    "triple_barrier"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-14T00:17:19.216397",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 88.82,
+  "aggregate_metrics": {
+    "accuracy": 0.5811751601225286,
+    "f1_binary": 0.43670411985018726,
+    "precision_binary": 0.48102310231023104,
+    "recall_binary": 0.3998628257887517,
+    "f1_macro": 0.5516853932584269,
+    "cohen_kappa": 0.1078523196588973
+  }
+}

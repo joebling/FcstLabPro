@@ -1,0 +1,64 @@
+# ============================================================
+# Weekly Bull Model v8b: Stacking 集成模型
+#
+# 核心思路:
+#   - 4 个 LightGBM 基学习器，各有不同的超参风格:
+#     1) lgbm_deep:   深树 + 多叶 + 标准正则
+#     2) lgbm_shallow: 浅树 + 少叶 + 强正则 (高偏差低方差)
+#     3) lgbm_wide:   中等深度 + 多叶 + 高采样 (低偏差)
+#     4) lgbm_conservative: 极浅 + 强正则 + 高分裂阈值 (超保守)
+#   - 用 TimeSeriesSplit 3-fold 生成 OOF 预测
+#   - 逻辑回归作为元学习器
+#   - 特征集: external + technical + volume + flow + market_structure
+#   - 特征预筛选 Top-60
+# ============================================================
+experiment:
+  name: "weekly_bull_v8b"
+  description: "Bull v8b: Stacking 4-LightGBM + LogisticRegression 元学习器"
+  tags: ["weekly", "bull", "binary", "v8b", "stacking", "ensemble"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external
+  selection:
+    top_n: 60
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "stacking"
+  params:
+    meta_model: "logistic"
+    n_cv_folds: 3
+    use_proba: true
+    passthrough: false
+    auto_scale_pos_weight: true
+    # base_models 使用默认的 4 个 LightGBM 配置
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

@@ -1,6 +1,7 @@
 # Data
 data/raw/*.csv
 data/raw/*.parquet
+data/external/          # 外部数据缓存 (FGI, 宏观因子等)
 
 # Experiments outputs (keep configs, ignore large files)
 experiments/**/model.joblib

@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v7b_20260213_233756_07f2c9",
+  "name": "weekly_bear_v7b",
+  "description": "Bear v7b 对照: 外部数据 + reversal 标签 (隔离外部数据贡献)",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v7b",
+    "external",
+    "control"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T23:37:56.235286",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 5.55,
+  "aggregate_metrics": {
+    "accuracy": 0.5824915824915825,
+    "f1_binary": 0.05652173913043478,
+    "precision_binary": 0.15384615384615385,
+    "recall_binary": 0.03462050599201065,
+    "f1_macro": 0.3942275156430432,
+    "cohen_kappa": -0.08785044024687116
+  }
+}

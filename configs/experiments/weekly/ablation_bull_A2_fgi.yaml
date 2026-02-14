@@ -1,0 +1,60 @@
+# ============================================================
+# 消融实验 A2: 基线 + 仅 FGI 外部特征
+#
+# 目的: 测试 FGI 单独的增量价值
+# 对比: A1 (无external) → A2 (仅FGI)
+# ============================================================
+experiment:
+  name: "weekly_bull_ablation_fgi_only"
+  description: "消融实验: 基线 + 仅 FGI"
+  tags: ["weekly", "bull", "binary", "ablation", "fgi"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external_fgi       # 新: 只加 FGI 相关特征
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

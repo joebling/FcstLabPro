@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v7_20260213_233839_7b4ed9",
+  "name": "weekly_bear_v7",
+  "description": "Bear v7: 外部数据 + Triple Barrier + 动态阈值",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v7",
+    "external",
+    "triple_barrier"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T23:38:39.682284",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 5.95,
+  "aggregate_metrics": {
+    "accuracy": 0.597718253968254,
+    "f1_binary": 0.1307609860664523,
+    "precision_binary": 0.3388888888888889,
+    "recall_binary": 0.08100929614873838,
+    "f1_macro": 0.4345318321748848,
+    "cohen_kappa": -0.015608927053982757
+  }
+}

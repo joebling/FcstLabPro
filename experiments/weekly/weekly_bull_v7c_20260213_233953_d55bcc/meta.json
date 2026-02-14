@@ -1,0 +1,23 @@
+{
+  "experiment_id": "weekly_bull_v7c_20260213_233953_d55bcc",
+  "name": "weekly_bull_v7c",
+  "description": "Bull v7c: 外部数据优化版 — 关闭早停, 适度正则",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v7c",
+    "external",
+    "optimized"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T23:39:53.582623",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "running",
+  "duration_seconds": null
+}

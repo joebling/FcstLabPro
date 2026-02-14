@@ -1,0 +1,73 @@
+# ============================================================
+# Weekly Bull Model v8a: 回归目标 + 概率阈值优化
+#
+# 核心思路:
+#   - 用 LightGBM 回归器预测 0/1 标签的回归值
+#   - 回归损失函数保留了收益率幅度信息，不像分类那样将
+#     "涨 1%" 和 "涨 20%" 同等对待
+#   - 在每个 walk-forward fold 中，用训练集尾部 15% 做
+#     概率阈值优化 (基于 F1)
+#   - 特征集: external + technical + volume + flow + market_structure
+#   - 基于 v7c 的特征筛选 + 参数优化
+# ============================================================
+experiment:
+  name: "weekly_bull_v8a"
+  description: "Bull v8a: 回归目标 + 概率阈值优化"
+  tags: ["weekly", "bull", "binary", "v8a", "regression", "threshold"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external
+  selection:
+    top_n: 60
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm_regressor"
+  params:
+    n_estimators: 800
+    max_depth: 5
+    learning_rate: 0.03
+    num_leaves: 20
+    subsample: 0.8
+    colsample_bytree: 0.6
+    min_child_samples: 25
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    min_split_gain: 0.01
+    random_state: 42
+    verbose: -1
+    auto_threshold: true
+    threshold_metric: "f1"
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  threshold_optimize: true
+  threshold_metric: "f1"
+  threshold_val_ratio: 0.15
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

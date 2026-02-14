@@ -1,0 +1,64 @@
+experiment:
+  name: weekly_bull_ablation_threshold
+  description: '消融实验: v1 基线 + 概率阈值优化 (无 external)'
+  tags:
+  - weekly
+  - bull
+  - binary
+  - ablation
+  - threshold
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: reversal
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+model:
+  type: lightgbm
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+  threshold_optimize: true
+  threshold_metric: kappa
+  threshold_val_ratio: 0.15
+seed: 42

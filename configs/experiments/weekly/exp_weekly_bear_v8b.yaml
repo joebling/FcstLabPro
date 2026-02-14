@@ -1,0 +1,52 @@
+# ============================================================
+# Weekly Bear Model v8b: Stacking 集成模型 (Bear 版)
+# ============================================================
+experiment:
+  name: "weekly_bear_v8b"
+  description: "Bear v8b: Stacking 4-LightGBM + LogisticRegression 元学习器"
+  tags: ["weekly", "bear", "binary", "v8b", "stacking", "ensemble"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external
+  selection:
+    top_n: 60
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 1
+    1: 0
+    2: 0
+
+model:
+  type: "stacking"
+  params:
+    meta_model: "logistic"
+    n_cv_folds: 3
+    use_proba: true
+    passthrough: false
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

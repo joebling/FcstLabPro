@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bull_v7_20260213_233817_306728",
+  "name": "weekly_bull_v7",
+  "description": "Bull v7: 外部数据 + Triple Barrier + 动态阈值",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v7",
+    "external",
+    "triple_barrier"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-13T23:38:17.507331",
+  "git": {
+    "commit": "41bd739",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 6.42,
+  "aggregate_metrics": {
+    "accuracy": 0.6329365079365079,
+    "f1_binary": 0.01856763925729443,
+    "precision_binary": 0.7777777777777778,
+    "recall_binary": 0.009395973154362415,
+    "f1_macro": 0.39641011615091687,
+    "cohen_kappa": 0.00983238354658722
+  }
+}

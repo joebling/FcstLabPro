@@ -1,0 +1,72 @@
+# ============================================================
+# Weekly Bull Model v7c: 外部数据 + reversal + 优化调参
+# v7b 诊断发现:
+#   - early_stopping 在很多 fold 中 best_iteration=1 (过早停止)
+#   - 外部数据加入后特征数从 127→219，但数据量因外部数据时间限制减少
+#   - 模型正则化过强，无法充分利用外部特征
+#
+# v7c 修正:
+#   1. 关闭 early_stopping (在 2000+ 样本上不需要)
+#   2. 提高 learning_rate + 减少 n_estimators (避免过拟合大特征空间)
+#   3. 增加 colsample_bytree 的随机性
+#   4. 减弱正则化 (让模型能学到外部特征的信号)
+#   5. 不使用 purge_gap (reversal 标签对 purge 不敏感)
+# ============================================================
+experiment:
+  name: "weekly_bull_v7c"
+  description: "Bull v7c: 外部数据优化版 — 关闭早停, 适度正则"
+  tags: ["weekly", "bull", "binary", "v7c", "external", "optimized"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external
+  selection:
+    top_n: 60             # 🆕 从 219 特征中预筛选 Top-60
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 800
+    max_depth: 4            # 🆕 更浅的树，防止过拟合
+    learning_rate: 0.05
+    num_leaves: 16          # 🆕 更少叶子
+    subsample: 0.8
+    colsample_bytree: 0.6   # 🆕 更高随机性
+    min_child_samples: 30   # 🆕 更保守
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    min_split_gain: 0.01    # 🆕 更高分裂阈值
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+    # 不启用 early_stopping
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

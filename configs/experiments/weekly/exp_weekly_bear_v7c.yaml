@@ -1,0 +1,60 @@
+# ============================================================
+# Weekly Bear Model v7c: 外部数据 + reversal + 优化调参
+# ============================================================
+experiment:
+  name: "weekly_bear_v7c"
+  description: "Bear v7c: 外部数据优化版 — 关闭早停, 适度正则"
+  tags: ["weekly", "bear", "binary", "v7c", "external", "optimized"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external
+  selection:
+    top_n: 60
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 1
+    1: 0
+    2: 0
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 800
+    max_depth: 4
+    learning_rate: 0.05
+    num_leaves: 16
+    subsample: 0.8
+    colsample_bytree: 0.6
+    min_child_samples: 30
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    min_split_gain: 0.01
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

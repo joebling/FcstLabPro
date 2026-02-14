@@ -1,0 +1,70 @@
+# ============================================================
+# Weekly Bull Model v8c: LightGBM 分类 + 概率阈值优化 + 精调
+#
+# 核心思路:
+#   - 仍使用 LightGBM 分类器 (分类 objective)
+#   - 但在每个 fold 中，用训练集尾部做概率阈值优化
+#   - 结合 v7c 的调参方向继续精调
+#   - 更大的 n_estimators + 更低的 learning_rate（患者训练）
+#   - 增加特征筛选至 Top-45（更精简）
+# ============================================================
+experiment:
+  name: "weekly_bull_v8c"
+  description: "Bull v8c: 分类器 + 概率阈值优化 + 精调"
+  tags: ["weekly", "bull", "binary", "v8c", "threshold_opt", "tuned"]
+  category: "weekly"
+
+data:
+  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+
+features:
+  sets:
+    - technical
+    - volume
+    - flow
+    - market_structure
+    - external
+  selection:
+    top_n: 45
+
+label:
+  strategy: "reversal"
+  T: 14
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+
+model:
+  type: "lightgbm"
+  params:
+    n_estimators: 1200
+    max_depth: 4
+    learning_rate: 0.02
+    num_leaves: 12
+    subsample: 0.75
+    colsample_bytree: 0.5
+    min_child_samples: 35
+    reg_alpha: 0.2
+    reg_lambda: 0.3
+    min_split_gain: 0.02
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+
+evaluation:
+  method: "walk_forward"
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  threshold_optimize: true
+  threshold_metric: "kappa"
+  threshold_val_ratio: 0.15
+  metrics:
+    - accuracy
+    - f1_binary
+    - precision_binary
+    - recall_binary
+    - f1_macro
+    - cohen_kappa

@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm 
 
 # 安装依赖
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir scikit-learn==1.6.1
 
 # 拷贝项目（.dockerignore 控制排除内容）
 COPY . /app
