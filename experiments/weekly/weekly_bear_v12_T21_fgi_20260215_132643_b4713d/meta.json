@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v12_T21_fgi_20260215_132643_b4713d",
+  "name": "weekly_bear_v12_T21_fgi",
+  "description": "Bear v12: T=21 天窗口 + FGI (更长预测窗口)",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v12",
+    "longer_horizon"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T13:26:43.398235",
+  "git": {
+    "commit": "64409a9",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 70.76,
+  "aggregate_metrics": {
+    "accuracy": 0.5608465608465608,
+    "f1_binary": 0.34319033735943355,
+    "precision_binary": 0.31047475508666167,
+    "recall_binary": 0.38361266294227186,
+    "f1_macro": 0.5066715125408336,
+    "cohen_kappa": 0.018814209936767856
+  }
+}

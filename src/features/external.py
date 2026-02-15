@@ -210,6 +210,56 @@ def build_external_fgi_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+@register_feature_set("external_fgi_enhanced")
+def build_external_fgi_enhanced_features(df: pd.DataFrame) -> pd.DataFrame:
+    """增强版 FGI 特征 - 添加更多衍生特征."""
+    df = df.copy()
+    fgi = _load_external_csv("fear_greed_index.csv")
+    if fgi is not None and "fgi_value" in fgi.columns:
+        fgi_aligned = fgi["fgi_value"].reindex(df.index, method="ffill")
+        df["ext_fgi"] = fgi_aligned
+
+        # 基础统计特征
+        for w in [3, 7, 14, 21, 30]:
+            df[f"ext_fgi_ma{w}"] = df["ext_fgi"].rolling(w).mean()
+            df[f"ext_fgi_std_{w}"] = df["ext_fgi"].rolling(w).std()
+
+        # 动量特征
+        for w in [1, 3, 5, 7, 14, 21]:
+            df[f"ext_fgi_change_{w}d"] = df["ext_fgi"].pct_change(w)
+
+        # FGI 位置特征 (在历史分布中的位置)
+        for w in [30, 60, 90]:
+            fgi_roll = df["ext_fgi"].rolling(w)
+            df[f"ext_fgi_pct_rank_{w}"] = df["ext_fgi"].rank(pct=True) - 0.5
+
+        # 极端值特征
+        df["ext_fgi_extreme_fear"] = (df["ext_fgi"] < 25).astype(int)
+        df["ext_fgi_extreme_greed"] = (df["ext_fgi"] > 75).astype(int)
+        df["ext_fgi_fear"] = (df["ext_fgi"] < 35).astype(int)
+        df["ext_fgi_greed"] = (df["ext_fgi"] > 65).astype(int)
+
+        # FGI 与价格背离
+        for w in [7, 14]:
+            price_ret = df["close"].pct_change(w)
+            fgi_ret = df["ext_fgi"].pct_change(w)
+            df[f"ext_fgi_price_div_{w}d"] = fgi_ret - price_ret
+
+        # FGI 动量方向变化 (加速度)
+        df["ext_fgi_momentum"] = df["ext_fgi"].diff(3)
+        df["ext_fgi_momentum_accel"] = df["ext_fgi_momentum"].diff(3)
+
+        # FGI 与均线偏离
+        for w in [14, 30]:
+            ma = df["ext_fgi"].rolling(w).mean()
+            df[f"ext_fgi_vs_ma{w}"] = df["ext_fgi"] - ma
+
+        logger.info("  ✅ FGI 增强特征集: 40+ 个")
+    else:
+        logger.warning("  ⚠️ FGI 数据不可用")
+    return df
+
+
 @register_feature_set("external_macro")
 def build_external_macro_features(df: pd.DataFrame) -> pd.DataFrame:
     """仅构建宏观因子特征 (用于消融实验)."""

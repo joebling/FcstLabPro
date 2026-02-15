@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # =============================================================================
-# FcstLabPro v6 Cloud Run Job 入口脚本
+# FcstLabPro v9 Cloud Run Job 入口脚本
 # 功能: 1) 下载最新 Binance 日线数据  2) 生成每日交易信号  3) 上传结果到 GCS
 # =============================================================================
 set -euo pipefail
 
 echo "=============================================="
-echo "🔮 FcstLabPro v6 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+echo "🔮 FcstLabPro v9 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "=============================================="
 
 # ── 环境变量（Cloud Run Job 通过 --set-env-vars 传入） ──
-BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v6_20260213_214847_a29943}"
-BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v6_20260213_215211_1928bd}"
+BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v9_fgi_v2_20260215_113918_2181e7}"
+BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v9_fgi_v2_20260215_114152_6c90ee}"
 OUT_DIR="${OUT_DIR:-/tmp/signals}"
 OUT_BUCKET="${OUT_BUCKET:-}"           # gs://your-bucket/signals（可选）
 NOTIFICATION_URL="${NOTIFICATION_URL:-}"  # Webhook URL（可选）

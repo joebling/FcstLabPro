@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bull_v11_directional_fgi_20260215_132210_6d1d2c",
+  "name": "weekly_bull_v11_directional_fgi",
+  "description": "Bull v11: directional标签 + FGI 对比",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v11",
+    "directional",
+    "fgi"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T13:22:10.036443",
+  "git": {
+    "commit": "64409a9",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 18.54,
+  "aggregate_metrics": {
+    "accuracy": 0.5487528344671202,
+    "f1_binary": 0.6952526799387443,
+    "precision_binary": 0.6598837209302325,
+    "recall_binary": 0.7346278317152104,
+    "f1_macro": 0.41312852337548567,
+    "cohen_kappa": -0.16420583436144387
+  }
+}

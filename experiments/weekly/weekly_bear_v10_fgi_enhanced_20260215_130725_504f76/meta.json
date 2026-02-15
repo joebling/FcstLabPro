@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v10_fgi_enhanced_20260215_130725_504f76",
+  "name": "weekly_bear_v10_fgi_enhanced",
+  "description": "Bear v10: 增强版 FGI 特征",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v10",
+    "fgi_enhanced"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T13:07:25.388010",
+  "git": {
+    "commit": "64409a9",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 77.01,
+  "aggregate_metrics": {
+    "accuracy": 0.5730994152046783,
+    "f1_binary": 0.36939531057178115,
+    "precision_binary": 0.33507462686567163,
+    "recall_binary": 0.41154903758020167,
+    "f1_macro": 0.5233631993818704,
+    "cohen_kappa": 0.051816437963079
+  }
+}

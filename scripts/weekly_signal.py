@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""每日交易信号 — 基于 v6 Bull/Bear 双模型输出概率化交易建议.
+"""每日交易信号 — 基于 v9 Bull/Bear 双模型输出概率化交易建议.
 
 每天运行一次（北京时间 08:00），输出：
   1. Bull/Bear 概率
@@ -43,18 +43,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ── 默认模型路径 (v6) ──
-DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v8b_20260213_235350_e97aaf"
-DEFAULT_BEAR_DIR = "experiments/weekly/weekly_bear_v8b_20260214_000003_545cf4"
+# ── 默认模型路径 (v9) ──
+DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v9_fgi_v2_20260215_113918_2181e7"
+DEFAULT_BEAR_DIR = "experiments/weekly/weekly_bear_v9_fgi_v2_20260215_114152_6c90ee"
 
 
 def load_model_and_features(exp_dir: str):
-    """加载模型、特征配置和元信息."""
+    """加载模型、特征配置和元信息（增强容错）."""
     import yaml, json
     exp_path = PROJECT_ROOT / exp_dir
     model = joblib.load(exp_path / "model.joblib")
+    
     with open(exp_path / "config.yaml") as f:
         config = yaml.safe_load(f)
+    
+    # 加载 meta.json 或 metrics.json
     meta = {}
     for meta_file in ["metrics.json", "meta.json"]:
         meta_path = exp_path / meta_file
@@ -62,15 +65,40 @@ def load_model_and_features(exp_dir: str):
             with open(meta_path) as mf:
                 meta = json.load(mf)
             break
-    # 修复：自动补充 kappa 字段
+    
+    # 🔧 增强：从 config 补充缺失字段
+    exp_config = config.get("experiment", {})
+    
+    # 补充 version
+    if "version" not in meta:
+        meta["version"] = exp_config.get("name", meta.get("name", "unknown"))
+    
+    # 补充 label_strategy
+    if "label_strategy" not in meta:
+        label_cfg = config.get("label", {})
+        meta["label_strategy"] = label_cfg.get("strategy", "unknown")
+    
+    # 补充 feature_set
+    if "feature_set" not in meta:
+        feat_cfg = config.get("features", {})
+        meta["feature_set"] = feat_cfg.get("sets", [])
+    
+    # 补充 kappa
     if "kappa" not in meta:
         kappa = None
+        # 优先从 aggregate_metrics 读取
         if "aggregate_metrics" in meta and "cohen_kappa" in meta["aggregate_metrics"]:
             kappa = meta["aggregate_metrics"]["cohen_kappa"]
+        # 否则直接从 meta 读取（metrics.json 格式）
+        elif "cohen_kappa" in meta:
+            kappa = meta["cohen_kappa"]
+        # 格式化为 2 位小数
         if kappa is not None:
-            meta["kappa"] = kappa
-    # 调试输出 meta 内容
-    logger.info(f"[DEBUG] loaded meta for {exp_dir}: {meta}")
+            kappa = f"{kappa:.2f}"
+        meta["kappa"] = kappa if kappa is not None else "N/A"
+    
+    logger.info(f"[DEBUG] loaded meta for {exp_dir}: version={meta.get('version')}, kappa={meta.get('kappa')}, label_strategy={meta.get('label_strategy')}")
+    
     return model, config, meta
 
 
@@ -265,7 +293,7 @@ def format_report(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="v6 每日交易信号")
+    parser = argparse.ArgumentParser(description="v9 每日交易信号")
     parser.add_argument("--download", action="store_true",
                         help="下载最新数据后再预测")
     parser.add_argument("--bull-dir", default=DEFAULT_BULL_DIR,

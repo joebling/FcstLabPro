@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_v10_fgi_enhanced_20260215_124511_974d1c",
+  "name": "weekly_bull_v10_fgi_enhanced",
+  "description": "Bull v10: 增强版 FGI 特征",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v10",
+    "fgi_enhanced"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T12:45:11.793395",
+  "git": {
+    "commit": "64409a9",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 75.59,
+  "aggregate_metrics": {
+    "accuracy": 0.5343915343915344,
+    "f1_binary": 0.44451827242524916,
+    "precision_binary": 0.5083586626139818,
+    "recall_binary": 0.3949232585596222,
+    "f1_macro": 0.5218756271042833,
+    "cohen_kappa": 0.05450921861668956
+  }
+}

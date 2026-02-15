@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# FcstLabPro v6 — Google Cloud Run Job 部署脚本
+# FcstLabPro v9 — Google Cloud Run Job 部署脚本
 # 每天北京时间 08:00 (UTC 00:00) 运行，预测未来 14 天 BTC 价格走势
 #
 # 前置条件:
@@ -15,6 +15,15 @@
 set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────
+# 加载本地 .env 文件（如果有）
+# ─────────────────────────────────────────────────────────────
+if [ -f "$(dirname "$0")/../.env" ]; then
+    set -a
+    source "$(dirname "$0")/../.env"
+    set +a
+fi
+
+# ─────────────────────────────────────────────────────────────
 # 配置变量（⬇️ 根据你的实际情况修改 ⬇️）
 # ─────────────────────────────────────────────────────────────
 PROJECT_ID="${GCP_PROJECT_ID:-forecastlab-prod}"
@@ -22,7 +31,7 @@ REGION="asia-east1"                          # 台湾区域，延迟低
 REPO_NAME="fcstlabpro"                       # Artifact Registry 仓库名
 IMAGE_NAME="fcstlabpro-v6"                   # 镜像名
 IMAGE_TAG="latest"
-JOB_NAME="daily-btc-signal-v6"              # Cloud Run Job 名
+JOB_NAME="daily-btc-signal-v9"              # Cloud Run Job 名
 SCHEDULER_NAME="daily-btc-signal-trigger"   # Cloud Scheduler 名
 MEMORY="2Gi"
 CPU="1"
@@ -34,6 +43,14 @@ NOTIFICATION_URL="${NOTIFICATION_URL:-}"
 
 # Service Account（留空则用默认 Compute SA）
 SERVICE_ACCOUNT="${GCP_SERVICE_ACCOUNT:-}"
+
+# SMTP 邮件配置（从环境变量读取）
+SMTP_USER="${SMTP_USER:-}"
+SMTP_PASS="${SMTP_PASS:-}"
+MAIL_TO="${MAIL_TO:-}"
+
+# Gemini API Key（LLM 策略分析，可选）
+GEMINI_API_KEY="${GEMINI_API_KEY:-}"
 
 # 完整镜像地址
 IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:${IMAGE_TAG}"
@@ -116,15 +133,67 @@ gcloud builds submit --tag "${IMAGE_URI}" .
 echo "✅ 镜像已推送"
 
 # ─────────────────────────────────────────────────────────────
+# Step 3.5: 部署前检查
+# ─────────────────────────────────────────────────────────────
+echo ""
+echo "=== Step 3.5: 部署前检查 ==="
+
+# 检查 SMTP 配置
+if [ -z "${SMTP_USER}" ] || [ -z "${SMTP_PASS}" ] || [ -z "${MAIL_TO}" ]; then
+    echo "⚠️  警告: SMTP 配置不完整，邮件发送功能将被禁用"
+    echo "   请设置环境变量: SMTP_USER, SMTP_PASS, MAIL_TO"
+    read -p "   是否继续部署? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "❌ 部署已取消"
+        exit 1
+    fi
+else
+    echo "✅ SMTP 配置已设置"
+fi
+
+# 检查模型目录是否存在
+BULL_DIR_CHECK="${BULL_DIR:-experiments/weekly/weekly_bull_v9_fgi_v2_20260215_113918_2181e7}"
+BEAR_DIR_CHECK="${BEAR_DIR:-experiments/weekly/weekly_bear_v9_fgi_v2_20260215_114152_6c90ee}"
+
+if [ ! -d "${BULL_DIR_CHECK}" ]; then
+    echo "❌ Bull 模型目录不存在: ${BULL_DIR_CHECK}"
+    exit 1
+fi
+if [ ! -d "${BEAR_DIR_CHECK}" ]; then
+    echo "❌ Bear 模型目录不存在: ${BEAR_DIR_CHECK}"
+    exit 1
+fi
+echo "✅ 模型目录检查通过"
+
+# ─────────────────────────────────────────────────────────────
 # Step 4: 创建/更新 Cloud Run Job
 # ─────────────────────────────────────────────────────────────
 echo ""
 echo "=== Step 4: 创建/更新 Cloud Run Job ==="
 
 # 构建环境变量
-ENV_VARS="BULL_DIR=experiments/weekly/weekly_bull_v6_20260213_214847_a29943"
-ENV_VARS="${ENV_VARS},BEAR_DIR=experiments/weekly/weekly_bear_v6_20260213_215211_1928bd"
+ENV_VARS="BULL_DIR=${BULL_DIR:-experiments/weekly/weekly_bull_v9_fgi_v2_20260215_113918_2181e7}"
+ENV_VARS="${ENV_VARS},BEAR_DIR=${BEAR_DIR:-experiments/weekly/weekly_bear_v9_fgi_v2_20260215_114152_6c90ee}"
 ENV_VARS="${ENV_VARS},OUT_DIR=/tmp/signals"
+
+# 添加 SMTP 配置
+if [ -n "${SMTP_USER}" ]; then
+    ENV_VARS="${ENV_VARS},SMTP_USER=${SMTP_USER}"
+fi
+if [ -n "${SMTP_PASS}" ]; then
+    ENV_VARS="${ENV_VARS},SMTP_PASS=${SMTP_PASS}"
+fi
+if [ -n "${MAIL_TO}" ]; then
+    ENV_VARS="${ENV_VARS},MAIL_TO=${MAIL_TO}"
+fi
+
+# 添加 Gemini API Key
+if [ -n "${GEMINI_API_KEY}" ]; then
+    ENV_VARS="${ENV_VARS},GEMINI_API_KEY=${GEMINI_API_KEY}"
+fi
+
+# 可选配置
 if [ -n "${OUT_BUCKET}" ]; then
     ENV_VARS="${ENV_VARS},OUT_BUCKET=${OUT_BUCKET}"
 fi

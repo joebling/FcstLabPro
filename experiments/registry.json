@@ -1187,5 +1187,238 @@
       "cohen_kappa": 0.07285788696573281
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v9_fgi_20260215_113640_50914a",
+    "name": "weekly_bull_v9_fgi",
+    "description": "Bull v9: 基于消融实验结果，使用 external_fgi（最有效外部数据）",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v9",
+      "fgi_optimized"
+    ],
+    "created_at": "2026-02-15T11:36:40.092222",
+    "status": "completed",
+    "duration_seconds": 93.79,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5291005291005291,
+      "f1_binary": 0.4432005268356931,
+      "precision_binary": 0.5011169024571854,
+      "recall_binary": 0.39728453364817,
+      "f1_macro": 0.5176195637797283,
+      "cohen_kappa": 0.04458962805998867
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v9_fgi_v2_20260215_113918_2181e7",
+    "name": "weekly_bull_v9_fgi_v2",
+    "description": "Bull v9: 基于消融实验最优配置，使用 external_fgi",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v9",
+      "fgi_optimized"
+    ],
+    "created_at": "2026-02-15T11:39:18.284231",
+    "status": "completed",
+    "duration_seconds": 70.9,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5380116959064327,
+      "f1_binary": 0.4522944866292506,
+      "precision_binary": 0.5131086142322098,
+      "recall_binary": 0.40436835891381345,
+      "f1_macro": 0.5264121120841895,
+      "cohen_kappa": 0.062429976964693545
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v9_fgi_v2_20260215_114152_6c90ee",
+    "name": "weekly_bear_v9_fgi_v2",
+    "description": "Bear v9: 基于消融实验最优配置，使用 external_fgi",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v9",
+      "fgi_optimized"
+    ],
+    "created_at": "2026-02-15T11:41:52.743437",
+    "status": "completed",
+    "duration_seconds": 71.76,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.56947925368978,
+      "f1_binary": 0.3811048839071257,
+      "precision_binary": 0.3383084577114428,
+      "recall_binary": 0.43629697525206235,
+      "f1_macro": 0.5255225529697882,
+      "cohen_kappa": 0.05907518400933931
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v10_fgi_enhanced_20260215_124511_974d1c",
+    "name": "weekly_bull_v10_fgi_enhanced",
+    "description": "Bull v10: 增强版 FGI 特征",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v10",
+      "fgi_enhanced"
+    ],
+    "created_at": "2026-02-15T12:45:11.793395",
+    "status": "completed",
+    "duration_seconds": 75.59,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5343915343915344,
+      "f1_binary": 0.44451827242524916,
+      "precision_binary": 0.5083586626139818,
+      "recall_binary": 0.3949232585596222,
+      "f1_macro": 0.5218756271042833,
+      "cohen_kappa": 0.05450921861668956
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v10_fgi_enhanced_20260215_130725_504f76",
+    "name": "weekly_bear_v10_fgi_enhanced",
+    "description": "Bear v10: 增强版 FGI 特征",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v10",
+      "fgi_enhanced"
+    ],
+    "created_at": "2026-02-15T13:07:25.388010",
+    "status": "completed",
+    "duration_seconds": 77.01,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5730994152046783,
+      "f1_binary": 0.36939531057178115,
+      "precision_binary": 0.33507462686567163,
+      "recall_binary": 0.41154903758020167,
+      "f1_macro": 0.5233631993818704,
+      "cohen_kappa": 0.051816437963079
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v11_directional_fgi_20260215_132210_6d1d2c",
+    "name": "weekly_bull_v11_directional_fgi",
+    "description": "Bull v11: directional标签 + FGI 对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v11",
+      "directional",
+      "fgi"
+    ],
+    "created_at": "2026-02-15T13:22:10.036443",
+    "status": "completed",
+    "duration_seconds": 18.54,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5487528344671202,
+      "f1_binary": 0.6952526799387443,
+      "precision_binary": 0.6598837209302325,
+      "recall_binary": 0.7346278317152104,
+      "f1_macro": 0.41312852337548567,
+      "cohen_kappa": -0.16420583436144387
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v12_T21_fgi_20260215_132432_6be653",
+    "name": "weekly_bull_v12_T21_fgi",
+    "description": "Bull v12: T=21 天窗口 + FGI (更长预测窗口)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v12",
+      "longer_horizon"
+    ],
+    "created_at": "2026-02-15T13:24:32.487150",
+    "status": "completed",
+    "duration_seconds": 75.96,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5497076023391813,
+      "f1_binary": 0.5863392171910975,
+      "precision_binary": 0.6303630363036303,
+      "recall_binary": 0.5480631276901005,
+      "f1_macro": 0.5461485270190134,
+      "cohen_kappa": 0.09755401600443137
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v12_T21_fgi_20260215_132643_b4713d",
+    "name": "weekly_bear_v12_T21_fgi",
+    "description": "Bear v12: T=21 天窗口 + FGI (更长预测窗口)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v12",
+      "longer_horizon"
+    ],
+    "created_at": "2026-02-15T13:26:43.398235",
+    "status": "completed",
+    "duration_seconds": 70.76,
+    "git_commit": "64409a9",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5608465608465608,
+      "f1_binary": 0.34319033735943355,
+      "precision_binary": 0.31047475508666167,
+      "recall_binary": 0.38361266294227186,
+      "f1_macro": 0.5066715125408336,
+      "cohen_kappa": 0.018814209936767856
+    },
+    "error": null
   }
 ]
