@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_v15_regime_20260215_142329_b42efc",
+  "name": "weekly_bull_v15_regime",
+  "description": "Bull v15: T=21 + FGI + Regime 特征",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v15",
+    "regime"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T14:23:29.006767",
+  "git": {
+    "commit": "2770e6d",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 90.01,
+  "aggregate_metrics": {
+    "accuracy": 0.5555555555555556,
+    "f1_binary": 0.5895061728395061,
+    "precision_binary": 0.6377295492487479,
+    "recall_binary": 0.5480631276901005,
+    "f1_macro": 0.5524944343250354,
+    "cohen_kappa": 0.11098887905448229
+  }
+}
