@@ -1480,5 +1480,63 @@
       "cohen_kappa": 0.05286152906821073
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v14_threshold_20260215_135859_60ab82",
+    "name": "weekly_bull_v14_threshold",
+    "description": "Bull v14: T=21 + FGI + 概率阈值优化",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v14",
+      "threshold_opt"
+    ],
+    "created_at": "2026-02-15T13:58:59.752837",
+    "status": "completed",
+    "duration_seconds": 75.75,
+    "git_commit": "02d44d5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5608465608465608,
+      "f1_binary": 0.6463332585781565,
+      "precision_binary": 0.6085304054054054,
+      "recall_binary": 0.689143950263032,
+      "f1_macro": 0.5335963024436872,
+      "cohen_kappa": 0.07305035132543158
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v14_threshold_20260215_140328_352852",
+    "name": "weekly_bear_v14_threshold",
+    "description": "Bear v14: T=28 + FGI + 概率阈值优化",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v14",
+      "threshold_opt"
+    ],
+    "created_at": "2026-02-15T14:03:28.204666",
+    "status": "completed",
+    "duration_seconds": 72.37,
+    "git_commit": "02d44d5",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5164399092970522,
+      "f1_binary": 0.39158345221112695,
+      "precision_binary": 0.3048306496390894,
+      "recall_binary": 0.5473579262213359,
+      "f1_macro": 0.49518024915354086,
+      "cohen_kappa": 0.0415525822387226
+    },
+    "error": null
   }
 ]
