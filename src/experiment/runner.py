@@ -25,6 +25,7 @@ from src.experiment.reporter import generate_experiment_report
 import src.labels.reversal  # noqa: F401
 import src.labels.directional  # noqa: F401
 import src.labels.triple_barrier  # noqa: F401
+import src.labels.return_rate  # noqa: F401
 
 # 触发新模型注册
 import src.models.stacking  # noqa: F401
@@ -151,6 +152,19 @@ def run_experiment(
         seed = config.get("seed", 42)
         np.random.seed(seed)
 
+        # 获取 regime feature 索引
+        regime_feature_idx = None
+        regime_weights = eval_cfg.get("regime_weight")
+        if regime_weights:
+            # 查找 regime 相关特征
+            for i, col in enumerate(feature_cols):
+                if "regime" in col.lower():
+                    regime_feature_idx = i
+                    logger.info(f"RSW: 使用特征 '{col}' (index={i}) 作为 regime indicator")
+                    break
+            if regime_feature_idx is None:
+                logger.warning("RSW: 未找到 regime 特征，跳过样本加权")
+
         bt_result = run_walk_forward(
             X=X, y=y,
             feature_names=feature_cols,
@@ -164,6 +178,9 @@ def run_experiment(
             threshold_optimize=eval_cfg.get("threshold_optimize", False),
             threshold_metric=eval_cfg.get("threshold_metric", "f1"),
             threshold_val_ratio=eval_cfg.get("threshold_val_ratio", 0.15),
+            calibrate=eval_cfg.get("calibrate", "none"),
+            regime_weights=regime_weights,
+            regime_feature_idx=regime_feature_idx,
         )
 
         # ========== 6. 保存产物 ==========

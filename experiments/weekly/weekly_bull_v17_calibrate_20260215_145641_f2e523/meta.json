@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_v17_calibrate_20260215_145641_f2e523",
+  "name": "weekly_bull_v17_calibrate",
+  "description": "Bull v17: v15 + Platt Scaling 概率校准",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v17",
+    "calibration"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T14:56:41.231662",
+  "git": {
+    "commit": "007d62a",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 340.38,
+  "aggregate_metrics": {
+    "accuracy": 0.5948203842940685,
+    "f1_binary": 0.7337602927721867,
+    "precision_binary": 0.5942501481920569,
+    "recall_binary": 0.9588713534194165,
+    "f1_macro": 0.44317601126669903,
+    "cohen_kappa": 0.052557624130354585
+  }
+}

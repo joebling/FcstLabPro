@@ -51,6 +51,9 @@ def run_walk_forward(
     threshold_optimize: bool = False,
     threshold_metric: str = "f1",
     threshold_val_ratio: float = 0.15,
+    calibrate: str = "none",  # "none" | "platt" | "isotonic"
+    regime_weights: dict | None = None,  # {"bull": 1.5, "sideways": 0.5, "bear": 1.2}
+    regime_feature_idx: int | None = None,  # 哪个特征是 regime indicator
 ) -> BacktestResult:
     """执行 Walk-Forward 回测.
 
@@ -102,9 +105,35 @@ def run_walk_forward(
         X_test = X[fold.test_start:fold.test_end]
         y_test = y[fold.test_start:fold.test_end]
 
+        # ---- 样本加权 (Regime-Specific Weighting) ----
+        sample_weight = None
+        if regime_weights and regime_feature_idx is not None:
+            try:
+                regime_values = X_train[:, regime_feature_idx]
+                sample_weight = np.ones(len(regime_values))
+                # regime_bull=1, regime_bear=-1, regime_sideways=0
+                sample_weight[regime_values > 0] = regime_weights.get("bull", 1.0)   # Bull
+                sample_weight[regime_values < 0] = regime_weights.get("bear", 1.0)    # Bear
+                sample_weight[regime_values == 0] = regime_weights.get("sideways", 1.0)  # Sideways
+                logger.info(f"  Fold {fold.fold_id}: RSW applied, weights={regime_weights}")
+            except Exception as e:
+                logger.warning(f"  RSW 应用失败: {e}")
+
         # 训练
         model = create_model(model_type, model_params)
-        model.fit(X_train, y_train)
+        model.fit(X_train, y_train, sample_weight=sample_weight)
+
+        # ---- 概率校准 ----
+        calibration_info = None
+        if calibrate != "none" and calibrate != "None":
+            from src.evaluation.calibration import apply_calibration
+            try:
+                # 使用内部CV进行校准
+                model = apply_calibration(model, X_train, y_train, method=calibrate, cv=3)
+                calibration_info = {"method": calibrate}
+                logger.info(f"  Fold {fold.fold_id}: 概率校准已应用 ({calibrate})")
+            except Exception as e:
+                logger.warning(f"  校准失败: {e}")
 
         # ---- 概率阈值优化 ----
         if threshold_optimize:

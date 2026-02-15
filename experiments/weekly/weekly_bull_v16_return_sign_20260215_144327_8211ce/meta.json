@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bull_v16_return_sign_20260215_144327_8211ce",
+  "name": "weekly_bull_v16_return_sign",
+  "description": "Bull v16: return_sign + T=21 + FGI + Regime",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v16",
+    "return_sign"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T14:43:27.133826",
+  "git": {
+    "commit": "007d62a",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 89.15,
+  "aggregate_metrics": {
+    "accuracy": 0.518796992481203,
+    "f1_binary": 0.5218594355285002,
+    "precision_binary": 0.5701330108827086,
+    "recall_binary": 0.48112244897959183,
+    "f1_macro": 0.5187772513965372,
+    "cohen_kappa": 0.044492973261963
+  }
+}

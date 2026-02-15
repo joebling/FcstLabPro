@@ -1,0 +1,56 @@
+experiment:
+  name: weekly_bull_v16_regression
+  description: 'Bull v16: 回归目标 + T=21 + FGI + Regime'
+  tags:
+  - weekly
+  - bull
+  - regression
+  - v16
+  - return_prediction
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - regime
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: return_rate
+  T: 21
+  X: 0.08
+model:
+  type: lightgbm_regressor
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - mse
+  - mae
+  - r2
+  - spearman
+seed: 42

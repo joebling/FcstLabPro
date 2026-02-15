@@ -1,0 +1,63 @@
+experiment:
+  name: weekly_bear_v19_volatility
+  description: 'Bear v19: T=28 + FGI + Bear波动率特征 (无Regime)'
+  tags:
+  - weekly
+  - bear
+  - binary
+  - v19
+  - volatility
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - bear_volatility
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: reversal
+  T: 28
+  X: 0.05
+  map:
+    0: 1
+    1: 0
+    2: 0
+model:
+  type: lightgbm
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+seed: 42

@@ -39,10 +39,16 @@ class LightGBMModel(BaseModel):
         self._auto_scale_pos_weight = merged.pop("auto_scale_pos_weight", True)
         self._early_stopping_rounds = merged.pop("early_stopping_rounds", None)
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "LightGBMModel":
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        sample_weight: np.ndarray | None = None,
+    ) -> "LightGBMModel":
         """训练 LightGBM 模型.
 
         自动检测二分类/多分类，并对二分类自动设置 scale_pos_weight。
+        支持 sample_weight 进行样本加权。
         """
         params = self.params.copy()
         n_classes = len(np.unique(y))
@@ -89,11 +95,12 @@ class LightGBMModel(BaseModel):
                 y_train,
                 eval_set=[(X_val, y_val)],
                 callbacks=callbacks,
+                sample_weight=sample_weight,
             )
             logger.info(f"LightGBM 早停训练完成, best_iteration={self.model.best_iteration_}")
         else:
             self.model = lgb.LGBMClassifier(**params)
-            self.model.fit(X, y)
+            self.model.fit(X, y, sample_weight=sample_weight)
 
         self.is_fitted = True
         logger.info(f"LightGBM 训练完成, n_features={X.shape[1]}, n_samples={X.shape[0]}")

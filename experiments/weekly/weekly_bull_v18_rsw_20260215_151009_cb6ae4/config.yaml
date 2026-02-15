@@ -1,0 +1,68 @@
+experiment:
+  name: weekly_bull_v18_rsw
+  description: 'Bull v18: Regime-Specific Weighting (RSW)'
+  tags:
+  - weekly
+  - bull
+  - binary
+  - v18
+  - rsw
+  - sample_weight
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - regime
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: reversal
+  T: 21
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+model:
+  type: lightgbm
+  params:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+  regime_weight:
+    bull: 1.5
+    sideways: 0.5
+    bear: 1.2
+seed: 42

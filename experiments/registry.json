@@ -1618,5 +1618,268 @@
       "cohen_kappa": 0.03561921554795222
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v15_regime_20260215_143428_9fca57",
+    "name": "weekly_bear_v15_regime",
+    "description": "Bear v15: T=28 + FGI + Regime 特征",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v15",
+      "regime"
+    ],
+    "created_at": "2026-02-15T14:34:28.857927",
+    "status": "completed",
+    "duration_seconds": 86.68,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.564625850340136,
+      "f1_binary": 0.3518987341772152,
+      "precision_binary": 0.30504754937820044,
+      "recall_binary": 0.41575274177467597,
+      "f1_macro": 0.5120569215060211,
+      "cohen_kappa": 0.03561921554795222
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v16_regression_20260215_143931_60d437",
+    "name": "weekly_bull_v16_regression",
+    "description": "Bull v16: 回归目标 + T=21 + FGI + Regime",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "regression",
+      "v16",
+      "return_prediction"
+    ],
+    "created_at": "2026-02-15T14:39:31.781120",
+    "status": "failed",
+    "duration_seconds": 0.08,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {},
+    "error": "\"标签策略 'return_rate' 未注册, 可用: ['reversal', 'directional', 'return_sign', 'triple_barrier']\""
+  },
+  {
+    "experiment_id": "weekly_bull_v16_regression_20260215_144049_1c3eba",
+    "name": "weekly_bull_v16_regression",
+    "description": "Bull v16: 回归目标 + T=21 + FGI + Regime",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "regression",
+      "v16",
+      "return_prediction"
+    ],
+    "created_at": "2026-02-15T14:40:49.300974",
+    "status": "failed",
+    "duration_seconds": 0.08,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {},
+    "error": "generate_return_rate_labels() got an unexpected keyword argument 'X'"
+  },
+  {
+    "experiment_id": "weekly_bull_v16_regression_20260215_144121_1a568d",
+    "name": "weekly_bull_v16_regression",
+    "description": "Bull v16: 回归目标 + T=21 + FGI + Regime",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "regression",
+      "v16",
+      "return_prediction"
+    ],
+    "created_at": "2026-02-15T14:41:21.515609",
+    "status": "failed",
+    "duration_seconds": 83.69,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {},
+    "error": "Number of classes, 68, does not match size of target_names, 3. Try specifying the labels parameter"
+  },
+  {
+    "experiment_id": "weekly_bull_v16_return_sign_20260215_144327_8211ce",
+    "name": "weekly_bull_v16_return_sign",
+    "description": "Bull v16: return_sign + T=21 + FGI + Regime",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v16",
+      "return_sign"
+    ],
+    "created_at": "2026-02-15T14:43:27.133826",
+    "status": "completed",
+    "duration_seconds": 89.15,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.518796992481203,
+      "f1_binary": 0.5218594355285002,
+      "precision_binary": 0.5701330108827086,
+      "recall_binary": 0.48112244897959183,
+      "f1_macro": 0.5187772513965372,
+      "cohen_kappa": 0.044492973261963
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v17_calibrate_20260215_145311_7c1a5b",
+    "name": "weekly_bull_v17_calibrate",
+    "description": "Bull v17: v15 + Platt Scaling 概率校准",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v17",
+      "calibration"
+    ],
+    "created_at": "2026-02-15T14:53:11.035475",
+    "status": "completed",
+    "duration_seconds": 91.04,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5555555555555556,
+      "f1_binary": 0.5895061728395061,
+      "precision_binary": 0.6377295492487479,
+      "recall_binary": 0.5480631276901005,
+      "f1_macro": 0.5524944343250354,
+      "cohen_kappa": 0.11098887905448229
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v17_calibrate_20260215_145550_2432af",
+    "name": "weekly_bull_v17_calibrate",
+    "description": "Bull v17: v15 + Platt Scaling 概率校准",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v17",
+      "calibration"
+    ],
+    "created_at": "2026-02-15T14:55:50.507630",
+    "status": "failed",
+    "duration_seconds": 4.9,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {},
+    "error": "'CalibratedClassifierCV' object has no attribute 'estimator_'"
+  },
+  {
+    "experiment_id": "weekly_bull_v17_calibrate_20260215_145641_f2e523",
+    "name": "weekly_bull_v17_calibrate",
+    "description": "Bull v17: v15 + Platt Scaling 概率校准",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v17",
+      "calibration"
+    ],
+    "created_at": "2026-02-15T14:56:41.231662",
+    "status": "completed",
+    "duration_seconds": 340.38,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5948203842940685,
+      "f1_binary": 0.7337602927721867,
+      "precision_binary": 0.5942501481920569,
+      "recall_binary": 0.9588713534194165,
+      "f1_macro": 0.44317601126669903,
+      "cohen_kappa": 0.052557624130354585
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v18_rsw_20260215_151009_cb6ae4",
+    "name": "weekly_bull_v18_rsw",
+    "description": "Bull v18: Regime-Specific Weighting (RSW)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "binary",
+      "v18",
+      "rsw",
+      "sample_weight"
+    ],
+    "created_at": "2026-02-15T15:10:09.110910",
+    "status": "completed",
+    "duration_seconds": 88.05,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5405179615705932,
+      "f1_binary": 0.5745229499742135,
+      "precision_binary": 0.6233911583659765,
+      "recall_binary": 0.5327594452415112,
+      "f1_macro": 0.5375641384253633,
+      "cohen_kappa": 0.08175135106988374
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v19_volatility_20260215_151801_c938ff",
+    "name": "weekly_bear_v19_volatility",
+    "description": "Bear v19: T=28 + FGI + Bear波动率特征 (无Regime)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v19",
+      "volatility"
+    ],
+    "created_at": "2026-02-15T15:18:01.378474",
+    "status": "completed",
+    "duration_seconds": 75.56,
+    "git_commit": "007d62a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5578231292517006,
+      "f1_binary": 0.33770014556040756,
+      "precision_binary": 0.31210762331838565,
+      "recall_binary": 0.3678646934460888,
+      "f1_macro": 0.5029128007160171,
+      "cohen_kappa": 0.009164002297819773
+    },
+    "error": null
   }
 ]
