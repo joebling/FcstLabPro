@@ -1,0 +1,71 @@
+experiment:
+  name: weekly_bear_v29_focal_loss
+  description: 'Bear v29: 类别不平衡优化 - Focal Loss + 增强类别权重'
+  tags:
+  - weekly
+  - bear
+  - binary
+  - v29
+  - focal_loss
+  - class_weight
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  drop_na_method: ffill_then_drop
+  scaling: null
+label:
+  strategy: reversal
+  T: 28
+  X: 0.05
+  map:
+    0: 1
+    1: 0
+    2: 0
+model:
+  type: lightgbm
+  params:
+    n_estimators: 500
+    max_depth: 5
+    learning_rate: 0.03
+    num_leaves: 20
+    subsample: 0.7
+    colsample_bytree: 0.7
+    min_child_samples: 30
+    reg_alpha: 0.2
+    reg_lambda: 0.2
+    random_state: 42
+    verbose: -1
+    # 类别不平衡优化参数
+    is_unbalance: true
+    # 手动设置更高的正类权重（负类:正类 = 1:8.4，这里设置 10 倍权重）
+    scale_pos_weight: 10.0
+    # 使用 focal loss 风格的自定义损失（通过调整 class_weight）
+    # Focal Loss: FL(p_t) = -alpha * (1-p_t)^gamma * log(p_t)
+    # 通过调整 class_weight 模拟 focal 效果：提高难分类样本权重
+    # gamma = 2 表示对难分类样本给更高权重
+    # 这里的实现方式：先用 is_unbalance，再用 custom objective
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+seed: 42

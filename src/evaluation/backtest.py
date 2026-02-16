@@ -156,6 +156,13 @@ def run_walk_forward(
             # 预测
             y_pred = model.predict(X_test)
 
+        # 对齐 y_test：序列模型会减少样本数量
+        if hasattr(model, 'sequence_length'):
+            seq_len = model.sequence_length
+            if len(y_test) > len(y_pred):
+                y_test = y_test[seq_len - 1:]
+                logger.debug(f"  Fold {fold.fold_id}: 序列模型对齐 y_test ({len(y_test)} -> {len(y_pred)})")
+
         try:
             y_proba = model.predict_proba(X_test)
         except Exception:
@@ -166,10 +173,11 @@ def run_walk_forward(
 
         # 特征重要性累加
         fi = model.feature_importance()
-        if importance_sum is None:
-            importance_sum = fi.copy()
-        else:
-            importance_sum += fi
+        if fi is not None:
+            if importance_sum is None:
+                importance_sum = fi.copy()
+            else:
+                importance_sum += fi
 
         fold_result = FoldResult(
             fold_id=fold.fold_id,

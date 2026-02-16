@@ -69,14 +69,14 @@ def calibrate_proba(
             cv=cv,
         )
 
-        # 训练校准模型
+        # 训练校准模型 (内部CV会训练多个基础模型)
         calibrated_model.fit(X_train, y_train)
 
         # 评估校准效果
         from sklearn.metrics import brier_score_loss
 
-        # 原始模型概率
-        model.fit(X_train, y_train)
+        # 注意: model 已在外部训练过，这里直接用其预测概率作为基准
+        # 由于 model 已训练，直接用 predict_proba 获取原始概率
         orig_proba = model.predict_proba(X_val)[:, 1]
         orig_brier = brier_score_loss(y_val, orig_proba)
 

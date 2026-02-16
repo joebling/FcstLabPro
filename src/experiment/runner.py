@@ -30,6 +30,11 @@ import src.labels.return_rate  # noqa: F401
 # 触发新模型注册
 import src.models.stacking  # noqa: F401
 import src.models.lgbm_regressor  # noqa: F401
+import src.models.lstm_classifier  # noqa: F401
+import src.models.gru_classifier  # noqa: F401
+import src.models.transformer_classifier  # noqa: F401
+import src.models.tft_classifier  # noqa: F401
+import src.models.patchtst_classifier  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -156,11 +161,15 @@ def run_experiment(
         regime_feature_idx = None
         regime_weights = eval_cfg.get("regime_weight")
         if regime_weights:
-            # 查找 regime 相关特征
-            for i, col in enumerate(feature_cols):
-                if "regime" in col.lower():
-                    regime_feature_idx = i
-                    logger.info(f"RSW: 使用特征 '{col}' (index={i}) 作为 regime indicator")
+            # 优先查找 regime_bull (1=Bull, 0=Bear)
+            target_features = ["regime_bull", "regime_bear", "regime_sideways"]
+            for target in target_features:
+                for i, col in enumerate(feature_cols):
+                    if col == target:
+                        regime_feature_idx = i
+                        logger.info(f"RSW: 使用特征 '{col}' (index={i}) 作为 regime indicator")
+                        break
+                if regime_feature_idx is not None:
                     break
             if regime_feature_idx is None:
                 logger.warning("RSW: 未找到 regime 特征，跳过样本加权")
@@ -199,9 +208,14 @@ def run_experiment(
 
         # 6c. 特征重要性 (使用最后一个 fold 的模型)
         fi = bt_result.last_model.feature_importance()
-        fi_df = pd.DataFrame({"feature": feature_cols, "importance": fi})
-        fi_df = fi_df.sort_values("importance", ascending=False).reset_index(drop=True)
-        fi_df.to_csv(exp_dir / "feature_importance.csv", index=False)
+        fi_df = None
+        if fi is not None:
+            fi_df = pd.DataFrame({"feature": feature_cols, "importance": fi})
+            fi_df = fi_df.sort_values("importance", ascending=False).reset_index(drop=True)
+            fi_df.to_csv(exp_dir / "feature_importance.csv", index=False)
+        else:
+            # 深度学习模型可能不支持特征重要性
+            logger.info("模型不支持特征重要性，跳过保存")
 
         # 6d. 模型 (最后一个 fold)
         joblib.dump(bt_result.last_model.model, exp_dir / "model.joblib")

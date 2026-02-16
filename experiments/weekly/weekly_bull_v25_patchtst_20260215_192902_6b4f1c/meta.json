@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bull_v25_patchtst_20260215_192902_6b4f1c",
+  "name": "weekly_bull_v25_patchtst",
+  "description": "Bull v25: PatchTST 时间序列分类实验",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v25",
+    "patchtst",
+    "deep_learning"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T19:29:02.454476",
+  "git": {
+    "commit": "ab9bf64",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 704.1,
+  "aggregate_metrics": {
+    "accuracy": 0.569563443492452,
+    "f1_binary": 0.7068630175048625,
+    "precision_binary": 0.5850965961361545,
+    "recall_binary": 0.8926315789473684,
+    "f1_macro": 0.44859651258972977,
+    "cohen_kappa": 0.015024860498946913
+  }
+}

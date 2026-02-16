@@ -1,0 +1,24 @@
+{
+  "experiment_id": "weekly_bull_v23_transformer_20260215_174546_f87fee",
+  "name": "weekly_bull_v23_transformer",
+  "description": "Bull v23: Transformer 时间序列分类实验",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v23",
+    "transformer",
+    "deep_learning"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T17:45:46.897663",
+  "git": {
+    "commit": "ab9bf64",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "failed",
+  "duration_seconds": 100.05,
+  "error": "'NoneType' object has no attribute 'head'"
+}

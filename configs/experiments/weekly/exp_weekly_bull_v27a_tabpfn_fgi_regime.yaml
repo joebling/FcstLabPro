@@ -1,0 +1,51 @@
+experiment:
+  name: weekly_bull_v27a_tabpfn_fgi_regime
+  description: 'Bull v27a: TabPFN 消融实验 - 仅 FGI + Regime 核心特征'
+  tags:
+  - weekly
+  - bull
+  - binary
+  - v27a
+  - tabpfn
+  - ablation
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - external_fgi
+  - regime
+  drop_na_method: ffill_then_drop
+  scaling: standard
+label:
+  strategy: reversal
+  T: 21
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+model:
+  type: tabpfn
+  params:
+    n_estimators: 32
+    balance_probabilities: true
+    random_state: 42
+evaluation:
+  method: walk_forward
+  init_train: 1500
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+seed: 42

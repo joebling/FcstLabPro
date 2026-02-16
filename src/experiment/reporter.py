@@ -95,7 +95,8 @@ def generate_experiment_report(
     lines.append("## 3. 特征配置")
     lines.append("")
     lines.append(f"- **特征集**: {feat_cfg.get('sets', [])}")
-    lines.append(f"- **总特征数**: {len(feature_importance_df)}")
+    n_features = len(feature_importance_df) if feature_importance_df is not None else 0
+    lines.append(f"- **总特征数**: {n_features}")
     lines.append(f"- **NaN处理**: {feat_cfg.get('drop_na_method', 'N/A')}")
     lines.append("")
 
@@ -167,9 +168,12 @@ def generate_experiment_report(
     # ========== Top 20 重要特征 ==========
     lines.append("## 10. Top 20 重要特征")
     lines.append("")
-    top20 = feature_importance_df.head(20)
-    lines.append(tabulate(top20, headers="keys", tablefmt="pipe",
-                          floatfmt=".4f", showindex=False))
+    if feature_importance_df is not None:
+        top20 = feature_importance_df.head(20)
+        lines.append(tabulate(top20, headers="keys", tablefmt="pipe",
+                              floatfmt=".4f", showindex=False))
+    else:
+        lines.append("*模型不支持特征重要性*")
     lines.append("")
 
     # ========== 完整配置快照 ==========

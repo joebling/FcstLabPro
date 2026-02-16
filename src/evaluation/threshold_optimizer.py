@@ -58,7 +58,7 @@ def optimize_threshold(
         y_proba = y_proba[:, 1]
 
     if thresholds is None:
-        thresholds = np.arange(0.20, 0.80, 0.01)
+        thresholds = np.arange(0.05, 0.95, 0.01)
 
     best_threshold = 0.5
     best_score = -np.inf

@@ -137,7 +137,7 @@ def check_fgi_data(fgi_path: str) -> dict:
 def check_all():
     """检查所有数据源."""
     print("=" * 60)
-    print("FcstLabPro v7 数据健康检查")
+    print("FcstLabPro v0215 数据健康检查")
     print("=" * 60)
 
     # Binance 数据

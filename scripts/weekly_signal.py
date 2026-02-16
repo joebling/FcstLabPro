@@ -31,6 +31,15 @@ import joblib
 import numpy as np
 import pandas as pd
 
+# ── 限制 PyTorch 线程数（减少内存占用） ──
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+import torch
+torch.set_num_threads(1)
+
 from src.data.loader import load_csv
 from src.features.builder import build_features, get_feature_columns
 from src.llm.analyst import generate_analysis
@@ -43,9 +52,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ── 默认模型路径 (v9) ──
-DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v9_fgi_v2_20260215_113918_2181e7"
-DEFAULT_BEAR_DIR = "experiments/weekly/weekly_bear_v9_fgi_v2_20260215_114152_6c90ee"
+# ── 默认模型路径 (v27: Orion-BiX n_estimators=16) ──
+DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v27_orion_final"
+DEFAULT_BEAR_DIR = "experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7"
 
 
 def load_model_and_features(exp_dir: str):

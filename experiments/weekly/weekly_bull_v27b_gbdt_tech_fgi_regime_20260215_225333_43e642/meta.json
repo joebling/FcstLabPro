@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bull_v27b_gbdt_tech_fgi_regime_20260215_225333_43e642",
+  "name": "weekly_bull_v27b_gbdt_tech_fgi_regime",
+  "description": "Bull v27b: GBDT 消融实验 - Technical + FGI + Regime",
+  "tags": [
+    "weekly",
+    "bull",
+    "binary",
+    "v27b",
+    "gbdt",
+    "ablation"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-15T22:53:33.518217",
+  "git": {
+    "commit": "ab9bf64",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 77.84,
+  "aggregate_metrics": {
+    "accuracy": 0.5329991645781119,
+    "f1_binary": 0.5656565656565656,
+    "precision_binary": 0.6169491525423729,
+    "recall_binary": 0.5222381635581061,
+    "f1_macro": 0.5303440913197011,
+    "cohen_kappa": 0.06817634271438089
+  }
+}

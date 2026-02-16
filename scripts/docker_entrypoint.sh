@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
 # =============================================================================
-# FcstLabPro v9 Cloud Run Job 入口脚本
+# FcstLabPro v0215 Cloud Run Job 入口脚本
+# Bull: Orion-BiX (T=21, Kappa=0.1122)
+# Bear: LightGBM v13 (T=28, Kappa=0.0529)
 # 功能: 1) 下载最新 Binance 日线数据  2) 生成每日交易信号  3) 上传结果到 GCS
 # =============================================================================
 set -euo pipefail
 
 echo "=============================================="
-echo "🔮 FcstLabPro v9 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+echo "🔮 FcstLabPro v0215 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "=============================================="
 
 # ── 环境变量（Cloud Run Job 通过 --set-env-vars 传入） ──
-BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v9_fgi_v2_20260215_113918_2181e7}"
-BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v9_fgi_v2_20260215_114152_6c90ee}"
+# 强制 PyTorch 使用 CPU（减少内存占用）
+export CUDA_VISIBLE_DEVICES=""
+export OMP_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+# 限制 PyTorch 内存分配（减少碎片）
+export PYTORCH_CUDA_ALLOC_CONF="max_split_size_mb:64"
+
+BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v27_orion_final}"
+BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7}"
 OUT_DIR="${OUT_DIR:-/tmp/signals}"
 OUT_BUCKET="${OUT_BUCKET:-}"           # gs://your-bucket/signals（可选）
 NOTIFICATION_URL="${NOTIFICATION_URL:-}"  # Webhook URL（可选）
