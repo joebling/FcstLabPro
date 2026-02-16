@@ -17,7 +17,16 @@ Usage:
     python scripts/weekly_signal.py --download --save  # 下载 + 保存信号 JSON
 """
 
+# ── 限制线程数（必须在所有 import 之前设置） ──
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
 import argparse
+import gc
 import json
 import logging
 import sys
@@ -31,7 +40,6 @@ import joblib
 import numpy as np
 import pandas as pd
 import psutil
-import os
 import torch
 torch.set_num_threads(1)
 
@@ -363,15 +371,68 @@ def main():
     try:
         log_memory("初始")
 
-        # 1. 加载模型
+        # ==================== 阶段性处理: Bull 模型 ====================
         logger.info("📦 加载 Bull 模型 (Orion-BiX): %s", args.bull_dir)
         bull_model, bull_config, bull_meta = load_model_and_features(args.bull_dir)
         log_memory("加载 Bull 模型后")
 
+        logger.info(f"[DEBUG] bull_meta: {bull_meta}")
+
+        # 计算 Bull 特征
+        logger.info("🔧 计算 Bull 特征 (download=%s)...", args.download)
+        bull_df = compute_latest_features(bull_config, download=args.download)
+        log_memory("计算 Bull 特征后")
+
+        bull_features = get_feature_columns(bull_df)
+        bull_top_n = bull_config.get('features', {}).get('selection', {}).get('top_n')
+        if bull_top_n:
+            bull_features = bull_features[:bull_top_n]
+        logger.info("  Bull 特征数: %d, 数据行数: %d", len(bull_features), len(bull_df))
+
+        # 推理 - 只提取最后一行，转换为 float32
+        X_bull = bull_df[bull_features].iloc[[-1]].values.astype(np.float32)
+        bull_proba = bull_model.predict_proba(X_bull)[0]
+        bull_prob = float(bull_proba[1])  # P(大涨) - Orion-BiX
+        logger.info("📊 Bull 概率: %.3f", bull_prob)
+
+        # 保存最后日期和价格（删除 bull_df 后仍需使用）
+        last_date = str(bull_df.index[-1].date())
+        last_price = float(bull_df["close"].iloc[-1])
+
+        # 清理 Bull 模型（保留 bull_df 供后续 LLM 分析使用）
+        del bull_model, X_bull
+        gc.collect()
+        log_memory("清理 Bull 模型后")
+
+        # ==================== 阶段性处理: Bear 模型 ====================
         logger.info("📦 加载 Bear 模型 (GBDT): %s", args.bear_dir)
         bear_model, bear_config, bear_meta = load_model_and_features(args.bear_dir)
         log_memory("加载 Bear 模型后")
 
+        logger.info(f"[DEBUG] bear_meta: {bear_meta}")
+
+        # 计算 Bear 特征
+        logger.info("🔧 计算 Bear 特征 (download=%s)...", args.download)
+        bear_df = compute_latest_features(bear_config, download=args.download)
+        log_memory("计算 Bear 特征后")
+
+        bear_features = get_feature_columns(bear_df)
+        bear_top_n = bear_config.get('features', {}).get('selection', {}).get('top_n')
+        if bear_top_n:
+            bear_features = bear_features[:bear_top_n]
+        logger.info("  Bear 特征数: %d, 数据行数: %d", len(bear_features), len(bear_df))
+
+        # 推理 - 只提取最后一行，转换为 float32
+        X_bear = bear_df[bear_features].iloc[[-1]].values.astype(np.float32)
+        bear_proba = bear_model.predict_proba(X_bear)[0]
+        bear_prob = float(bear_proba[1])  # P(大跌) - GBDT
+
+        # 清理 Bear 模型（保留 bear_df 供后续使用）
+        del bear_model, X_bear
+        gc.collect()
+        log_memory("清理 Bear 模型后")
+
+        # ==================== 双模校验 (如启用) ====================
         # 1.1 双模校验: 加载 GBDT Bull 模型
         gbdt_bull_model = None
         gbdt_bull_meta = None
@@ -382,55 +443,20 @@ def main():
             gbdt_bull_model, gbdt_bull_config, gbdt_bull_meta = load_model_and_features(gbdt_bull_dir)
             log_memory("加载 GBDT Bull 模型后")
 
-        # 调试输出 bull_meta, bear_meta
-        logger.info(f"[DEBUG] bull_meta: {bull_meta}")
-        logger.info(f"[DEBUG] bear_meta: {bear_meta}")
-
-        # 2. 计算特征 (两个模型用各自的特征集)
-        logger.info("🔧 计算特征 (download=%s)...", args.download)
-        bull_df = compute_latest_features(bull_config, download=args.download)
-        log_memory("计算 Bull 特征后")
-
-        bear_df = compute_latest_features(bear_config, download=args.download)
-        log_memory("计算 Bear 特征后")
-
-        bull_features = get_feature_columns(bull_df)
-        bull_top_n = bull_config.get('features', {}).get('selection', {}).get('top_n')
-        if bull_top_n:
-            bull_features = bull_features[:bull_top_n]
-        bear_features = get_feature_columns(bear_df)
-        bear_top_n = bear_config.get('features', {}).get('selection', {}).get('top_n')
-        if bear_top_n:
-            bear_features = bear_features[:bear_top_n]
-
-        logger.info("  Bull 特征数: %d, 数据行数: %d", len(bull_features), len(bull_df))
-        logger.info("  Bear 特征数: %d, 数据行数: %d", len(bear_features), len(bear_df))
-
-        X_bull = bull_df[bull_features].iloc[[-1]].values
-        X_bear = bear_df[bear_features].iloc[[-1]].values
-
-        # 3. 预测概率
-        bull_proba = bull_model.predict_proba(X_bull)[0]  # [P(不涨), P(大涨)] (Orion-BiX)
-        bear_proba = bear_model.predict_proba(X_bear)[0]  # [P(不跌), P(大跌)] (GBDT)
-
-        bull_prob = float(bull_proba[1])  # P(大涨) - Orion-BiX
-        bear_prob = float(bear_proba[1])  # P(大跌) - GBDT
-
-        # 3.1 双模校验: GBDT Bull 预测
-        # GBDT Bull v15 使用与 Orion-BiX 相同的特征集 (包含 regime)
-        if args.dual_mode and gbdt_bull_model is not None:
-            gbdt_bull_features = bull_features  # 复用 Bull 特征集 (包含 regime)
+            # 重新加载 Bull 特征数据用于 GBDT 预测
+            bull_df = compute_latest_features(bull_config, download=False)
+            gbdt_bull_features = get_feature_columns(bull_df)
             gbdt_top_n = gbdt_bull_config.get('features', {}).get('selection', {}).get('top_n')
             if gbdt_top_n:
                 gbdt_bull_features = gbdt_bull_features[:gbdt_top_n]
 
-            # 使用 Bull 模型的特征数据
-            X_gbdt_bull = bull_df[gbdt_bull_features].iloc[[-1]].values
+            X_gbdt_bull = bull_df[gbdt_bull_features].iloc[[-1]].values.astype(np.float32)
             gbdt_bull_proba = gbdt_bull_model.predict_proba(X_gbdt_bull)[0]
             gbdt_bull_prob = float(gbdt_bull_proba[1])
             logger.info("📊 GBDT Bull 概率 (双模校验): %.3f", gbdt_bull_prob)
-        else:
-            gbdt_bull_prob = None
+
+            del gbdt_bull_model, bull_df, X_gbdt_bull
+            gc.collect()
 
         logger.info("📊 预测结果: Bull=%.3f, Bear=%.3f", bull_prob, bear_prob)
 
@@ -445,8 +471,8 @@ def main():
         )
 
         # 5. 输出报告
-        date_str = str(bull_df.index[-1].date())
-        price = float(bull_df["close"].iloc[-1])
+        date_str = last_date
+        price = last_price
 
         # 风险提醒动态 Kappa
         kappa_bull = bull_meta.get("kappa", "N/A")
@@ -552,6 +578,10 @@ def main():
             with open(out_path, "w") as f:
                 json.dump(result, f, indent=2, ensure_ascii=False)
             logger.info("💾 信号已保存: %s", out_path)
+
+        # 最终清理 DataFrame
+        del bull_df, bear_df
+        gc.collect()
 
     except Exception as e:
         logger.error("❌ 信号生成失败: %s", e, exc_info=True)
