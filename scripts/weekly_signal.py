@@ -30,13 +30,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 import joblib
 import numpy as np
 import pandas as pd
-
-# ── 限制 PyTorch 线程数（减少内存占用） ──
+import psutil
 import os
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
-os.environ["NUMEXPR_NUM_THREADS"] = "1"
-
 import torch
 torch.set_num_threads(1)
 
@@ -51,6 +46,22 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
+
+# ── 内存监控函数 ──
+def log_memory(prefix: str = ""):
+    """打印当前内存使用情况 (MB)"""
+    try:
+        process = psutil.Process()
+        mem_info = process.memory_info()
+        rss_mb = mem_info.rss / 1024 / 1024
+        logger.info(f"📊 {prefix} 内存: {rss_mb:.1f} MB")
+    except Exception:
+        pass  # 非关键功能，跳过
+
+# ── 限制 PyTorch 线程数（减少内存占用） ──
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
 # ── 默认模型路径 (v27: Orion-BiX n_estimators=16) ──
 DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v27_orion_final"
@@ -350,11 +361,16 @@ def main():
     args = parser.parse_args()
 
     try:
+        log_memory("初始")
+
         # 1. 加载模型
         logger.info("📦 加载 Bull 模型 (Orion-BiX): %s", args.bull_dir)
         bull_model, bull_config, bull_meta = load_model_and_features(args.bull_dir)
+        log_memory("加载 Bull 模型后")
+
         logger.info("📦 加载 Bear 模型 (GBDT): %s", args.bear_dir)
         bear_model, bear_config, bear_meta = load_model_and_features(args.bear_dir)
+        log_memory("加载 Bear 模型后")
 
         # 1.1 双模校验: 加载 GBDT Bull 模型
         gbdt_bull_model = None
@@ -364,6 +380,7 @@ def main():
             gbdt_bull_dir = args.gbdt_bull_dir or "experiments/weekly/weekly_bull_v15_regime_20260215_142329_b42efc"
             logger.info("📦 加载 GBDT Bull 模型 (双模校验): %s", gbdt_bull_dir)
             gbdt_bull_model, gbdt_bull_config, gbdt_bull_meta = load_model_and_features(gbdt_bull_dir)
+            log_memory("加载 GBDT Bull 模型后")
 
         # 调试输出 bull_meta, bear_meta
         logger.info(f"[DEBUG] bull_meta: {bull_meta}")
@@ -372,7 +389,10 @@ def main():
         # 2. 计算特征 (两个模型用各自的特征集)
         logger.info("🔧 计算特征 (download=%s)...", args.download)
         bull_df = compute_latest_features(bull_config, download=args.download)
+        log_memory("计算 Bull 特征后")
+
         bear_df = compute_latest_features(bear_config, download=args.download)
+        log_memory("计算 Bear 特征后")
 
         bull_features = get_feature_columns(bull_df)
         bull_top_n = bull_config.get('features', {}).get('selection', {}).get('top_n')
