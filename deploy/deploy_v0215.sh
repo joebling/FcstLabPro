@@ -36,7 +36,7 @@ IMAGE_NAME="fcstlabpro-0215"                 # 镜像名 (v0215)
 IMAGE_TAG="latest"
 JOB_NAME="daily-btc-signal-v0215"              # Cloud Run Job 名
 SCHEDULER_NAME="daily-btc-signal-v0215-trigger"  # Cloud Scheduler 名
-MEMORY="8Gi"
+MEMORY="16Gi"
 CPU="4"
 
 # 信号输出 GCS 桶（可选，留空则不上传）
