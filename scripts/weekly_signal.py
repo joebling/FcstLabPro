@@ -138,20 +138,46 @@ def get_signal_and_advice(
     bear_prob: float,
     bull_threshold: float = 0.50,
     bear_threshold: float = 0.50,
+    # 双模校验参数
+    gbdt_bull_prob: float = None,
+    gbdt_threshold: float = 0.40,
+    dual_mode: bool = False,
 ) -> dict:
     """根据概率输出综合信号和交易建议.
 
     Parameters
     ----------
-    bull_prob : 模型输出的 P(大涨) 概率
-    bear_prob : 模型输出的 P(大跌) 概率
+    bull_prob : Bull 模型 (Orion-BiX) 输出的 P(大涨) 概率
+    bear_prob : Bear 模型 (GBDT) 输出的 P(大跌) 概率
     bull_threshold : Bull 判定阈值
     bear_threshold : Bear 判定阈值
+    gbdt_bull_prob : GBDT Bull 模型概率 (双模校验用)
+    gbdt_threshold : GBDT Bull 概率阈值 (双模校验用)
+    dual_mode : 是否启用双模校验
 
     Returns
     -------
     dict : 包含 signal, position, advice, risk_level 等
     """
+    # ── 双模校验逻辑 ──
+    # "Orion 进攻，GBDT 防守"
+    # Bull 信号: Orion-BiX 给出 Bull 信号 + GBDT 概率 > gbdt_threshold
+    # Bear 信号: GBDT Bear 触发时无条件覆盖 Bull
+
+    if dual_mode and gbdt_bull_prob is not None:
+        # Orion-BiX Bull 信号需要 GBDT 确认
+        orion_bull_on = bull_prob >= bull_threshold
+        gbdt_confirm = gbdt_bull_prob >= gbdt_threshold
+
+        bull_on = orion_bull_on and gbdt_confirm
+        bear_on = bear_prob >= bear_threshold
+
+        # Bear 无条件覆盖 Bull
+        if bear_on:
+            bull_on = False
+    else:
+        bull_on = bull_prob >= bull_threshold
+        bear_on = bear_prob >= bear_threshold
     bull_on = bull_prob >= bull_threshold
     bear_on = bear_prob >= bear_threshold
 
@@ -306,23 +332,39 @@ def main():
     parser.add_argument("--download", action="store_true",
                         help="下载最新数据后再预测")
     parser.add_argument("--bull-dir", default=DEFAULT_BULL_DIR,
-                        help="Bull 模型目录")
+                        help="Bull 模型目录 (Orion-BiX)")
     parser.add_argument("--bear-dir", default=DEFAULT_BEAR_DIR,
-                        help="Bear 模型目录")
+                        help="Bear 模型目录 (GBDT)")
+    parser.add_argument("--gbdt-bull-dir",
+                        help="GBDT Bull 模型目录 (双模校验用)")
     parser.add_argument("--bull-threshold", type=float, default=0.50,
                         help="Bull 判定阈值")
     parser.add_argument("--bear-threshold", type=float, default=0.50,
                         help="Bear 判定阈值")
+    parser.add_argument("--gbdt-threshold", type=float, default=0.40,
+                        help="GBDT Bull 确认阈值 (双模校验用)")
+    parser.add_argument("--dual-mode", action="store_true",
+                        help="启用双模校验: Orion 进攻 + GBDT 防守")
     parser.add_argument("--save", action="store_true",
                         help="保存信号到 JSON 文件")
     args = parser.parse_args()
 
     try:
         # 1. 加载模型
-        logger.info("📦 加载 Bull 模型: %s", args.bull_dir)
+        logger.info("📦 加载 Bull 模型 (Orion-BiX): %s", args.bull_dir)
         bull_model, bull_config, bull_meta = load_model_and_features(args.bull_dir)
-        logger.info("📦 加载 Bear 模型: %s", args.bear_dir)
+        logger.info("📦 加载 Bear 模型 (GBDT): %s", args.bear_dir)
         bear_model, bear_config, bear_meta = load_model_and_features(args.bear_dir)
+
+        # 1.1 双模校验: 加载 GBDT Bull 模型
+        gbdt_bull_model = None
+        gbdt_bull_meta = None
+        gbdt_bull_prob = None
+        if args.dual_mode:
+            gbdt_bull_dir = args.gbdt_bull_dir or "experiments/weekly/weekly_bull_v15_regime_20260215_142329_b42efc"
+            logger.info("📦 加载 GBDT Bull 模型 (双模校验): %s", gbdt_bull_dir)
+            gbdt_bull_model, gbdt_bull_config, gbdt_bull_meta = load_model_and_features(gbdt_bull_dir)
+
         # 调试输出 bull_meta, bear_meta
         logger.info(f"[DEBUG] bull_meta: {bull_meta}")
         logger.info(f"[DEBUG] bear_meta: {bear_meta}")
@@ -348,11 +390,27 @@ def main():
         X_bear = bear_df[bear_features].iloc[[-1]].values
 
         # 3. 预测概率
-        bull_proba = bull_model.predict_proba(X_bull)[0]  # [P(不涨), P(大涨)]
-        bear_proba = bear_model.predict_proba(X_bear)[0]  # [P(不跌), P(大跌)]
+        bull_proba = bull_model.predict_proba(X_bull)[0]  # [P(不涨), P(大涨)] (Orion-BiX)
+        bear_proba = bear_model.predict_proba(X_bear)[0]  # [P(不跌), P(大跌)] (GBDT)
 
-        bull_prob = float(bull_proba[1])  # P(大涨)
-        bear_prob = float(bear_proba[1])  # P(大跌)
+        bull_prob = float(bull_proba[1])  # P(大涨) - Orion-BiX
+        bear_prob = float(bear_proba[1])  # P(大跌) - GBDT
+
+        # 3.1 双模校验: GBDT Bull 预测
+        # GBDT Bull v15 使用与 Orion-BiX 相同的特征集 (包含 regime)
+        if args.dual_mode and gbdt_bull_model is not None:
+            gbdt_bull_features = bull_features  # 复用 Bull 特征集 (包含 regime)
+            gbdt_top_n = gbdt_bull_config.get('features', {}).get('selection', {}).get('top_n')
+            if gbdt_top_n:
+                gbdt_bull_features = gbdt_bull_features[:gbdt_top_n]
+
+            # 使用 Bull 模型的特征数据
+            X_gbdt_bull = bull_df[gbdt_bull_features].iloc[[-1]].values
+            gbdt_bull_proba = gbdt_bull_model.predict_proba(X_gbdt_bull)[0]
+            gbdt_bull_prob = float(gbdt_bull_proba[1])
+            logger.info("📊 GBDT Bull 概率 (双模校验): %.3f", gbdt_bull_prob)
+        else:
+            gbdt_bull_prob = None
 
         logger.info("📊 预测结果: Bull=%.3f, Bear=%.3f", bull_prob, bear_prob)
 
@@ -361,6 +419,9 @@ def main():
             bull_prob, bear_prob,
             bull_threshold=args.bull_threshold,
             bear_threshold=args.bear_threshold,
+            gbdt_bull_prob=gbdt_bull_prob,
+            gbdt_threshold=args.gbdt_threshold,
+            dual_mode=args.dual_mode,
         )
 
         # 5. 输出报告
