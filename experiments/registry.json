@@ -2598,5 +2598,65 @@
       "cohen_kappa": 0.07602245388933437
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v16_spw843_20260216_204254_5f889d",
+    "name": "weekly_bear_v16_spw843",
+    "description": "Bear v16: 手动设置 scale_pos_weight=8.43 解决类别不平衡",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v16",
+      "scale_pos_weight",
+      "T28"
+    ],
+    "created_at": "2026-02-16T20:42:54.539483",
+    "status": "completed",
+    "duration_seconds": 81.09,
+    "git_commit": "774a29c1",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5510204081632653,
+      "f1_binary": 0.37142857142857144,
+      "precision_binary": 0.3085036255767963,
+      "recall_binary": 0.4666001994017946,
+      "f1_macro": 0.5111111111111111,
+      "cohen_kappa": 0.04431087833379921
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v17_spw4_20260216_205645_7f6d2e",
+    "name": "weekly_bear_v17_spw4",
+    "description": "Bear v17: 尝试 scale_pos_weight=4 (介于 auto 和 8.43 之间)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "binary",
+      "v17",
+      "scale_pos_weight",
+      "T28"
+    ],
+    "created_at": "2026-02-16T20:56:45.807795",
+    "status": "completed",
+    "duration_seconds": 81.18,
+    "git_commit": "0c933f76",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5691609977324263,
+      "f1_binary": 0.36401673640167365,
+      "precision_binary": 0.3136265320836337,
+      "recall_binary": 0.4336989032901296,
+      "f1_macro": 0.5191279567134814,
+      "cohen_kappa": 0.050806800767063454
+    },
+    "error": null
   }
 ]
