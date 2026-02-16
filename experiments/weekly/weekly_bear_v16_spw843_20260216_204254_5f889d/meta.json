@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v16_spw843_20260216_204254_5f889d",
+  "name": "weekly_bear_v16_spw843",
+  "description": "Bear v16: 手动设置 scale_pos_weight=8.43 解决类别不平衡",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v16",
+    "scale_pos_weight",
+    "T28"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-16T20:42:54.539483",
+  "git": {
+    "commit": "774a29c1",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 81.09,
+  "aggregate_metrics": {
+    "accuracy": 0.5510204081632653,
+    "f1_binary": 0.37142857142857144,
+    "precision_binary": 0.3085036255767963,
+    "recall_binary": 0.4666001994017946,
+    "f1_macro": 0.5111111111111111,
+    "cohen_kappa": 0.04431087833379921
+  }
+}
