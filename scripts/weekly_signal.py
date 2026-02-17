@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Fix: 2026-02-17 - Bear model download parameter
+# Fix: 2026-02-17 - Auto-download if file not found
 """每日交易信号 — 基于 v9 Bull/Bear 双模型输出概率化交易建议.
 
 每天运行一次（北京时间 08:00），输出：
@@ -76,6 +78,145 @@ DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v27_orion_final"
 DEFAULT_BEAR_DIR = "experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7"
 
 
+# ── 进程级隔离函数 ──
+def run_bull_with_features(model_dir: str, download: bool, temp_dir: str):
+    """计算 Bull 特征 + 推理（进程A）."""
+    import pickle
+    from pathlib import Path
+
+    logger.info("📦 [进程A] 加载 Bull 模型 + 计算特征 + 推理...")
+    model, config, meta = load_model_and_features(model_dir)
+    log_memory("加载 Bull 模型后")
+
+    # 计算特征
+    logger.info("🔧 计算 Bull 特征...")
+    df = compute_latest_features(config, download=download)
+    features = get_feature_columns(df)
+    top_n = config.get('features', {}).get('selection', {}).get('top_n')
+    if top_n:
+        features = features[:top_n]
+
+    logger.info(f"  Bull 特征数: {len(features)}, 数据行数: {len(df)}")
+    X = df[features].iloc[[-1]].values.astype(np.float32)
+
+    # 保存需要的信息后立即清理 DataFrame
+    result_info = {
+        'date': str(df.index[-1].date()),
+        'price': float(df["close"].iloc[-1])
+    }
+    del df
+    gc.collect()
+    log_memory("清理 DataFrame 后")
+
+    # 推理
+    proba = model.predict_proba(X)[0]
+    prob = float(proba[1])
+    logger.info(f"📊 Bull 概率: {prob}")
+
+    # 清理模型和特征矩阵
+    del model, X
+    gc.collect()
+    log_memory("清理模型后")
+
+    # 保存结果
+    result = {
+        'bull_prob': prob,
+        'date': result_info['date'],
+        'price': result_info['price']
+    }
+    output_file = Path(temp_dir) / "bull_result.pkl"
+    with open(output_file, 'wb') as f:
+        pickle.dump(result, f)
+
+    logger.info(f"✅ [进程A] Bull 完成: {output_file}")
+    log_memory("Bull 进程结束")
+    return result
+
+
+def run_bear_with_features(model_dir: str, download: bool, temp_dir: str):
+    """计算 Bear 特征 + 推理（进程B）."""
+    import pickle
+    from pathlib import Path
+
+    logger.info("📦 [进程B] 加载 Bear 模型 + 计算特征 + 推理...")
+    model, config, meta = load_model_and_features(model_dir)
+    log_memory("加载 Bear 模型后")
+
+    # 计算特征
+    logger.info("🔧 计算 Bear 特征...")
+    df = compute_latest_features(config, download=True)
+    features = get_feature_columns(df)
+    top_n = config.get('features', {}).get('selection', {}).get('top_n')
+    if top_n:
+        features = features[:top_n]
+
+    logger.info(f"  Bear 特征数: {len(features)}, 数据行数: {len(df)}")
+    X = df[features].iloc[[-1]].values.astype(np.float32)
+
+    # 清理 DataFrame
+    del df
+    gc.collect()
+    log_memory("清理 DataFrame 后")
+
+    # 推理
+    proba = model.predict_proba(X)[0]
+    prob = float(proba[1])
+    logger.info(f"📊 Bear 概率: {prob}")
+
+    # 清理模型和特征矩阵
+    del model, X
+    gc.collect()
+    log_memory("清理模型后")
+
+    # 保存结果
+    result = {'bear_prob': prob}
+    output_file = Path(temp_dir) / "bear_result.pkl"
+    with open(output_file, 'wb') as f:
+        pickle.dump(result, f)
+
+    logger.info(f"✅ [进程B] Bear 完成: {output_file}")
+    log_memory("Bear 进程结束")
+    return result
+
+
+def run_bear_infer(model_dir: str, temp_dir: str):
+    """仅加载 Bear 模型并推理（进程C）."""
+    import pickle
+    from pathlib import Path
+
+    logger.info("📦 [进程C] 加载 Bear 模型...")
+    model, config, meta = load_model_and_features(model_dir)
+    log_memory("加载 Bear 模型后")
+
+    # 读取特征文件
+    feature_file = Path(temp_dir) / "latest_features.pkl"
+    with open(feature_file, 'rb') as f:
+        data = pickle.load(f)
+
+    X = data['X']
+    logger.info(f"  Bear 特征数: {X.shape[1]}")
+
+    # 推理
+    proba = model.predict_proba(X)[0]
+    prob = float(proba[1])
+    logger.info(f"📊 Bear 概率: {prob}")
+
+    # 保存结果
+    result = {'bear_prob': prob}
+    output_file = Path(temp_dir) / "bear_result.pkl"
+    with open(output_file, 'wb') as f:
+        pickle.dump(result, f)
+
+    logger.info(f"✅ [进程C] Bear 推理完成")
+    log_memory("Bear 推理完成")
+    return result
+
+# 保留旧函数名作为别名（兼容）
+run_compute_features = run_bull_with_features
+run_bull_infer = run_bull_with_features
+run_bear_infer = run_bear_with_features
+
+
 def load_model_and_features(exp_dir: str):
     """加载模型、特征配置和元信息（增强容错）."""
     import yaml, json
@@ -131,7 +272,7 @@ def load_model_and_features(exp_dir: str):
 
 
 def compute_latest_features(config: dict, download: bool = False) -> pd.DataFrame:
-    """计算最新一天的特征."""
+    """计算最新一天的特征（含数据裁剪以减少内存占用）."""
     data_cfg = config["data"]
     data_path = data_cfg.get("path")
 
@@ -145,10 +286,34 @@ def compute_latest_features(config: dict, download: bool = False) -> pd.DataFram
             start="2020-01-01",
         )
     else:
-        df = load_csv(data_path)
+        try:
+            df = load_csv(data_path)
+        except FileNotFoundError:
+            from src.data.downloader import download_binance_klines
+            from pathlib import Path
+            print("⚠️  数据文件不存在，自动下载...")
+            df = download_binance_klines(
+                symbol=data_cfg.get("symbol", "BTCUSDT"),
+                interval=data_cfg.get("interval", "1d"),
+                start="2020-01-01",
+            )
+            Path(data_path).parent.mkdir(parents=True, exist_ok=True)
+            df.to_csv(data_path)
+            print(f"✅ 数据已保存到: {data_path}")
+
+    # 更激进的数据裁剪：只保留最近 800 条记录
+    max_rows = 800
+    if len(df) > max_rows:
+        logger.info(f"📐 数据裁剪: 从 {len(df)} 行减少到最近 {max_rows} 行")
+        df = df.tail(max_rows).copy()
 
     feat_cfg = config["features"]
     df = build_features(df, feature_sets=feat_cfg["sets"])
+    
+    # 再次裁剪：特征计算后只保留最后 600 行
+    if len(df) > 600:
+        df = df.tail(600).copy()
+    
     return df
 
 
@@ -366,7 +531,24 @@ def main():
                         help="启用双模校验: Orion 进攻 + GBDT 防守")
     parser.add_argument("--save", action="store_true",
                         help="保存信号到 JSON 文件")
+    # 进程级隔离模式
+    parser.add_argument("--mode", default="full",
+                        choices=["full", "compute-features", "bull-infer", "bear-infer"],
+                        help="运行模式: full=完整流程, compute-features=仅计算特征, bull-infer=仅Bull推理, bear-infer=仅Bear推理")
+    parser.add_argument("--temp-dir", default="/tmp",
+                        help="临时文件目录")
     args = parser.parse_args()
+
+    # ── 进程级隔离模式处理 ──
+    if args.mode == "bull-infer":
+        # 进程A: Bull 特征计算 + 推理（完成后进程退出，释放内存）
+        run_bull_with_features(args.bull_dir, args.download, args.temp_dir)
+        return
+
+    if args.mode == "bear-infer":
+        # 进程B: Bear 特征计算 + 推理（完成后进程退出，释放内存）
+        run_bear_with_features(args.bear_dir, args.download, args.temp_dir)
+        return
 
     try:
         log_memory("初始")
