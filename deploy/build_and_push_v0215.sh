@@ -16,8 +16,10 @@ PROJECT_ID="${GCP_PROJECT_ID:-forecastlab-prod}"
 REGION="asia-east1"
 REPO_NAME="fcstlabpro"
 IMAGE_NAME="fcstlabpro-0215"
-IMAGE_TAG="latest"
+TIMESTAMP=$(date +%Y%m%d%H%M%S)
+IMAGE_TAG="${TIMESTAMP}"
 IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:${IMAGE_TAG}"
+LATEST_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:latest"
 
 echo ""
 echo "=== 构建并推送 v0215 镜像 ==="
@@ -43,12 +45,14 @@ gcloud artifacts repositories describe "${REPO_NAME}" --location="${REGION}" 2>/
 echo "  开始构建..."
 gcloud builds submit \
     --tag "${IMAGE_URI}" \
+    --tag "${LATEST_URI}" \
     --project="${PROJECT_ID}" \
     --gcs-log-dir="gs://forecastlab-prod-builds/builds"
 
 echo ""
 echo "✅ 镜像构建完成！"
 echo "  ${IMAGE_URI}"
+echo "  ${LATEST_URI}"
 echo ""
 echo "现在可以运行 VM 任务了："
 echo "  ./deploy/deploy_vm.sh"

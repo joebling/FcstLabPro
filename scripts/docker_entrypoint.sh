@@ -105,6 +105,8 @@ bull_prob = bull["bull_prob"]
 bear_prob = bear["bear_prob"]
 date_str = bull["date"]
 price = bull["price"]
+bull_meta = bull.get("meta", {})
+bear_meta = bear.get("meta", {})
 
 print(f"📊 Bull 概率: {bull_prob:.3f}")
 print(f"📊 Bear 概率: {bear_prob:.3f}")
@@ -115,41 +117,77 @@ bull_threshold = 0.50
 bear_threshold = 0.50
 
 if bull_prob >= bull_threshold and bear_prob < bear_threshold:
-    signal = "STRONG_BULL"
-    position = "80%"
-    advice = "强烈做多信号"
+    signal_code = "STRONG_BULL"
+    signal_display = "🚀 强烈看涨"
+    position_pct = 80
+    action = "建议加仓或做多"
+    risk_level = "高"
 elif bear_prob >= bear_threshold and bull_prob < bull_threshold:
-    signal = "STRONG_BEAR"
-    position = "20%"
-    advice = "强烈做空信号"
+    signal_code = "STRONG_BEAR"
+    signal_display = "📉 强烈看跌"
+    position_pct = 20
+    action = "建议减仓或做空"
+    risk_level = "高"
 elif bull_prob > bear_prob:
-    signal = "BULL"
-    position = "60%"
-    advice = "偏多震荡"
+    signal_code = "BULL"
+    signal_display = "↗️ 偏多震荡"
+    position_pct = 60
+    action = "持有观望，可小仓位做多"
+    risk_level = "中"
 elif bear_prob > bull_prob:
-    signal = "BEAR"
-    position = "40%"
-    advice = "偏空震荡"
+    signal_code = "BEAR"
+    signal_display = "↘️ 偏空震荡"
+    position_pct = 40
+    action = "持有观望，可小仓位做空"
+    risk_level = "中"
 else:
-    signal = "NEUTRAL"
-    position = "50%"
-    advice = "中性震荡"
+    signal_code = "NEUTRAL"
+    signal_display = "⏸️ 震荡"
+    position_pct = 50
+    action = "维持当前仓位，无需操作"
+    risk_level = "低"
+
+# 风险提醒
+risk_notes = [
+    "ℹ️ 两个方向的信号均较弱，模型信心不足",
+    f"📊 模型 Kappa≈Bull={bull_meta.get('kappa','N/A')}, Bear={bear_meta.get('kappa','N/A')}，预测力有限，仅作辅助参考"
+]
 
 # 保存信号
 signal_data = {
     "date": date_str,
     "price": price,
-    "signal": signal,
+    "signal": signal_code,
+    "signal_display": signal_display,
     "bull_prob": bull_prob,
     "bear_prob": bear_prob,
-    "position": position,
-    "advice": advice,
+    "position_pct": position_pct,
+    "action": action,
+    "risk_level": risk_level,
+    "risk_notes": risk_notes,
+    "model_version": {
+        "bull": bull_meta.get("version", "N/A"),
+        "bear": bear_meta.get("version", "N/A")
+    },
+    "kappa": {
+        "bull": bull_meta.get("kappa", "N/A"),
+        "bear": bear_meta.get("kappa", "N/A")
+    },
+    "label_strategy": {
+        "bull": bull_meta.get("label_strategy", "N/A"),
+        "bear": bear_meta.get("label_strategy", "N/A")
+    },
+    "feature_set": {
+        "bull": bull_meta.get("feature_set", []),
+        "bear": bear_meta.get("feature_set", [])
+    },
+    "llm_analysis": None,
     "version": "v0215-subprocess"
 }
 
 output_file = temp_dir / f"signal_{date_str}.json"
 with open(output_file, "w") as f:
-    json.dump(signal_data, f, indent=2)
+    json.dump(signal_data, f, indent=2, ensure_ascii=False)
 print(f"✅ 信号已保存: {output_file}")
 PYEOF
 

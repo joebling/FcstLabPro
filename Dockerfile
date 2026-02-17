@@ -16,7 +16,8 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
 RUN pip install --no-cache-dir git+https://github.com/Lexsi-Labs/Orion-BiX.git
 
 # 强制重新构建层（每次都不一样）
-RUN date +%s > /tmp/build_timestamp.txt && echo "Build timestamp: $(date)"
+ARG BUILD_TIMESTAMP
+RUN date +%s > /tmp/build_timestamp.txt && echo "Build timestamp: $(date)" && echo "Build arg: ${BUILD_TIMESTAMP:-none}"
 
 # 拷贝项目（.dockerignore 控制排除内容）
 COPY . /app

@@ -122,7 +122,8 @@ def run_bull_with_features(model_dir: str, download: bool, temp_dir: str):
     result = {
         'bull_prob': prob,
         'date': result_info['date'],
-        'price': result_info['price']
+        'price': result_info['price'],
+        'meta': meta
     }
     output_file = Path(temp_dir) / "bull_result.pkl"
     with open(output_file, 'wb') as f:
@@ -153,6 +154,12 @@ def run_bear_with_features(model_dir: str, download: bool, temp_dir: str):
     logger.info(f"  Bear 特征数: {len(features)}, 数据行数: {len(df)}")
     X = df[features].iloc[[-1]].values.astype(np.float32)
 
+    # 保存日期和价格
+    result_info = {
+        'date': str(df.index[-1].date()),
+        'price': float(df["close"].iloc[-1])
+    }
+
     # 清理 DataFrame
     del df
     gc.collect()
@@ -169,7 +176,12 @@ def run_bear_with_features(model_dir: str, download: bool, temp_dir: str):
     log_memory("清理模型后")
 
     # 保存结果
-    result = {'bear_prob': prob}
+    result = {
+        'bear_prob': prob,
+        'date': result_info['date'],
+        'price': result_info['price'],
+        'meta': meta
+    }
     output_file = Path(temp_dir) / "bear_result.pkl"
     with open(output_file, 'wb') as f:
         pickle.dump(result, f)
