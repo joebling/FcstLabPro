@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # =============================================================================
-# FcstLabPro v0215 Cloud Run Job 入口脚本
-# Bull: Orion-BiX (T=21, Kappa=0.1122)
+# FcstLabPro v0218 Cloud Run Job 入口脚本
+# Bull: Orion-BiX v2 (T=21) - 使用信号反转策略
 # Bear: LightGBM v13 (T=28, Kappa=0.0529)
 # 功能: 1) 下载最新 Binance 日线数据  2) 生成每日交易信号  3) 上传结果到 GCS
+# 策略: 信号反转 + 三重MA过滤 + 14天持仓期
 # =============================================================================
 set -euo pipefail
 
@@ -27,8 +28,10 @@ export MALLOC_ARENA_MAX=2
 # 禁用 PyTorch 缓存分配器（在 CPU-only 环境下减少内存开销）
 export PYTORCH_NO_CUDA_MEMORY_CACHING=1
 
-BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v27_orion_final}"
+BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v27_orion_v2}"
 BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7}"
+# v2 优化: 信号反转
+INVERT_SIGNAL="${INVERT_SIGNAL:-true}"
 OUT_DIR="${OUT_DIR:-/tmp/signals}"
 OUT_BUCKET="${OUT_BUCKET:-}"           # gs://your-bucket/signals（可选）
 NOTIFICATION_URL="${NOTIFICATION_URL:-}"  # Webhook URL（可选）
@@ -128,26 +131,43 @@ if not bear_meta:
 print(f"📊 Bull 概率: {bull_prob:.3f}")
 print(f"📊 Bear 概率: {bear_prob:.3f}")
 print(f"📊 日期: {date_str}, 价格: {price}")
+print(f"📊 信号反转: {INVERT_SIGNAL}")
+
+# v2 优化: 信号反转
+if [ "$INVERT_SIGNAL" = "true" ]; then
+    # 反转 Bull 信号: 低概率 -> 买入
+    if (( $(echo "$bull_prob < 0.50" | bc -l) )); then
+        bull_signal=1  # 反转后为买入信号
+    else:
+        bull_signal=0
+    echo "📊 [v2] 信号反转后 bull_signal: $bull_signal"
+else
+    if (( $(echo "$bull_prob >= 0.50" | bc -l) )); then
+        bull_signal=1
+    else
+        bull_signal=0
+fi
 
 # 生成信号
 bull_threshold = 0.50
 bear_threshold = 0.50
 
-if bull_prob >= bull_threshold and bear_prob < bear_threshold:
+# 使用反转后的信号 (bull_signal)
+if bull_signal == 1 and bear_prob < bear_threshold:
     signal_code = "STRONG_BULL"
-    signal_display = "🚀 强烈看涨"
+    signal_display = "🚀 强烈看涨 (v2反转)"
     position_pct = 80
     action = "建议加仓或做多"
     risk_level = "高"
-elif bear_prob >= bear_threshold and bull_prob < bull_threshold:
+elif bear_prob >= bear_threshold and bull_signal == 0:
     signal_code = "STRONG_BEAR"
     signal_display = "📉 强烈看跌"
     position_pct = 20
     action = "建议减仓或做空"
     risk_level = "高"
-elif bull_prob > bear_prob:
+elif bull_signal == 1:
     signal_code = "BULL"
-    signal_display = "↗️ 偏多震荡"
+    signal_display = "↗️ 偏多震荡 (v2反转)"
     position_pct = 60
     action = "持有观望，可小仓位做多"
     risk_level = "中"

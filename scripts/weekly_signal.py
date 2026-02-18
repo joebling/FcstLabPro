@@ -345,6 +345,8 @@ def get_signal_and_advice(
     dual_mode: bool = False,
     # v0218: 三重MA过滤
     triple_ma_confirm: bool = True,
+    # 信号反转 (v2优化: 反转信号效果更好)
+    invert_signal: bool = False,
 ) -> dict:
     """根据概率输出综合信号和交易建议.
 
@@ -358,6 +360,7 @@ def get_signal_and_advice(
     gbdt_threshold : GBDT Bull 概率阈值 (双模校验用)
     dual_mode : 是否启用双模校验
     triple_ma_confirm : 三重MA确认 (v0218: MA50+MA150+MA200)
+    invert_signal : 是否反转信号 (v2优化: 反转后效果更好)
 
     Returns
     -------
@@ -382,8 +385,11 @@ def get_signal_and_advice(
     else:
         bull_on = bull_prob >= bull_threshold
         bear_on = bear_prob >= bear_threshold
-    bull_on = bull_prob >= bull_threshold
-    bear_on = bear_prob >= bear_threshold
+
+    # v2优化: 信号反转 - 实验发现反转后效果更好
+    if invert_signal:
+        bull_on = not bull_on
+        logger.info("📊 [v2] 信号已反转: bull_on=%s", bull_on)
 
     # v0218: 三重MA过滤 - 只有在三重MA确认时才给出Bull信号
     if bull_on and not triple_ma_confirm:
@@ -554,6 +560,8 @@ def main():
                         help="GBDT Bull 确认阈值 (双模校验用)")
     parser.add_argument("--dual-mode", action="store_true",
                         help="启用双模校验: Orion 进攻 + GBDT 防守")
+    parser.add_argument("--invert-signal", action="store_true",
+                        help="反转信号 (v2优化: 反转后效果更好)")
     parser.add_argument("--save", action="store_true",
                         help="保存信号到 JSON 文件")
     # 进程级隔离模式
@@ -687,7 +695,7 @@ def main():
 
         logger.info("📊 预测结果: Bull=%.3f, Bear=%.3f", bull_prob, bear_prob)
 
-        # 4. 生成信号和建议 (v0218: 传入三重MA确认状态)
+        # 4. 生成信号和建议 (v0218: 传入三重MA确认状态, v2: 支持信号反转)
         advice = get_signal_and_advice(
             bull_prob, bear_prob,
             bull_threshold=args.bull_threshold,
@@ -696,6 +704,7 @@ def main():
             gbdt_threshold=args.gbdt_threshold,
             dual_mode=args.dual_mode,
             triple_ma_confirm=triple_ma_confirm,
+            invert_signal=args.invert_signal,
         )
 
         # 5. 输出报告

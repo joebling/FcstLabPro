@@ -3,8 +3,8 @@
 # FcstLabPro v0218 — Google Cloud Run Job 部署脚本
 # 每天北京时间 08:00 (UTC 00:00) 运行
 #
-# Bull 模型: Orion-BiX (T=21)
-# 策略: 三重MA过滤 (MA50+MA150+MA200) + 13天持仓期
+# Bull 模型: Orion-BiX v2 (T=21)
+# 策略: 信号反转 + 三重MA过滤 (MA50+MA150+MA200) + 14天持仓期
 #
 # 前置条件:
 #   1. 安装 gcloud CLI 并登录: gcloud auth login
@@ -41,8 +41,8 @@ IMAGE_URI="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:${I
 # ─────────────────────────────────────────────────────────────
 echo ""
 echo "=== FcstLabPro v0218 部署脚本 ==="
-echo "  Bull 模型: Orion-BiX (T=21)"
-echo "  策略: 三重MA过滤 + 13天持仓期"
+echo "  Bull 模型: Orion-BiX v2 (T=21)"
+echo "  策略: 信号反转 + 三重MA过滤 + 14天持仓期"
 echo ""
 echo "=== Step 0: 前置检查 ==="
 echo "  项目: ${PROJECT_ID}"
