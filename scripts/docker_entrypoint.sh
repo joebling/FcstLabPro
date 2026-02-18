@@ -9,7 +9,7 @@
 set -euo pipefail
 
 echo "=============================================="
-echo "🔮 FcstLabPro v0215 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+echo "🔮 FcstLabPro v0218 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "=============================================="
 
 # ── 环境变量（Cloud Run Job 通过 --set-env-vars 传入） ──
@@ -92,6 +92,7 @@ echo "📥 Step 1D: 合并结果..."
 python3 - << 'PYEOF'
 import pickle
 import json
+import sys
 from pathlib import Path
 
 temp_dir = Path("/tmp/signals")
@@ -131,41 +132,38 @@ if not bear_meta:
 print(f"📊 Bull 概率: {bull_prob:.3f}")
 print(f"📊 Bear 概率: {bear_prob:.3f}")
 print(f"📊 日期: {date_str}, 价格: {price}")
-print(f"📊 信号反转: {INVERT_SIGNAL}")
 
-# v2 优化: 信号反转
-if [ "$INVERT_SIGNAL" = "true" ]; then
-    # 反转 Bull 信号: 低概率 -> 买入
-    if (( $(echo "$bull_prob < 0.50" | bc -l) )); then
-        bull_signal=1  # 反转后为买入信号
-    else:
-        bull_signal=0
-    echo "📊 [v2] 信号反转后 bull_signal: $bull_signal"
-else
-    if (( $(echo "$bull_prob >= 0.50" | bc -l) )); then
-        bull_signal=1
-    else
-        bull_signal=0
-fi
+# v2 优化: 信号反转 - 需要从环境变量获取
+import os
+invert_signal = os.environ.get("INVERT_SIGNAL", "true") == "true"
+print(f"📊 信号反转: {invert_signal}")
 
 # 生成信号
 bull_threshold = 0.50
 bear_threshold = 0.50
 
-# 使用反转后的信号 (bull_signal)
-if bull_signal == 1 and bear_prob < bear_threshold:
+# v2 优化: 信号反转 - 低概率时为买入信号
+if invert_signal:
+    # 反转: bull_prob < 0.5 -> 买入
+    bull_on = bull_prob < bull_threshold
+    print(f"📊 [v2] 反转后 bull_on: {bull_on}")
+else:
+    bull_on = bull_prob >= bull_threshold
+
+# 使用处理后的信号
+if bull_on and bear_prob < bear_threshold:
     signal_code = "STRONG_BULL"
     signal_display = "🚀 强烈看涨 (v2反转)"
     position_pct = 80
     action = "建议加仓或做多"
     risk_level = "高"
-elif bear_prob >= bear_threshold and bull_signal == 0:
+elif bear_prob >= bear_threshold and not bull_on:
     signal_code = "STRONG_BEAR"
     signal_display = "📉 强烈看跌"
     position_pct = 20
     action = "建议减仓或做空"
     risk_level = "高"
-elif bull_signal == 1:
+elif bull_on:
     signal_code = "BULL"
     signal_display = "↗️ 偏多震荡 (v2反转)"
     position_pct = 60
@@ -219,13 +217,68 @@ signal_data = {
         "bear": bear_meta.get("feature_set", [])
     },
     "llm_analysis": None,
-    "version": "v0215-subprocess"
+    "version": "v0218"
 }
 
 output_file = temp_dir / f"signal_{date_str}.json"
 with open(output_file, "w") as f:
     json.dump(signal_data, f, indent=2, ensure_ascii=False)
 print(f"✅ 信号已保存: {output_file}")
+
+# ── Step 1.5: LLM 策略分析 ──
+import os
+gemini_key = os.environ.get("GEMINI_API_KEY", "")
+if gemini_key:
+    print("🤖 生成 LLM 策略分析...")
+    try:
+        sys.path.insert(0, '/app')
+        from src.llm.analyst import generate_analysis
+
+        # 读取最新的K线数据
+        import pandas as pd
+        data_path = Path("/app/data/raw/btc_binance_BTCUSDT_1d.csv")
+        if data_path.exists():
+            df = pd.read_csv(data_path, parse_dates=['close_time'] if 'close_time' in pd.read_csv(data_path, nrows=0).columns else None, index_col=0)
+            df = df.sort_index()
+
+            # 准备近7天K线数据
+            recent = df.tail(7)
+            recent_klines = []
+            for idx, row in recent.iterrows():
+                prev_close = df["close"].shift(1).loc[idx] if idx in df.index else row["close"]
+                change = ((row["close"] - prev_close) / prev_close * 100) if prev_close else 0
+                recent_klines.append({
+                    "date": str(idx.date()) if hasattr(idx, 'date') else str(idx)[:10],
+                    "close": float(row["close"]),
+                    "change": float(change),
+                    "volume": float(row["volume"]),
+                })
+
+            # 准备关键技术指标
+            last_row = df.iloc[-1]
+            indicators = {}
+            for col in ["rsi_14", "macd", "macd_hist", "bb_pctb_20", "atr_pct_14",
+                         "sma_cross_50_200", "price_vs_sma_20", "price_vs_sma_200",
+                         "vol_ratio_20", "return_7d", "return_14d", "volatility_20d"]:
+                if col in last_row.index:
+                    indicators[col] = float(last_row[col])
+
+            llm_analysis = generate_analysis(signal_data, recent_klines, indicators)
+            if llm_analysis:
+                # 更新信号文件
+                signal_data["llm_analysis"] = llm_analysis
+                with open(output_file, "w") as f:
+                    json.dump(signal_data, f, indent=2, ensure_ascii=False)
+                print(f"✅ LLM 分析已添加")
+            else:
+                print("⚠️ LLM 分析生成失败")
+        else:
+            print("⚠️ 未找到K线数据，跳过LLM分析")
+    except Exception as e:
+        print(f"⚠️ LLM 分析出错: {e}")
+else:
+    print("ℹ️ 未配置 GEMINI_API_KEY，跳过LLM分析")
+
 PYEOF
 
 # 移动信号文件
