@@ -7,7 +7,7 @@
 📊 预测窗口: 未来 14 天
 
 模型版本: Bull=weekly_bull_v27_orion_v2, Bear=weekly_bear_v13_T28_fgi
-Kappa: Bull=N/A, Bear=0.05
+Kappa: Bull=0.12, Bear=0.05
 标签策略: reversal / reversal
 特征集: technical, volume, flow, market_structure, external_fgi, regime
 
@@ -27,11 +27,11 @@ Kappa: Bull=N/A, Bear=0.05
 
 ── 风控提醒 ────────────────────────────
   ℹ️ 两个方向的信号均较弱，模型信心不足
-  📊 模型 Kappa≈Bull=N/A, Bear=0.05，预测力有限，仅作辅助参考
+  📊 模型 Kappa≈Bull=0.12, Bear=0.05，预测力有限，仅作辅助参考
 
 ── 免责声明 ────────────────────────────
   本信号基于历史技术面特征的统计模型，
-  当前模型 Kappa≈N/A / 0.05，预测
+  当前模型 Kappa≈0.12 / 0.05，预测
   力有限，请结合基本面、宏观环境、个人风
   险承受能力综合判断。
 ============================================================

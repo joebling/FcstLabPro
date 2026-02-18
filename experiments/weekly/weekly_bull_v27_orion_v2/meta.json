@@ -22,5 +22,7 @@
     "T": 21,
     "X": 0.05,
     "strategy": "reversal"
-  }
+  },
+  "kappa": "0.12",
+  "cohen_kappa": 0.1163
 }
