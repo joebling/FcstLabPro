@@ -108,6 +108,23 @@ price = bull["price"]
 bull_meta = bull.get("meta", {})
 bear_meta = bear.get("meta", {})
 
+# 为缺失的 meta 信息提供默认值
+if not bull_meta:
+    bull_meta = {
+        "version": "weekly_bull_v27_orion",
+        "kappa": "N/A",
+        "label_strategy": "reversal",
+        "feature_set": ["technical", "volume", "flow", "market_structure", "external_fgi", "regime"]
+    }
+
+if not bear_meta:
+    bear_meta = {
+        "version": "weekly_bear_v13_T28_fgi",
+        "kappa": "0.05",
+        "label_strategy": "reversal",
+        "feature_set": ["technical", "volume", "flow", "market_structure", "external_fgi"]
+    }
+
 print(f"📊 Bull 概率: {bull_prob:.3f}")
 print(f"📊 Bear 概率: {bear_prob:.3f}")
 print(f"📊 日期: {date_str}, 价格: {price}")

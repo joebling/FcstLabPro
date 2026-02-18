@@ -72,22 +72,47 @@ python -c "import joblib; f=joblib.load('experiments/weekly/{exp_name}/feature_c
 - **分治**: Bull/Bear 模型分别优化
 - **窗口**: 不同模型适用不同预测窗口 T
 - **特征**: 外部数据单独使用优于组合
+- **模型容量**: n_estimators 需要与特征数量匹配（148特征建议 n_estimators >= 50）
+- **特征剪枝**: 特征过多时(>100)建议剪枝到 30-50 个
 
 ### 3.2 常见陷阱
 
 - 一次性引入过多外部数据 → 过拟合
 - 不同模型共用同一套超参数 → 次优结果
 - 标签与特征高度共线 → Kappa 为负
+- **n_estimators 太小** → 模型容量不足，Fold 出现大量 Kappa=0
+- **特征过多** → 欠拟合，预测能力弱
+- **PnL 回测结果与报告不符** → 检查数据版本和脚本逻辑
 
 ### 3.3 超参数参考
 
 | 参数 | 范围 | 说明 |
 |------|------|------|
-| n_estimators | 300-1500 | 更多更稳定，但可能过拟合 |
+| n_estimators | 50-200 | Orion-BiX 建议 50-200，与特征数量相关 |
 | max_depth | 3-8 | 控制复杂度 |
 | learning_rate | 0.01-0.1 | 越小需要更多树 |
 | num_leaves | 8-64 | GBDT 专用 |
 | reg_alpha/lambda | 0.1-1.0 | 正则化 |
+
+### 3.4 实验命名规范
+
+- 基准实验: `weekly_bull_v27_orion_0218` (原版)
+- 改进实验001: `weekly_bull_v27_orion_001` (增加模型容量)
+- 改进实验002: `weekly_bull_v27_orion_002` (特征剪枝)
+
+### 3.5 报告生成
+
+```bash
+# 生成实验报告 (包含 PnL 回测)
+python scripts/generate_experiment_report.py --dir experiments/weekly/{exp_name}
+```
+
+必含文件:
+- config.yaml - 配置文件
+- fold_metrics.csv - 每个 fold 的指标
+- predictions.csv - 预测结果
+- metrics.json - 汇总指标
+- report.md - 实验报告 (自动生成)
 
 ---
 
@@ -211,6 +236,19 @@ gcloud logging read 'resource.type="cloud_run_job"' --limit=20
 
 **解决**: 增加 `--task-timeout` 参数
 
+### PnL 回测结果与报告不符
+
+**症状**: 报告中年化收益 +26.63%，实际运行 -50%
+
+**原因**:
+1. 数据在报告生成后被更新
+2. 脚本有 bug (signal_delay=0 时逻辑错误)
+3. predictions.csv 被错误地重新生成
+
+**解决**:
+- 使用 `scripts/train_orion_walkforward.py` 重新训练
+- 使用 `scripts/generate_experiment_report.py` 生成报告
+
 ---
 
 ## 八、检查清单
@@ -227,4 +265,4 @@ gcloud logging read 'resource.type="cloud_run_job"' --limit=20
 
 ---
 
-*本文档最后更新: 2026-02-16*
+*本文档最后更新: 2026-02-18*

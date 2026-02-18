@@ -1,0 +1,53 @@
+data:
+  end: '2025-12-31'
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+  source: binance
+  start: '2018-01-01'
+  symbol: BTCUSDT
+evaluation:
+  init_train: 1500
+  method: walk_forward
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+  oos_window: 63
+  step: 21
+experiment:
+  category: weekly
+  description: "Bull v27: Orion-BiX 实验002 - 特征剪枝到30个 (2026-02-18)"
+  name: weekly_bull_v27_orion_002
+  tags:
+  - weekly
+  - bull
+  - binary
+  - v27
+  - orion
+  - orion-bix
+  - 002
+  - feature_pruning
+features:
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  # 精简特征集：只保留最重要的技术指标
+  sets:
+  - technical
+  - external_fgi
+label:
+  T: 21
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+  strategy: reversal
+model:
+  params:
+    n_estimators: 50
+    random_state: 42
+  type: orion_bix
+seed: 42

@@ -45,6 +45,9 @@ import psutil
 import torch
 torch.set_num_threads(1)
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from src.data.loader import load_csv
 from src.features.builder import build_features, get_feature_columns
 from src.llm.analyst import generate_analysis
@@ -73,7 +76,9 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
-# ── 默认模型路径 (v27: Orion-BiX n_estimators=16) ──
+# ── 默认模型路径 (v0218: Orion-BiX + 三重MA过滤) ──
+# 注意: 使用 weekly_bull_v27_orion_final (有 model.joblib)
+# v0218 策略通过三重MA过滤在推理后应用
 DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v27_orion_final"
 DEFAULT_BEAR_DIR = "experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7"
 
@@ -338,6 +343,8 @@ def get_signal_and_advice(
     gbdt_bull_prob: float = None,
     gbdt_threshold: float = 0.40,
     dual_mode: bool = False,
+    # v0218: 三重MA过滤
+    triple_ma_confirm: bool = True,
 ) -> dict:
     """根据概率输出综合信号和交易建议.
 
@@ -350,6 +357,7 @@ def get_signal_and_advice(
     gbdt_bull_prob : GBDT Bull 模型概率 (双模校验用)
     gbdt_threshold : GBDT Bull 概率阈值 (双模校验用)
     dual_mode : 是否启用双模校验
+    triple_ma_confirm : 三重MA确认 (v0218: MA50+MA150+MA200)
 
     Returns
     -------
@@ -376,6 +384,11 @@ def get_signal_and_advice(
         bear_on = bear_prob >= bear_threshold
     bull_on = bull_prob >= bull_threshold
     bear_on = bear_prob >= bear_threshold
+
+    # v0218: 三重MA过滤 - 只有在三重MA确认时才给出Bull信号
+    if bull_on and not triple_ma_confirm:
+        logger.info("📊 [v0218] Bull信号被三重MA过滤阻挡")
+        bull_on = False
 
     # ── 信号判定 ──
     if bull_on and not bear_on:
@@ -589,6 +602,26 @@ def main():
         bull_prob = float(bull_proba[1])  # P(大涨) - Orion-BiX
         logger.info("📊 Bull 概率: %.3f", bull_prob)
 
+        # v0218: 计算三重MA (在模型推理后进行，不影响模型特征)
+        bull_df['sma_50'] = bull_df['close'].rolling(50).mean()
+        bull_df['sma_150'] = bull_df['close'].rolling(150).mean()
+        bull_df['sma_200'] = bull_df['close'].rolling(200).mean()
+        bull_df['above_ma50'] = (bull_df['close'] > bull_df['sma_50']).astype(int)
+        bull_df['above_ma150'] = (bull_df['close'] > bull_df['sma_150']).astype(int)
+        bull_df['above_ma200'] = (bull_df['close'] > bull_df['sma_200']).astype(int)
+
+        # v0218: 三重MA过滤
+        triple_ma_confirm = (
+            bull_df['above_ma50'].iloc[-1] == 1 and
+            bull_df['above_ma150'].iloc[-1] == 1 and
+            bull_df['above_ma200'].iloc[-1] == 1
+        )
+        logger.info("📊 三重MA确认: %s (MA50=%d, MA150=%d, MA200=%d)",
+                    "✅ 通过" if triple_ma_confirm else "❌ 未通过",
+                    bull_df['above_ma50'].iloc[-1],
+                    bull_df['above_ma150'].iloc[-1],
+                    bull_df['above_ma200'].iloc[-1])
+
         # 保存最后日期和价格（删除 bull_df 后仍需使用）
         last_date = str(bull_df.index[-1].date())
         last_price = float(bull_df["close"].iloc[-1])
@@ -654,7 +687,7 @@ def main():
 
         logger.info("📊 预测结果: Bull=%.3f, Bear=%.3f", bull_prob, bear_prob)
 
-        # 4. 生成信号和建议
+        # 4. 生成信号和建议 (v0218: 传入三重MA确认状态)
         advice = get_signal_and_advice(
             bull_prob, bear_prob,
             bull_threshold=args.bull_threshold,
@@ -662,6 +695,7 @@ def main():
             gbdt_bull_prob=gbdt_bull_prob,
             gbdt_threshold=args.gbdt_threshold,
             dual_mode=args.dual_mode,
+            triple_ma_confirm=triple_ma_confirm,
         )
 
         # 5. 输出报告

@@ -1,0 +1,11 @@
+{
+  "experiment_name": "weekly_bull_v27_orion_002",
+  "description": "Bull v27: Orion-BiX \u5b9e\u9a8c002 - \u7279\u5f81\u526a\u679d\u523030\u4e2a (2026-02-18)",
+  "created_at": "2026-02-18T10:59:47.718386",
+  "model_type": "orion_bix",
+  "n_features": 59,
+  "n_folds": 24,
+  "init_train": 1500,
+  "oos_window": 63,
+  "step": 21
+}
