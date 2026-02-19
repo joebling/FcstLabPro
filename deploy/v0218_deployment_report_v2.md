@@ -149,15 +149,39 @@
 ### 5.1 模型
 
 - **Bull 模型**: `experiments/weekly/weekly_bull_v27_orion_v2`
-- **Bear 模型**: `experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7`
+  - 类型: Orion-BiX 表格神经网络
+  - 预测窗口: T=21 天
+  - 标签策略: reversal (底部反转)
+  - Kappa: 0.12
+  - 特征集: technical, volume, flow, market_structure, external_fgi, **regime**
+  - 特征数量: 148
 
-### 5.2 策略参数
+- **Bear 模型**: `experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7`
+  - 类型: LightGBM 梯度提升树
+  - 预测窗口: T=28 天
+  - 标签策略: reversal (顶部反转)
+  - Kappa: 0.05
+  - 特征集: technical, volume, flow, market_structure, external_fgi
+  - 特征数量: 137
+
+### 5.2 特征说明
+
+| 特征集 | 说明 | Bull | Bear |
+|--------|------|------|------|
+| technical | SMA/EMA、RSI、MACD、布林带、ATR、动量 | ✅ | ✅ |
+| volume | 成交量均线、量比、OBV、VWAP | ✅ | ✅ |
+| flow | 资金流向代理指标 | ✅ | ✅ |
+| market_structure | 资金费率、CVD、买入压力、量价背离 | ✅ | ✅ |
+| external_fgi | Fear & Greed Index 及其移动平均 | ✅ | ✅ |
+| regime | 200日均线位置、趋势强度、波动率 | ✅ | ❌ |
+
+### 5.3 策略参数
 
 - 信号反转: `--invert-signal`
 - 三重MA过滤: 默认启用
 - 持仓期: 14天 (代码中实现)
 
-### 5.3 端到端测试结果
+### 5.4 端到端测试结果
 
 ```
 日期: 2026-02-17

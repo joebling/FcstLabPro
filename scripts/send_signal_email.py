@@ -103,7 +103,7 @@ def build_html(data: dict) -> str:
             <!-- 标题 -->
             <h2 style="margin: 0 0 4px 0; color: #111827;">🔮 FcstLabPro 每日信号</h2>
             <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px;">
-                {date} · BTC/USDT · 预测窗口 14 天
+                {date} · BTC/USDT · Bull T=21天 / Bear T=28天
             </p>
 
             <!-- 模型信息 -->
