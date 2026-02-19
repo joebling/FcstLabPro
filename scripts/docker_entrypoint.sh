@@ -150,6 +150,29 @@ if invert_signal:
 else:
     bull_on = bull_prob >= bull_threshold
 
+# v0218: 三重MA过滤 - 只有价格同时站上 MA50/MA150/MA200 时才确认牛市信号
+import pandas as pd
+data_path = Path("/app/data/raw/btc_binance_BTCUSDT_1d.csv")
+triple_ma_confirm = False
+if data_path.exists():
+    df = pd.read_csv(data_path, index_col=0)
+    df = df.sort_index()
+    df['sma_50'] = df['close'].rolling(50).mean()
+    df['sma_150'] = df['close'].rolling(150).mean()
+    df['sma_200'] = df['close'].rolling(200).mean()
+    last = df.iloc[-1]
+    above_ma50 = last['close'] > last['sma_50']
+    above_ma150 = last['close'] > last['sma_150']
+    above_ma200 = last['close'] > last['sma_200']
+    triple_ma_confirm = above_ma50 and above_ma150 and above_ma200
+    print(f"📊 [v0218] 三重MA检查: 价格={last['close']:.2f}, MA50={last['sma_50']:.2f}, MA150={last['sma_150']:.2f}, MA200={last['sma_200']:.2f}")
+    print(f"📊 [v0218] 站上MA50: {above_ma50}, 站上MA150: {above_ma150}, 站上MA200: {above_ma200}, 三重MA确认: {triple_ma_confirm}")
+
+    # 三重MA过滤: 如果没有通过三重MA确认，则不执行买入信号
+    if bull_on and not triple_ma_confirm:
+        print(f"📊 [v0218] Bull信号被三重MA过滤阻挡")
+        bull_on = False
+
 # 使用处理后的信号
 if bull_on and bear_prob < bear_threshold:
     signal_code = "STRONG_BULL"
