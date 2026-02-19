@@ -1,0 +1,9 @@
+{
+  "config": {
+    "init_train": 1500,
+    "oos_window": 63,
+    "step": 21
+  },
+  "issues": [],
+  "status": "PASS"
+}

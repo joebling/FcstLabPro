@@ -1,268 +1,115 @@
-# FcstLabPro 标准化操作手册
+# FcstLabPro 机构级研究与实验操作手册 (V2.0)
 
-本文档定义 FcstLabPro 模型的标准化训练、实验与部署流程。
-
----
-
-## 一、实验设计原则
-
-### 1.1 实验类型
-
-| 类型 | 目标 | 方法 |
-|------|------|------|
-| 消融实验 | 验证特征/组件贡献 | 逐个添加/移除，对比基线 |
-| 超参数搜索 | 优化模型配置 | 网格搜索/贝叶斯优化 |
-| 对比实验 | 评估不同方案 | 控制变量，多组并行 |
-
-### 1.2 实验流程
-
-```
-目标定义 → 配置创建 → 执行 → 分析 → 记录
-```
-
-1. **目标定义**: 明确要验证的假设
-2. **配置创建**: 在 `configs/experiments/` 下创建 YAML
-3. **执行**: 运行训练脚本
-4. **分析**: 检查 metrics.json、feature_importance.csv
-5. **记录**: 更新 registry.json
-
-### 1.3 配置规范
-
-- 命名: `{type}_{model}_{version}_{feature}.yaml`
-- 目录: `experiments/weekly/{exp_name}/`
-- 必含文件: config.yaml, metrics.json, model.joblib, feature_cols.joblib
+本文档基于 **Institutional Crypto Alpha Research Framework** 构建，定义 FcstLabPro 的标准化研发、统计验证与部署流程。
 
 ---
 
-## 二、模型训练
+## 一、 研究架构设计 (Layered Architecture)
 
-### 2.1 训练环境
+所有开发必须严格遵循分层原则，严禁跨层调用逻辑：
 
-- Python 3.10 环境 (`venv_py310`)
-- 确认数据文件存在: `data/binance_btc_usdt_daily.csv`
+| 层级 | 定义 | 核心关注点 |
+| --- | --- | --- |
+| **Layer 0** | **数据层 (Integrity)** | 确保 `feature[t]` 仅使用 `<=t` 数据，消除未来函数。 |
+| **Layer 1** | **标签层 (Labels)** | **强制非重叠 (Non-overlapping)** 收益计算。 |
+| **Layer 2** | **信号层 (Raw Alpha)** | 纯粹的 `signal vs future_return` 研究，不含策略逻辑。 |
+| **Layer 3** | **验证层 (Validation)** | **真正 Walk-Forward** 滚动训练与 IC 稳定性测试。 |
+| **Layer 4** | **组合层 (Portfolio)** | 波动率目标 (Vol Targeting) 与信号平滑。 |
+| **Layer 5** | **执行层 (Backtest)** | 考虑成本、滑点与延迟的真实回测。 |
 
-### 2.2 训练命令
+---
+
+## 二、 实验核心规范 (Hard Rules)
+
+### 2.1 标签与采样 (Layer 1)
+
+* **非重叠规则**：若预测窗口 ，实验样本必须每 21 天采样一次。
+* **严禁行为**：严禁在研究阶段使用每日滑动的重叠标签进行统计。
+
+### 2.2 滚动训练 (Layer 3)
+
+* **标准模式**：必须使用 `Expanding` 或 `Rolling` Walk-Forward。
+* **禁止行为**：严禁“一次训练，全段预测 (Train Once, Predict All)”的伪 OOS 测试。
+* **锁定原则**：一旦进入 OOS 阶段，严禁调整超参数或根据结果反推信号方向。
+
+### 2.3 统计准则 (Validation)
+
+实验报告必须包含以下指标，且需达到机构级门槛：
+
+| 指标 | 门槛 (Crypto 单资产) | 说明 |
+| --- | --- | --- |
+| **Rank IC** |  (有价值) | 超过  需启动代码审计 |
+| **IC t-stat** |  (显著) | 基于 IC 时间序列计算，非样本量 |
+| **Annualized Vol** | 目标  | 通过 Vol Targeting 实现 |
+| **Sharpe (OOS)** |  | 成本后净收益比率 |
+
+---
+
+## 三、 实验执行流程
+
+### 3.1 实验准备
+
+1. **目标定义**: 明确验证的 Alpha 假设（如：Funding Rate 的领先性）。
+2. **配置创建**: 在 `configs/experiments/` 下创建 YAML，需注明 `sampling_step`（需等于标签 ）。
+
+### 3.2 运行训练与 IC 分析
 
 ```bash
-cd /Users/qiubling/Desktop/projects/FcstLabPro
-source venv_py310/bin/activate
+# 1. 执行修正版 Walk-Forward 训练
+python scripts/train_orion_walkforward.py --config configs/experiments/{exp_name}.yaml
 
-# 执行训练
-python scripts/train_orion_final.py  # 或对应脚本
+# 2. 执行独立 IC 分析 (使用 ic_analysis_corrected.py)
+python scripts/ic_analysis_corrected.py --bull-dir experiments/weekly/{exp_name}
+
 ```
 
-### 2.3 验证项
+### 3.3 结果判定
 
-- [ ] 特征列数量与配置一致
-- [ ] 模型可正常加载
-- [ ] 预测输出格式正确
-- [ ] 标签分布合理
-
-```bash
-# 验证特征数量
-python -c "import joblib; f=joblib.load('experiments/weekly/{exp_name}/feature_cols.joblib'); print(len(f))"
-```
+* 若 **Rank IC < 0.02**：判定为噪音，放弃该特征/模型。
+* 若 **IC t-stat < 1.0**：信号不稳定，存在 Regime 依赖，需增加状态识别模块。
+* 若 **Sharpe > 3.0**：极大概率存在数据泄露，需自查 Layer 0。
 
 ---
 
-## 三、实验经验
+## 四、 实验经验与坑点清单
 
-### 3.1 有效策略
+### 4.1 有效策略
 
-- **分治**: Bull/Bear 模型分别优化
-- **窗口**: 不同模型适用不同预测窗口 T
-- **特征**: 外部数据单独使用优于组合
-- **模型容量**: n_estimators 需要与特征数量匹配（148特征建议 n_estimators >= 50）
-- **特征剪枝**: 特征过多时(>100)建议剪枝到 30-50 个
+* **Regime-Specific**: 分别优化 Bull/Bear 模型的  窗口（Bull 建议 21，Bear 建议 28）。
+* **Vol Targeting**: 仓位与反向实现波动率挂钩，而非简单的 MA 过滤。
+* **特征剪枝**: 特征过多(>100)会导致欠拟合，建议通过相关性分析保留前 30-50 个。
 
-### 3.2 常见陷阱
+### 4.2 致命陷阱 (Pitfalls)
 
-- 一次性引入过多外部数据 → 过拟合
-- 不同模型共用同一套超参数 → 次优结果
-- 标签与特征高度共线 → Kappa 为负
-- **n_estimators 太小** → 模型容量不足，Fold 出现大量 Kappa=0
-- **特征过多** → 欠拟合，预测能力弱
-- **PnL 回测结果与报告不符** → 检查数据版本和脚本逻辑
-
-### 3.3 超参数参考
-
-| 参数 | 范围 | 说明 |
-|------|------|------|
-| n_estimators | 50-200 | Orion-BiX 建议 50-200，与特征数量相关 |
-| max_depth | 3-8 | 控制复杂度 |
-| learning_rate | 0.01-0.1 | 越小需要更多树 |
-| num_leaves | 8-64 | GBDT 专用 |
-| reg_alpha/lambda | 0.1-1.0 | 正则化 |
-
-### 3.4 实验命名规范
-
-- 基准实验: `weekly_bull_v27_orion_0218` (原版)
-- 改进实验001: `weekly_bull_v27_orion_001` (增加模型容量)
-- 改进实验002: `weekly_bull_v27_orion_002` (特征剪枝)
-
-### 3.5 报告生成
-
-```bash
-# 生成实验报告 (包含 PnL 回测)
-python scripts/generate_experiment_report.py --dir experiments/weekly/{exp_name}
-```
-
-必含文件:
-- config.yaml - 配置文件
-- fold_metrics.csv - 每个 fold 的指标
-- predictions.csv - 预测结果
-- metrics.json - 汇总指标
-- report.md - 实验报告 (自动生成)
+* **自欺欺人**: 反复调整  窗口直至 IC 变高（即 Over-fitting the process）。
+* **信号延迟**: 忽视了  时刻收盘后，执行通常在  开盘，导致回测虚高。
+* **模型容量**: `n_estimators` 过小导致 Fold 出现大量 Kappa=0，无法捕捉非线性关系。
 
 ---
 
-## 四、文档与同步
+## 五、 部署与同步流程
 
-### 4.1 训练后检查
+### 5.1 部署前强制自检
 
-- [ ] 模型文件生成 (model.joblib)
-- [ ] 标准化器生成 (scaler.joblib)
-- [ ] 特征列保存 (feature_cols.joblib)
-- [ ] 配置保存 (config.yaml)
+* [ ] **IC 验证**: `ic_analysis_corrected.py` 报告输出正常，t-stat > 1.5。
+* [ ] **Non-overlapping**: 确认标签采样步长与预测窗口一致。
+* [ ] **Docker 一致性**: 确认生产环境 Python 版本为 3.10。
 
-### 4.2 部署同步
-
-需更新的文件:
-- `scripts/docker_entrypoint.sh` - 模型路径
-- `deploy/deploy_v*.sh` - 版本信息
-- `deploy/*_deployment_report.md` - 训练指标
-
----
-
-## 五、部署流程
-
-### 5.1 本地验证
+### 5.2 信号生成
 
 ```bash
-# PnL 回测
-python scripts/pnl_backtest.py --bull-dir {bull_dir} --bear-dir {bear_dir}
-
-# 信号生成
+# 信号生成时必须带上 --download 确保使用最新 Layer 0 数据
 python scripts/weekly_signal.py --download --save
-```
 
-验证指标:
-- Kappa ≥ 0.10
-- 年化收益 > 0
-- 卡玛比率 > 1.0
-- 最大回撤 < 25%
-
-### 5.2 Docker 测试
-
-```bash
-docker build -t fcstlabpro-test .
-docker run fcstlabpro-test
-```
-
-### 5.3 部署执行
-
-```bash
-./deploy/deploy_v*.sh
-```
-
-验证项:
-- 镜像构建成功
-- 镜像推送成功
-- Cloud Run Job 部署成功
-- Scheduler 创建成功
-
-### 5.4 部署后验证
-
-```bash
-gcloud run jobs execute {job_name} --region asia-east1
-gcloud logging read 'resource.type="cloud_run_job"' --limit=20
 ```
 
 ---
 
-## 六、关键配置速查
+## 六、 维护记录
 
-### 模型配置
-
-| 模型 | 配置文件 | T 窗口 |
-|------|----------|--------|
-| Bull | exp_weekly_bull_*.yaml | 21 |
-| Bear | exp_weekly_bear_*.yaml | 28 |
-
-### 部署配置
-
-| 项目 | 值 |
-|------|-----|
-| 区域 | asia-east1 |
-| 定时 | UTC 00:00 (北京时间 08:00) |
+* **2026-02-18**: 初始版本。
+* **2026-02-19**: 引入 Institutional Framework，修正 IC 分析逻辑，增加 Layer 0-5 架构约束。
 
 ---
 
-## 七、问题排查
-
-### 特征数量不匹配
-
-**症状**: `IndexError: shapes not aligned`
-
-**原因**: 特征列获取在添加标签之后
-
-**解决**: 先获取特征列，再添加标签
-
-### 模块未找到
-
-**症状**: `ModuleNotFoundError`
-
-**解决**: 确认使用正确的 Python 环境 (venv_py310)
-
-### Kappa 为负
-
-**解决**:
-- 检查标签是否颠倒
-- 检查特征与目标是否共线
-
-### 消融实验不稳定
-
-**解决**:
-- 增加 Walk-Forward 窗口
-- 检查数据泄露
-
-### 部署结果不一致
-
-**解决**:
-- 确认数据源一致
-- 验证外部数据同步
-
-### Cloud Run 超时
-
-**解决**: 增加 `--task-timeout` 参数
-
-### PnL 回测结果与报告不符
-
-**症状**: 报告中年化收益 +26.63%，实际运行 -50%
-
-**原因**:
-1. 数据在报告生成后被更新
-2. 脚本有 bug (signal_delay=0 时逻辑错误)
-3. predictions.csv 被错误地重新生成
-
-**解决**:
-- 使用 `scripts/train_orion_walkforward.py` 重新训练
-- 使用 `scripts/generate_experiment_report.py` 生成报告
-
----
-
-## 八、检查清单
-
-- [ ] 实验目标明确
-- [ ] 配置命名规范
-- [ ] 消融实验逐个验证
-- [ ] 训练后特征数量正确
-- [ ] PnL 回测指标达标
-- [ ] Docker 测试通过
-- [ ] 部署配置同步更新
-- [ ] 部署后验证成功
-- [ ] 记录实验结果
-
----
-
-*本文档最后更新: 2026-02-18*
+*本文档由 FcstLabPro 核心架构组维护*

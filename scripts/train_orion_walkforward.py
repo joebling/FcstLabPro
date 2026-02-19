@@ -97,9 +97,9 @@ def main():
     print(f"数据: {len(X)} 样本, {len(feature_cols)} 特征")
     print(f"类别: {np.bincount(y)}")
 
-    # 6. 标准化
+    # 6. 标准化 (只在最终模型使用，walk-forward 中每步重新 fit)
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    X_scaled = scaler.fit_transform(X)  # 仅用于最终模型
 
     # 7. Walk-Forward 评估
     init_train = config['evaluation']['init_train']
@@ -121,9 +121,11 @@ def main():
         if test_end <= test_start:
             break
 
-        X_train = X_scaled[:train_end]
+        # 每步重新 fit scaler (避免数据泄露)
+        fold_scaler = StandardScaler()
+        X_train = fold_scaler.fit_transform(X[:train_end])
         y_train = y[:train_end]
-        X_test = X_scaled[test_start:test_end]
+        X_test = fold_scaler.transform(X[test_start:test_end])
         y_test = y[test_start:test_end]
 
         # 训练
@@ -192,6 +194,8 @@ def main():
     # 保存模型和预处理对象
     joblib.dump(feature_cols, f'{exp_dir}/feature_cols.joblib')
     joblib.dump(scaler, f'{exp_dir}/scaler.joblib')
+    # 保存最后一个 fold 的模型作为最终模型
+    joblib.dump(model, f'{exp_dir}/model.joblib')
 
     # 保存配置
     with open(f'{exp_dir}/config.yaml', 'w') as f:

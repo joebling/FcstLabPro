@@ -1,0 +1,38 @@
+[
+  {
+    "strategy": "A: Triple MA",
+    "n_trades": 16,
+    "total_return": 0.48408622812589464,
+    "annualized": 0.5355278273240223,
+    "sharpe": 1.2352101340010941,
+    "calmar": 3.835727693913932,
+    "max_drawdown": 0.13961570519986602
+  },
+  {
+    "strategy": "B: MA200",
+    "n_trades": 10,
+    "total_return": 0.06157723789802061,
+    "annualized": 0.10944645997349878,
+    "sharpe": 0.538252224747546,
+    "calmar": 0.6213752781995872,
+    "max_drawdown": 0.17613584535979365
+  },
+  {
+    "strategy": "C: Vol Filter",
+    "n_trades": 17,
+    "total_return": -0.17038631899652956,
+    "annualized": -0.1738517287373973,
+    "sharpe": -0.2866316127675769,
+    "calmar": -0.5639647589532585,
+    "max_drawdown": 0.30826700768267273
+  },
+  {
+    "strategy": "D: No Filter",
+    "n_trades": 23,
+    "total_return": 0.35521202400560536,
+    "annualized": 0.25822128783610143,
+    "sharpe": 0.6969432701701681,
+    "calmar": 0.7830737974757813,
+    "max_drawdown": 0.32975345183322935
+  }
+]
