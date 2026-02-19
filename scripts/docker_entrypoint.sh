@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# FcstLabPro v0218 Cloud Run Job 入口脚本
+# FcstLabPro v0301 Cloud Run Job 入口脚本
 # Bull: Orion-BiX v2 (T=21) - 使用信号反转策略
 # Bear: LightGBM v13 (T=28, Kappa=0.0529)
 # 功能: 1) 下载最新 Binance 日线数据  2) 生成每日交易信号  3) 上传结果到 GCS
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 echo "=============================================="
-echo "🔮 FcstLabPro v0218 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+echo "🔮 FcstLabPro v0301 Daily Signal — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "=============================================="
 
 # ── 环境变量（Cloud Run Job 通过 --set-env-vars 传入） ──
@@ -28,7 +28,7 @@ export MALLOC_ARENA_MAX=2
 # 禁用 PyTorch 缓存分配器（在 CPU-only 环境下减少内存开销）
 export PYTORCH_NO_CUDA_MEMORY_CACHING=1
 
-BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v27_orion_v2}"
+BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v27_orion_v4_extended_oos}"
 BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7}"
 # v2 优化: 信号反转
 INVERT_SIGNAL="${INVERT_SIGNAL:-true}"
@@ -150,7 +150,7 @@ if invert_signal:
 else:
     bull_on = bull_prob >= bull_threshold
 
-# v0218: 三重MA过滤 - 只有价格同时站上 MA50/MA150/MA200 时才确认牛市信号
+# v0301: 三重MA过滤 - 只有价格同时站上 MA50/MA150/MA200 时才确认牛市信号
 import pandas as pd
 data_path = Path("/app/data/raw/btc_binance_BTCUSDT_1d.csv")
 triple_ma_confirm = False
@@ -165,12 +165,12 @@ if data_path.exists():
     above_ma150 = last['close'] > last['sma_150']
     above_ma200 = last['close'] > last['sma_200']
     triple_ma_confirm = above_ma50 and above_ma150 and above_ma200
-    print(f"📊 [v0218] 三重MA检查: 价格={last['close']:.2f}, MA50={last['sma_50']:.2f}, MA150={last['sma_150']:.2f}, MA200={last['sma_200']:.2f}")
-    print(f"📊 [v0218] 站上MA50: {above_ma50}, 站上MA150: {above_ma150}, 站上MA200: {above_ma200}, 三重MA确认: {triple_ma_confirm}")
+    print(f"📊 [v0301] 三重MA检查: 价格={last['close']:.2f}, MA50={last['sma_50']:.2f}, MA150={last['sma_150']:.2f}, MA200={last['sma_200']:.2f}")
+    print(f"📊 [v0301] 站上MA50: {above_ma50}, 站上MA150: {above_ma150}, 站上MA200: {above_ma200}, 三重MA确认: {triple_ma_confirm}")
 
     # 三重MA过滤: 如果没有通过三重MA确认，则不执行买入信号
     if bull_on and not triple_ma_confirm:
-        print(f"📊 [v0218] Bull信号被三重MA过滤阻挡")
+        print(f"📊 [v0301] Bull信号被三重MA过滤阻挡")
         bull_on = False
 
 # 使用处理后的信号
@@ -240,7 +240,7 @@ signal_data = {
         "bear": bear_meta.get("feature_set", [])
     },
     "llm_analysis": None,
-    "version": "v0218"
+    "version": "v0301"
 }
 
 output_file = temp_dir / f"signal_{date_str}.json"
