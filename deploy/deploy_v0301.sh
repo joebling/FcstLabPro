@@ -2,7 +2,8 @@
 # =============================================================================
 # FcstLabPro v0301 — Google Cloud Run Job 部署脚本
 # 每天00 (UTC 00:00)北京时间 08: 运行
-#
+# 
+# 模型实验报告：plans/institutional_experiment_plan_v0301.md
 # Bull 模型: Orion-BiX v4 Extended OOS (T=21)
 #   - init_train: 800 天 (扩展测试集)
 #   - Scaler 每步重新 fit (修复泄露)
@@ -117,7 +118,7 @@ if [[ "${1:-}" == "scheduler" || -z "${1:-}" ]]; then
             --cpu="${CPU}" \
             --max-retries=2 \
             --task-timeout=3600s \
-            --set-env-vars=PYTHONUNBUFFERED=1 \
+            --set-env-vars=PYTHONUNBUFFERED=1,GEMINI_API_KEY=AIzaSyDcwyABHvqTne7OwiqztvQARaLI0DXHDg4 \
             --quiet
     else
         echo "  创建新 Job..."

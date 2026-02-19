@@ -263,7 +263,12 @@ def load_model_and_features(exp_dir: str):
     if "label_strategy" not in meta:
         label_cfg = config.get("label", {})
         meta["label_strategy"] = label_cfg.get("strategy", "unknown")
-    
+
+    # 补充 T (预测窗口)
+    if "T" not in meta:
+        label_cfg = config.get("label", {})
+        meta["T"] = label_cfg.get("T", 21)
+
     # 补充 feature_set
     if "feature_set" not in meta:
         feat_cfg = config.get("features", {})
@@ -489,7 +494,7 @@ def format_report(
     lines.append("")
     lines.append(f"📅 信号日期: {date_str}")
     lines.append(f"💰 当前价格: ${price:,.2f}")
-    lines.append(f"📊 预测窗口: 未来 14 天")
+    lines.append(f"📊 预测窗口: 未来 {bull_meta.get('T', 21)} 天")
     lines.append("")
 
     # 模型信息
