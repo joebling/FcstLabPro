@@ -1,0 +1,20 @@
+{
+  "experiment": "E10 Bear Regime Analysis",
+  "overall": {
+    "ic": 0.34826174262279236,
+    "p_value": 3.7290826366889445e-06,
+    "n_samples": 168
+  },
+  "bull": {
+    "ic": -0.1447729051343178,
+    "p_value": 0.11160932108878537,
+    "n_samples": 122
+  },
+  "bear": {
+    "ic": 0.17437832840820477,
+    "p_value": 0.24643599846501518,
+    "n_samples": 46
+  },
+  "conclusion": "REGIME-DEPENDENT - Model fails in bear market",
+  "detail": "Bear IC (0.1744) not significant (p=0.2464)"
+}
