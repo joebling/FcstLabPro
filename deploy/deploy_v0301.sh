@@ -2,7 +2,7 @@
 # =============================================================================
 # FcstLabPro v0301 — Google Cloud Run Job 部署脚本
 # 每天00 (UTC 00:00)北京时间 08: 运行
-# 
+#
 # 模型实验报告：plans/institutional_experiment_plan_v0301.md
 # Bull 模型: Orion-BiX v4 Extended OOS (T=21)
 #   - init_train: 800 天 (扩展测试集)
@@ -51,6 +51,8 @@ echo "=== FcstLabPro v0301 部署脚本 ==="
 echo "  Bull 模型: Orion-BiX v4 Extended OOS (T=21)"
 echo "  关键改进: Scaler 每步 refit + IC t-stat=4.75 + 测试集 3.4年"
 echo "  策略: 信号反转 + 三重MA过滤 + 14天持仓期"
+echo "  邮件通知: 启用"
+echo "  LLM分析: 启用"
 echo ""
 echo "=== Step 0: 前置检查 ==="
 echo "  项目: ${PROJECT_ID}"
@@ -59,8 +61,8 @@ echo "  镜像: ${IMAGE_URI}"
 echo "  Job:  ${JOB_NAME}"
 echo ""
 
-command -v gcloud >/dev/null 2>&1 || { echo "❌ 请先安装 gcloud CLI"; exit 1; }
-ls Dockerfile >/dev/null 2>&1 || { echo "❌ 请在项目根目录运行此脚本"; exit 1; }
+command -v gcloud >/dev/null 2>&1 || { echo "❌ 请先安装 gcloud CLI" ; exit 1; }
+ls Dockerfile >/dev/null 2>&1 || { echo "❌ 请在项目根目录运行此脚本" ; exit 1; }
 
 gcloud config set project "${PROJECT_ID}" --quiet
 
@@ -107,6 +109,17 @@ if [[ "${1:-}" == "scheduler" || -z "${1:-}" ]]; then
     echo ""
     echo "=== Step 2: 部署 Cloud Run Job ==="
 
+    # 环境变量配置 (邮件用明文，Gemini 用 Secret Manager)
+    ENV_VARS="PYTHONUNBUFFERED=1"
+    ENV_VARS="${ENV_VARS},SMTP_HOST=smtp.qq.com"
+    ENV_VARS="${ENV_VARS},SMTP_PORT=465"
+    ENV_VARS="${ENV_VARS},SMTP_USER=792680027@qq.com"
+    ENV_VARS="${ENV_VARS},SMTP_PASS=mlefgnksjkafbfei"
+    ENV_VARS="${ENV_VARS},MAIL_TO=792680027@qq.com"
+
+    # Gemini API Key 使用 Secret Manager（不暴露在代码中）
+    SECRET_NAME="gemini-api-key"
+
     # 检查 Job 是否已存在
     if gcloud run jobs describe "${JOB_NAME}" --region="${REGION}" --project="${PROJECT_ID}" 2>/dev/null; then
         echo "  更新现有 Job..."
@@ -118,7 +131,8 @@ if [[ "${1:-}" == "scheduler" || -z "${1:-}" ]]; then
             --cpu="${CPU}" \
             --max-retries=2 \
             --task-timeout=3600s \
-            --set-env-vars=PYTHONUNBUFFERED=1,GEMINI_API_KEY=AIzaSyDcwyABHvqTne7OwiqztvQARaLI0DXHDg4 \
+            --set-env-vars="${ENV_VARS}" \
+            --set-secrets="GEMINI_API_KEY=${SECRET_NAME}:latest" \
             --quiet
     else
         echo "  创建新 Job..."
@@ -130,7 +144,9 @@ if [[ "${1:-}" == "scheduler" || -z "${1:-}" ]]; then
             --cpu="${CPU}" \
             --max-retries=2 \
             --task-timeout=3600s \
-            --set-env-vars=PYTHONUNBUFFERED=1
+            --set-env-vars="${ENV_VARS}" \
+            --set-secrets="GEMINI_API_KEY=${SECRET_NAME}:latest" \
+            --quiet
     fi
 
     echo "✅ Job 部署完成: ${JOB_NAME}"
@@ -188,6 +204,8 @@ echo "关键改进:"
 echo "  - Scaler 每步重新 fit (修复泄露)"
 echo "  - IC t-stat: 4.75 (>2 达标)"
 echo "  - 测试集时长: 3.4 年"
+echo "  - 邮件通知: 启用"
+echo "  - LLM分析: 启用"
 echo ""
 echo "手动触发:"
 echo "  gcloud run jobs execute ${JOB_NAME} --region ${REGION}"
