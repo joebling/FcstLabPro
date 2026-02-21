@@ -2,28 +2,7 @@
 
 import logging
 import sys
-import time
 from pathlib import Path
-
-
-class BeijingFormatter(logging.Formatter):
-    """北京时间格式化器."""
-    
-    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
-        ct = self.converter(record.created)
-        if datefmt:
-            s = time.strftime(datefmt, ct)
-        else:
-            t = time.strftime("%Y-%m-%d %H:%M:%S", ct)
-            s = "%s,%03d" % (t, record.msecs)
-        return s
-
-
-def beijing_time_converter(secs: float | None = None) -> time.struct_time:
-    """将时间戳转换为北京时间."""
-    if secs is None:
-        secs = time.time()
-    return time.localtime(secs + 8 * 3600)
 
 
 def setup_logging(
@@ -51,15 +30,10 @@ def setup_logging(
         log_file.parent.mkdir(parents=True, exist_ok=True)
         handlers.append(logging.FileHandler(log_file, encoding="utf-8"))
 
-    # 使用北京时间格式化器
-    formatter = BeijingFormatter(fmt, datefmt="%Y-%m-%d %H:%M:%S")
-    formatter.converter = beijing_time_converter
-    
-    for handler in handlers:
-        handler.setFormatter(formatter)
-    
     logging.basicConfig(
         level=getattr(logging, level.upper(), logging.INFO),
+        format=fmt,
+        datefmt="%Y-%m-%d %H:%M:%S",
         handlers=handlers,
         force=True,
     )

@@ -1,33 +1,52 @@
-.git
-.gitignore
-__pycache__
-*.pyc
-lab-venv/
-.venv/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
 venv_py310/
-notebooks/
-reports/
-logs/
-tests/
-*.md
+virtualenv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Data and reports (too big)
+data/
+experiments/
+reports/
 signals/
-data/raw/
-experiments/weekly/weekly_bull_v29_*
-experiments/weekly/weekly_bull_v28_*
-experiments/weekly/weekly_bull_v17_*
-experiments/weekly/weekly_bull_v8b_*
-experiments/weekly/weekly_bull_v6_*
-experiments/weekly/weekly_bull_v5_*
-experiments/weekly/weekly_bull_v4_*
-experiments/weekly/weekly_bull_v3_*
-experiments/weekly/weekly_bull_v9_*
-experiments/weekly/weekly_bull_v25_*
-experiments/weekly/weekly_bull_model_*
-experiments/weekly/weekly_bear_v8b_*
-experiments/weekly/weekly_bear_v6_*
-experiments/weekly/weekly_bear_v5_*
-experiments/weekly/weekly_bear_model_*
-experiments/baseline/
-docs/
-plans/
+
+# Logs
+*.log
+
+# Git
+.git/
+.gitignore

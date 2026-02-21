@@ -35,7 +35,7 @@ import yaml
 import json
 from scipy.stats import spearmanr, ttest_1samp
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from orion_bix import OrionBixClassifier
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -129,11 +129,9 @@ def run_walk_forward(X, y, init_train=800, oos_window=63, step=21):
         X_test_scaled = scaler.transform(X_test)
 
         # Train model
-        model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=6,
+        model = OrionBixClassifier(
+            n_estimators=4,
             random_state=42,
-            n_jobs=-1
         )
         model.fit(X_train_scaled, y_train)
 

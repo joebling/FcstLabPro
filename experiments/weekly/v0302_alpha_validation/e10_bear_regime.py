@@ -35,7 +35,7 @@ import yaml
 import json
 from scipy.stats import spearmanr
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from orion_bix import OrionBixClassifier
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -127,6 +127,7 @@ def run_walk_forward(X, y, dates, regimes, init_train=800, oos_window=63, step=2
     predictions = []
     true_labels = []
     regime_labels = []
+    valid_indices = []  # Track original indices
 
     t = init_train
     while t + oos_window <= n_samples:
@@ -140,8 +141,9 @@ def run_walk_forward(X, y, dates, regimes, init_train=800, oos_window=63, step=2
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        model = RandomForestClassifier(
-            n_estimators=100, max_depth=6, random_state=42, n_jobs=-1
+        model = OrionBixClassifier(
+            n_estimators=4,
+            random_state=42,
         )
         model.fit(X_train_scaled, y_train)
 
@@ -153,41 +155,46 @@ def run_walk_forward(X, y, dates, regimes, init_train=800, oos_window=63, step=2
         predictions.extend(preds)
         true_labels.extend(y_test)
         regime_labels.extend(regimes_test.tolist())
+        valid_indices.extend(range(t, t+oos_window))
 
         t += step
 
-    return np.array(predictions), np.array(true_labels), regime_labels
+    return np.array(predictions), np.array(true_labels), regime_labels, valid_indices
 
 
-def calc_regime_ic(predictions, true_labels, regimes, target_regime):
-    """Calculate IC for specific regime."""
-    # Filter by regime
-    regime_preds = []
-    regime_labels = []
+def calc_regime_ic(predictions, true_labels, regimes, valid_indices, target_regime, step=21):
+    """
+    Calculate IC for specific regime.
 
-    for i, r in enumerate(regimes):
-        if r == target_regime:
-            regime_preds.append(predictions[i])
-            regime_labels.append(true_labels[i])
-
-    if len(regime_preds) < 10:
-        return 0.0, 1.0, 0
-
-    # Non-overlapping
-    step = 21
-    n = len(regime_preds)
+    FIX: First do non-overlapping sampling, then filter by regime.
+    This ensures samples are properly spaced in time before regime filtering.
+    """
+    # First: non-overlapping sampling on original data
+    n = len(predictions)
     n_no = n // step
     if n_no < 2:
         return 0.0, 1.0, 0
 
-    preds_no = np.array(regime_preds[:n_no*step:step])
-    labels_no = np.array(regime_labels[:n_no*step:step])
+    # Get non-overlapping indices
+    no_indices = list(range(0, n_no * step, step))
 
-    if len(set(preds_no)) < 2 or len(set(labels_no)) < 2:
-        return 0.0, 1.0, n_no
+    # Filter by regime using non-overlapping samples
+    regime_preds = []
+    regime_labels = []
 
-    ic, p_val = spearmanr(preds_no, labels_no)
-    return ic, p_val, n_no
+    for idx in no_indices:
+        if regimes[idx] == target_regime:
+            regime_preds.append(predictions[idx])
+            regime_labels.append(true_labels[idx])
+
+    if len(regime_preds) < 10:
+        return 0.0, 1.0, 0
+
+    if len(set(regime_preds)) < 2 or len(set(regime_labels)) < 2:
+        return 0.0, 1.0, len(regime_preds)
+
+    ic, p_val = spearmanr(regime_preds, regime_labels)
+    return ic, p_val, len(regime_preds)
 
 
 # ============================================================================
@@ -195,7 +202,7 @@ def calc_regime_ic(predictions, true_labels, regimes, target_regime):
 # ============================================================================
 
 print("\nRunning walk-forward prediction...")
-predictions, true_labels, regime_labels = run_walk_forward(
+predictions, true_labels, regime_labels, valid_indices = run_walk_forward(
     X, y, dates, df['regime'].values
 )
 
@@ -209,12 +216,12 @@ ic_overall, p_overall = spearmanr(preds_no, labels_no)
 
 print(f"\nOverall IC: {ic_overall:.4f}, p={p_overall:.6f}, n={n_no}")
 
-# Bull regime IC
-ic_bull, p_bull, n_bull = calc_regime_ic(predictions, true_labels, regime_labels, 'bull')
+# Bull regime IC (FIX: pass valid_indices)
+ic_bull, p_bull, n_bull = calc_regime_ic(predictions, true_labels, regime_labels, valid_indices, 'bull')
 print(f"Bull IC: {ic_bull:.4f}, p={p_bull:.6f}, n={n_bull}")
 
-# Bear regime IC
-ic_bear, p_bear, n_bear = calc_regime_ic(predictions, true_labels, regime_labels, 'bear')
+# Bear regime IC (FIX: pass valid_indices)
+ic_bear, p_bear, n_bear = calc_regime_ic(predictions, true_labels, regime_labels, valid_indices, 'bear')
 print(f"Bear IC: {ic_bear:.4f}, p={p_bear:.6f}, n={n_bear}")
 
 

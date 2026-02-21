@@ -1,7 +1,7 @@
 import sys
-import os
-
-sys.path.insert(0, os.path.abspath('.'))
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 import json
 import logging
@@ -29,7 +29,7 @@ def main():
     print("="*80)
     
     config_path = "experiments/weekly/weekly_bull_v27_orion_final/config.yaml"
-    exp_dir = "experiments/weekly/weekly_bull_v27_orion_final"
+    exp_dir = Path("experiments/weekly/weekly_bull_v27_orion_final")
     
     logger.info(f"加载配置: {config_path}")
     config = load_experiment_config(config_path)
@@ -99,7 +99,7 @@ def main():
     # ========== 5. 保存产物 ==========
     logger.info(f"保存回测结果到: {exp_dir}")
     
-    with open(os.path.join(exp_dir, "metrics.json"), "w") as f:
+    with open(exp_dir / "metrics.json", "w") as f:
         json.dump(bt_result.aggregate_metrics, f, indent=2)
     
     fold_rows = []
@@ -108,15 +108,15 @@ def main():
         row.update(fr.metrics)
         fold_rows.append(row)
     fold_metrics_df = pd.DataFrame(fold_rows)
-    fold_metrics_df.to_csv(os.path.join(exp_dir, "fold_metrics.csv"), index=False)
+    fold_metrics_df.to_csv(exp_dir / "fold_metrics.csv", index=False)
     
     pred_df = pd.DataFrame({
         "y_true": bt_result.all_y_true,
         "y_pred": bt_result.all_y_pred,
     })
-    pred_df.to_csv(os.path.join(exp_dir, "predictions.csv"), index=False)
+    pred_df.to_csv(exp_dir / "predictions.csv", index=False)
     
-    logger.info(f"预测结果已保存: {os.path.join(exp_dir, 'predictions.csv')}")
+    logger.info(f"预测结果已保存: {exp_dir / 'predictions.csv'}")
     
     print("\n" + "="*80)
     print("回测完成！")

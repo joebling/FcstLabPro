@@ -35,7 +35,7 @@ import yaml
 import json
 from scipy.stats import spearmanr
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from orion_bix import OrionBixClassifier
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -130,11 +130,9 @@ def run_walk_forward(X, y, init_train=800, oos_window=63, step=21):
         X_test_scaled = scaler.transform(X_test)
 
         # Train model
-        model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=6,
+        model = OrionBixClassifier(
+            n_estimators=4,
             random_state=42,
-            n_jobs=-1
         )
         model.fit(X_train_scaled, y_train)
 
@@ -221,6 +219,8 @@ def backtest_no_ma(signals, prices, valid_idx, step=21):
 def backtest_with_ma(signals, prices, valid_idx, step=21, ma_type='triple'):
     """
     Backtest with MA filter.
+
+    Fix: Calculate MA on daily prices first, then index to valid_idx.
     """
     # Align prices with predictions
     aligned_prices = []
@@ -228,10 +228,15 @@ def backtest_with_ma(signals, prices, valid_idx, step=21, ma_type='triple'):
         aligned_prices.append(prices[idx])
     aligned_prices = np.array(aligned_prices)
 
-    # Calculate MAs
-    ma50 = pd.Series(aligned_prices).rolling(50).mean().values
-    ma150 = pd.Series(aligned_prices).rolling(150).mean().values
-    ma200 = pd.Series(aligned_prices).rolling(200).mean().values
+    # FIX: Calculate MAs on daily price data first, then index to valid_idx
+    daily_ma50 = pd.Series(prices).rolling(50).mean().values
+    daily_ma150 = pd.Series(prices).rolling(150).mean().values
+    daily_ma200 = pd.Series(prices).rolling(200).mean().values
+
+    # Index MAs to valid_idx
+    ma50 = np.array([daily_ma50[idx] for idx in valid_idx])
+    ma150 = np.array([daily_ma150[idx] for idx in valid_idx])
+    ma200 = np.array([daily_ma200[idx] for idx in valid_idx])
 
     # Convert signals to positions
     positions = (signals > 0.5).astype(int)

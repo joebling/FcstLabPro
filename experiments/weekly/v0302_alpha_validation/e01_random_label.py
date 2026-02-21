@@ -35,7 +35,7 @@ import yaml
 import json
 from scipy.stats import spearmanr
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from orion_bix import OrionBixClassifier
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -158,11 +158,9 @@ def run_walk_forward(X, y, init_train=800, oos_window=63, step=21):
         X_test_scaled = scaler.transform(X_test)
 
         # Train model
-        model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=6,
+        model = OrionBixClassifier(
+            n_estimators=4,
             random_state=42,
-            n_jobs=-1
         )
         model.fit(X_train_scaled, y_train)
 
@@ -302,7 +300,12 @@ print("\n" + "=" * 60)
 print("CONCLUSION")
 print("=" * 60)
 
-if p_empirical < 0.05:
+# FIX: Check if real IC is significant first
+# If real IC itself is not significant (p > 0.05), the model has no predictive power
+if p_real > 0.05:
+    conclusion = "FAIL - Real IC not significant (no predictive power)"
+    detail = f"Real IC = {ic_real:.4f}, p = {p_real:.4f}. Model has no significant predictive ability."
+elif p_empirical < 0.05:
     conclusion = "FAIL - Pipeline may have leakage"
     detail = f"Random labels produced IC >= real IC in {n_extreme}/{N_PERMUTATIONS} cases (p={p_empirical:.4f})"
 else:

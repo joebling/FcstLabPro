@@ -1,20 +1,33 @@
 {
-  "experiment": "E10 Bear Regime Analysis",
-  "overall": {
-    "ic": 0.34826174262279236,
-    "p_value": 3.7290826366889445e-06,
-    "n_samples": 168
-  },
-  "bull": {
-    "ic": -0.1447729051343178,
-    "p_value": 0.11160932108878537,
-    "n_samples": 122
-  },
-  "bear": {
-    "ic": 0.17437832840820477,
-    "p_value": 0.24643599846501518,
-    "n_samples": 46
-  },
-  "conclusion": "REGIME-DEPENDENT - Model fails in bear market",
-  "detail": "Bear IC (0.1744) not significant (p=0.2464)"
+  "experiment": "E08 Threshold Sensitivity Test",
+  "results": [
+    {
+      "X": 0.03,
+      "X_pct": 3.0,
+      "ic": 0.34496075970477835,
+      "p_value": 4.6681531305526675e-06,
+      "n_samples": 168,
+      "label_1_pct": 1.0
+    },
+    {
+      "X": 0.05,
+      "X_pct": 5.0,
+      "ic": 0.32171779155443736,
+      "p_value": 2.114764747234542e-05,
+      "n_samples": 168,
+      "label_1_pct": 1.0
+    },
+    {
+      "X": 0.08,
+      "X_pct": 8.0,
+      "ic": 0.24733709653892585,
+      "p_value": 0.0012280159639471904,
+      "n_samples": 168,
+      "label_1_pct": 1.0
+    }
+  ],
+  "ic_std": 0.04163746038971815,
+  "ic_range": 0.0976236631658525,
+  "conclusion": "ROBUST - IC stable across thresholds",
+  "detail": "IC std (0.0416) < 0.1, model robust to threshold choice"
 }

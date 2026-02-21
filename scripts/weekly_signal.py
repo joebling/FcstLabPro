@@ -762,6 +762,11 @@ def main():
                 if col in last_row.index:
                     indicators[col] = float(last_row[col])
 
+            # 添加三重MA站上信息（v0302: 明确传给LLM，避免假定）
+            indicators["above_ma50"] = int(bull_df['above_ma50'].iloc[-1])
+            indicators["above_ma150"] = int(bull_df['above_ma150'].iloc[-1])
+            indicators["above_ma200"] = int(bull_df['above_ma200'].iloc[-1])
+
             signal_data = {
                 "date": date_str,
                 "price": price,

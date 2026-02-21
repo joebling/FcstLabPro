@@ -204,7 +204,7 @@ def walk_forward_predict_simple(
         predictions: Array of predictions
         returns: Array of future returns
     """
-    from sklearn.ensemble import RandomForestClassifier
+    from orion_bix import OrionBixClassifier
 
     init_train = init_train or config['evaluation']['init_train']
     oos_window = oos_window or config['evaluation']['oos_window']
@@ -233,11 +233,9 @@ def walk_forward_predict_simple(
         y_test = y[t:t+oos_window]
 
         # Train model
-        model = RandomForestClassifier(
-            n_estimators=16,
-            max_depth=5,
+        model = OrionBixClassifier(
+            n_estimators=4,
             random_state=42,
-            n_jobs=-1
         )
         model.fit(X_train, y_train)
 

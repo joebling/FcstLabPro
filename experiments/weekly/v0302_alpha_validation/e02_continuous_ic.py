@@ -35,7 +35,7 @@ import yaml
 import json
 from scipy.stats import spearmanr
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from orion_bix import OrionBixClassifier
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -151,11 +151,9 @@ def run_walk_forward(X, y, init_train=800, oos_window=63, step=21):
         X_test_scaled = scaler.transform(X_test)
 
         # Train model
-        model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=6,
+        model = OrionBixClassifier(
+            n_estimators=4,
             random_state=42,
-            n_jobs=-1
         )
         model.fit(X_train_scaled, y_train)
 
@@ -192,7 +190,8 @@ predictions, true_labels, valid_idx = run_walk_forward(X, y)
 aligned_returns = []
 for idx in valid_idx:
     if idx + T < len(close_prices):
-        ret = (close_prices[idx+T] - close_prices[idx+T-step]) / close_prices[idx+T-step]
+        # Correct: return from prediction point (idx) to T days later (idx+T)
+        ret = (close_prices[idx + T] - close_prices[idx]) / close_prices[idx]
         aligned_returns.append(ret)
     else:
         aligned_returns.append(0)
