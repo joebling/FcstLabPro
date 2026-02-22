@@ -1,6 +1,6 @@
 # weekly_bull_v0302_dip_recovery
 
-> 实验日期: 2026-02-21
+> 实验日期: 2026-02-22
 > Label 策略: dip_recovery
 
 ---
@@ -39,4 +39,4 @@ technical, volume, flow, market_structure, external_fgi, regime
 
 ---
 
-*报告生成: 2026-02-21T05:15:36.259032*
+*报告生成: 2026-02-22T09:03:18.169751*

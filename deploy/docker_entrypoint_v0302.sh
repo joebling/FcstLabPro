@@ -32,6 +32,10 @@ export PYTORCH_NO_CUDA_MEMORY_CACHING=1
 # v0302 专属配置
 BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v27_orion_final}"
 BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7}"
+MODEL_VERSION="${MODEL_VERSION:-v0302}"
+BULL_KAPPA="${BULL_KAPPA:-0.11}"
+BEAR_KAPPA="${BEAR_KAPPA:-0.05}"
+LABEL_STRATEGY="${LABEL_STRATEGY:-dip_recovery}"
 # v0302: 不使用信号反转，使用 dip_recovery 策略
 INVERT_SIGNAL="${INVERT_SIGNAL:-false}"
 OUT_DIR="${OUT_DIR:-/tmp/signals}"
@@ -91,14 +95,25 @@ python /app/scripts/weekly_signal.py \
 # 合并结果（v0302 专属逻辑）
 echo ""
 echo "📥 Step 1D: 合并结果 (v0302)..."
-python3 - << 'PYEOF'
+python3 - << PYEOF
 import pickle
 import json
 import sys
+import os
 sys.path.insert(0, '/app')
 from pathlib import Path
 
 temp_dir = Path("/tmp/signals")
+MODEL_VERSION = os.environ.get("MODEL_VERSION", "v0302")
+BULL_KAPPA = os.environ.get("BULL_KAPPA", "0.11")
+BEAR_KAPPA = os.environ.get("BEAR_KAPPA", "0.05")
+LABEL_STRATEGY = os.environ.get("LABEL_STRATEGY", "dip_recovery")
+
+# 模型名称（用于邮件标题显示）
+BULL_MODEL_NAME = "weekly_bull_v27_orion_final"
+BEAR_MODEL_NAME = "weekly_bear_v13_T28_fgi"
+
+import pandas as pd
 
 # 读取 Bull 结果
 with open(temp_dir / "bull_result.pkl", "rb") as f:
@@ -137,7 +152,6 @@ print(f"📊 Bear 概率: {bear_prob:.3f}")
 print(f"📊 日期: {date_str}, 价格: {price}")
 
 # v0302: 不使用信号反转，直接使用原概率
-import os
 invert_signal = os.environ.get("INVERT_SIGNAL", "false") == "true"
 print(f"📊 信号反转: {invert_signal}")
 
@@ -150,7 +164,6 @@ bull_on = bull_prob >= bull_threshold
 bear_on = bear_prob >= bear_threshold
 
 # 三重MA过滤（保持与 v0301 相同的逻辑）
-import pandas as pd
 data_path = Path("/app/data/raw/btc_binance_BTCUSDT_1d.csv")
 triple_ma_confirm = False
 if data_path.exists():
@@ -201,8 +214,8 @@ else:
 
 # 风险提醒（v0302 专属）
 risk_notes = [
-    "ℹ️ v0302 策略: dip_recovery + Trigger A + Position sizing",
-    f"📊 模型 Kappa≈Bull={bull_meta.get('kappa','N/A')}, Bear={bear_meta.get('kappa','N/A')}，预测力有限，仅作辅助参考"
+    f"ℹ️ {MODEL_VERSION} 策略: dip_recovery + Trigger A + Position sizing",
+    f"📊 模型 Kappa≈Bull={BULL_KAPPA}, Bear={BEAR_KAPPA}，预测力有限，仅作辅助参考"
 ]
 
 # 保存信号
@@ -218,23 +231,27 @@ signal_data = {
     "risk_level": risk_level,
     "risk_notes": risk_notes,
     "model_version": {
-        "bull": bull_meta.get("version", "N/A"),
-        "bear": bear_meta.get("version", "N/A")
+        "bull": BULL_MODEL_NAME,
+        "bear": BEAR_MODEL_NAME
     },
     "kappa": {
-        "bull": bull_meta.get("kappa", "N/A"),
-        "bear": bear_meta.get("kappa", "N/A")
+        "bull": BULL_KAPPA,
+        "bear": BEAR_KAPPA
     },
     "label_strategy": {
-        "bull": bull_meta.get("label_strategy", "N/A"),
-        "bear": bear_meta.get("label_strategy", "N/A")
+        "bull": LABEL_STRATEGY,
+        "bear": LABEL_STRATEGY
+    },
+    "strategy_version": {
+        "bull": MODEL_VERSION,
+        "bear": MODEL_VERSION
     },
     "feature_set": {
-        "bull": bull_meta.get("feature_set", []),
-        "bear": bear_meta.get("feature_set", [])
+        "bull": ["technical", "volume", "flow", "market_structure", "external_fgi", "regime"],
+        "bear": ["technical", "volume", "flow", "market_structure", "external_fgi"]
     },
     "llm_analysis": None,
-    "version": "v0302"
+    "version": MODEL_VERSION
 }
 
 output_file = temp_dir / f"signal_{date_str}.json"

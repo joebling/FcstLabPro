@@ -212,31 +212,53 @@ def main():
     parser.add_argument('--label', type=str, default='simple_return',
                         choices=['simple_return', 'excess_return', 'dip_recovery'],
                         help='Label 策略')
-    parser.add_argument('--T', type=int, default=21, help='预测窗口')
+    parser.add_argument('--type', type=str, default='bull',
+                        choices=['bull', 'bear'],
+                        help='模型类型: bull 或 bear')
+    parser.add_argument('--T', type=int, default=21, help='预测窗口 (bull=21, bear=28)')
     parser.add_argument('--output', type=str, default=None, help='输出目录')
     parser.add_argument('--init-train', type=int, default=800, help='初始训练集大小')
     parser.add_argument('--oos-window', type=int, default=63, help='OOS 窗口')
-    parser.add_argument('--step', type=int, default=21, help='步长')
+    parser.add_argument('--step', type=int, default=42, help='步长 (增大可减少训练时间)')
     parser.add_argument('--purge-gap', type=int, default=21, help='训练测试间隔（防泄漏）')
     args = parser.parse_args()
 
     start_time = time()
     
-    experiment_name = f"weekly_bull_v0302_{args.label}"
+    model_type = args.type
+    experiment_name = f"weekly_{model_type}_v0302_{args.label}"
     experiment_id = generate_experiment_id(experiment_name)
     
     output_dir = args.output or f"experiments/weekly/{experiment_id}"
 
     print("=" * 60)
-    print(f"v0302 Label 实验 - {args.label}")
+    print(f"v0302 Label 实验 - {model_type} - {args.label}")
     print(f"实验 ID: {experiment_id}")
     print("=" * 60)
+
+    if model_type == 'bull':
+        model_config = {
+            'type': 'orion_bix',
+            'params': {'n_estimators': 16, 'random_state': 42}
+        }
+        feature_sets = ['technical', 'volume', 'flow', 'market_structure', 'external_fgi', 'regime']
+    else:
+        model_config = {
+            'type': 'lightgbm',
+            'params': {
+                'n_estimators': 100, 'max_depth': 6, 'learning_rate': 0.05,
+                'num_leaves': 31, 'subsample': 0.8, 'colsample_bytree': 0.8,
+                'min_child_samples': 20, 'reg_alpha': 0.1, 'reg_lambda': 0.1,
+                'random_state': 42, 'verbose': -1, 'auto_scale_pos_weight': True
+            }
+        }
+        feature_sets = ['technical', 'volume', 'flow', 'market_structure', 'external_fgi']
 
     config = {
         'experiment': {
             'name': experiment_name,
-            'description': f'v0302 Label 实验: {args.label}',
-            'tags': ['weekly', 'bull', 'v0302', args.label],
+            'description': f'v0302 Label 实验: {model_type} - {args.label}',
+            'tags': ['weekly', model_type, 'v0302', args.label],
             'category': 'weekly',
         },
         'data': {
@@ -246,21 +268,15 @@ def main():
             'interval': '1d',
         },
         'features': {
-            'sets': ['technical', 'volume', 'flow', 'market_structure', 'external_fgi', 'regime'],
-            'scaling': 'standard',
+            'sets': feature_sets,
+            'scaling': 'standard' if model_type == 'bull' else None,
             'drop_na_method': 'ffill_then_drop',
         },
         'label': {
             'strategy': args.label,
             'T': args.T,
         },
-        'model': {
-            'type': 'orion_bix',
-            'params': {
-                'n_estimators': 16,
-                'random_state': 42,
-            },
-        },
+        'model': model_config,
         'evaluation': {
             'method': 'walk_forward',
             'init_train': args.init_train,

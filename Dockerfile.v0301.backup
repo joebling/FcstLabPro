@@ -1,7 +1,6 @@
 FROM python:3.10-slim
 
 WORKDIR /app
-ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 # 安装系统依赖（git 用于安装 Orion-BiX，libgomp = OpenMP）
 RUN apt-get update && apt-get install -y --no-install-recommends git libgomp1 && rm -rf /var/lib/apt/lists/*
@@ -23,6 +22,6 @@ RUN date +%s > /tmp/build_timestamp.txt && echo "Build timestamp: $(date)"
 COPY . /app
 
 # 确保入口脚本有执行权限
-RUN chmod +x /app/deploy/docker_entrypoint_v0302.sh
+RUN chmod +x /app/scripts/docker_entrypoint.sh
 
-ENTRYPOINT ["/app/deploy/docker_entrypoint_v0302.sh"]
+ENTRYPOINT ["/app/scripts/docker_entrypoint.sh"]

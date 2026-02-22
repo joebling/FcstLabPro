@@ -7,7 +7,14 @@
 
 ## 一、策略概述
 
-### 1.1 策略特点
+### 1.1 使用的模型
+
+| 模型 | 路径 | Kappa | Label 策略 |
+|------|------|-------|------------|
+| **Bull** | experiments/weekly/weekly_bull_v27_orion_final | 0.11 | dip_recovery |
+| **Bear** | experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7 | 0.05 | dip_recovery |
+
+### 1.2 策略特点
 
 | 方面 | 描述 |
 |------|------|

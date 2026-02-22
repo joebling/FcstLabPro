@@ -38,11 +38,23 @@ env/
 .DS_Store
 Thumbs.db
 
-# Data and reports (too big)
-data/
-experiments/
+# Data - only exclude large raw data
+data/raw/
+data/processed/
+data/backtest/
 reports/
 signals/
+# Keep external data for FGI features
+!data/external/
+
+# Experiments - exclude most, but keep v0302 models
+experiments/baseline/
+experiments/*.csv
+experiments/*.json
+experiments/registry.json
+experiments/weekly/*
+!experiments/weekly/weekly_bull_v27_orion_final/
+!experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7/
 
 # Logs
 *.log

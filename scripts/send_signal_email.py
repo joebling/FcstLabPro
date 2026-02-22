@@ -67,6 +67,7 @@ def build_html(data: dict) -> str:
 
     # 新增：模型元信息
     model_version = data.get("model_version", {})
+    strategy_version = data.get("strategy_version", {})
     kappa = data.get("kappa", {})
     label_strategy = data.get("label_strategy", {})
     feature_set = data.get("feature_set", {})

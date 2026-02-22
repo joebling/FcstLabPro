@@ -9,15 +9,15 @@
     "dip_recovery"
   ],
   "category": "weekly",
-  "created_at": "2026-02-21T05:15:36.258173",
+  "created_at": "2026-02-22T09:03:18.168796",
   "git": {
-    "commit": "d2e8d1a5",
+    "commit": "4fb132b1",
     "branch": "refactor/v0302-unified-pipeline",
     "dirty": true
   },
   "seed": 42,
   "status": "completed",
-  "duration_seconds": 35271.91,
+  "duration_seconds": 38371.86,
   "label_strategy": "dip_recovery",
   "T": 21,
   "n_features": 148,

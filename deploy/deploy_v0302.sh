@@ -95,12 +95,36 @@ if [[ "${1:-}" == "deploy" || "${1:-}" == "scheduler" || -z "${1:-}" ]]; then
             --quiet
     }
 
-    echo "  构建 Docker 镜像 (使用 v0302 专属 Dockerfile)..."
+    echo "  构建 Docker 镜像 (使用 v0302 专属配置)..."
+    cp Dockerfile Dockerfile.v0301.backup
+    cat > Dockerfile << 'DOCKERFILE_EOF'
+FROM python:3.10-slim
+
+WORKDIR /app
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+
+RUN apt-get update && apt-get install -y --no-install-recommends git libgomp1 && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir scikit-learn==1.6.1
+
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir git+https://github.com/Lexsi-Labs/Orion-BiX.git
+
+RUN date +%s > /tmp/build_timestamp.txt && echo "Build timestamp: $(date)"
+
+COPY . /app
+
+RUN chmod +x /app/deploy/docker_entrypoint_v0302.sh
+
+ENTRYPOINT ["/app/deploy/docker_entrypoint_v0302.sh"]
+DOCKERFILE_EOF
     gcloud builds submit \
-        --config=deploy/cloudbuild_v0302.yaml \
+        --tag "${IMAGE_URI}" \
         --project="${PROJECT_ID}" \
-        --gcs-log-dir="gs://forecastlab-prod-builds/builds" \
-        --substitutions=_IMAGE_URI="${IMAGE_URI}"
+        --gcs-log-dir="gs://forecastlab-prod-builds/builds"
+    mv Dockerfile.v0301.backup Dockerfile
 
     echo "✅ 镜像构建完成: ${IMAGE_URI}"
 fi
@@ -120,6 +144,9 @@ if [[ "${1:-}" == "scheduler" || -z "${1:-}" ]]; then
     ENV_VARS="${ENV_VARS},SMTP_PASS=mlefgnksjkafbfei"
     ENV_VARS="${ENV_VARS},MAIL_TO=792680027@qq.com"
     ENV_VARS="${ENV_VARS},MODEL_VERSION=v0302"
+    ENV_VARS="${ENV_VARS},BULL_KAPPA=0.11"
+    ENV_VARS="${ENV_VARS},BEAR_KAPPA=0.05"
+    ENV_VARS="${ENV_VARS},LABEL_STRATEGY=dip_recovery"
 
     # Gemini API Key 使用 Secret Manager（不暴露在代码中）
     SECRET_NAME="gemini-api-key"
