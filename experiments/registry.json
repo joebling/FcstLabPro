@@ -2658,5 +2658,26 @@
       "cohen_kappa": 0.050806800767063454
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0302_dip_recovery",
+    "name": "weekly_bear_v0302_dip_recovery",
+    "description": "v0302 Label 实验: bear - dip_recovery",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0302",
+      "dip_recovery"
+    ],
+    "created_at": "2026-02-23T17:07:21.445097",
+    "status": "failed",
+    "duration_seconds": 0.08,
+    "git_commit": "78d7828",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {},
+    "error": "\"模型 'orion_bix' 未注册, 可用: ['lightgbm', 'tft_classifier', 'patchtst_classifier', 'tabpfn', 'stacking', 'lightgbm_regressor', 'lstm_classifier', 'gru_classifier', 'transformer_classifier']\""
   }
 ]

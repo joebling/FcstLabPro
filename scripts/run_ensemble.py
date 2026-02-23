@@ -12,7 +12,7 @@ import src.labels.reversal  # noqa: F401
 import src.labels.directional  # noqa: F401
 
 from src.data.loader import load_csv
-from src.experiment.tracker import create_experiment_dir, generate_experiment_id, save_meta, update_registry
+from src.experiment.tracker_old import create_experiment_dir, generate_experiment_id, save_meta, update_registry
 from src.evaluation.ensemble import run_ensemble_evaluation
 from src.evaluation.metrics import compute_metrics
 

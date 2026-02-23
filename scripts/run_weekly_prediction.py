@@ -30,7 +30,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.utils.logging import setup_logging
 from src.experiment.runner import run_experiment
-from src.experiment.tracker import (
+from src.experiment.tracker_old import (
     get_experiment_dir, EXPERIMENTS_DIR, list_experiments,
 )
 

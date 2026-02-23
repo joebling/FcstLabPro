@@ -7,6 +7,7 @@
 - dip_recovery: Dip+Recovery 标签（反转策略核心）
 - excess_return: 超额收益标签
 - simple_return: 简单正负收益标签
+- pump_dump: Pump+Dump 标签（dip_recovery 的镜像，看空信号）
 """
 
 from src.labels.registry import (
@@ -22,6 +23,7 @@ from src.labels.dip_recovery import (
     generate_excess_return_labels,
     generate_simple_return_labels,
 )
+from src.labels.pump_dump import generate_pump_dump_labels
 
 __all__ = [
     "register_label_strategy",
@@ -33,4 +35,5 @@ __all__ = [
     "generate_dip_recovery_labels",
     "generate_excess_return_labels",
     "generate_simple_return_labels",
+    "generate_pump_dump_labels",
 ]

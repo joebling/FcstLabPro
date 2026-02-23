@@ -16,7 +16,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.utils.logging import setup_logging
 from src.experiment.runner import run_experiment
-# from src.experiment.runner_parallel import run_experiment_parallel
 
 
 def main():
@@ -24,42 +23,14 @@ def main():
     parser.add_argument("--config", required=True, help="实验配置 YAML 文件路径")
     parser.add_argument("--override", nargs="*", default=[], help="参数覆盖, 如 label.T=21 label.X=0.10")
     parser.add_argument("--log-level", default="INFO", help="日志级别")
-    parser.add_argument(
-        "--parallel", action="store_true",
-        help="启用 fold 级并行 (默认关闭)",
-    )
-    parser.add_argument(
-        "--n-fold-jobs", type=int, default=4,
-        help="fold 级并行数量 (默认 3, 需配合 --parallel 使用)",
-    )
-    parser.add_argument(
-        "--total-cores", type=int, default=None,
-        help="可用 CPU 总核心数 (默认自动检测)",
-    )
-    parser.add_argument(
-        "--overwrite", action="store_true",
-        help="覆盖已有实验目录 (不生成时间戳后缀)",
-    )
     args = parser.parse_args()
 
     setup_logging(level=args.log_level)
 
-    overrides = args.override if args.override else None
-
-    if args.parallel:
-        experiment_id = run_experiment_parallel(
-            config_path=args.config,
-            overrides=overrides,
-            n_fold_jobs=args.n_fold_jobs,
-            total_cores=args.total_cores,
-            overwrite=args.overwrite,
-        )
-    else:
-        experiment_id = run_experiment(
-            config_path=args.config,
-            overrides=overrides,
-            overwrite=args.overwrite,
-        )
+    experiment_id = run_experiment(
+        config_path=args.config,
+        overrides=args.override if args.override else None,
+    )
 
     print(f"\n✅ 实验完成: {experiment_id}")
     print(f"📁 产物目录: experiments/{experiment_id}/")

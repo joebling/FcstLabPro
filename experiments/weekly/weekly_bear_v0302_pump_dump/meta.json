@@ -1,15 +1,15 @@
 {
-  "experiment_id": "weekly_bear_v0302_dip_recovery",
-  "name": "weekly_bear_v0302_dip_recovery",
-  "description": "v0302 Label 实验: bear - dip_recovery",
+  "experiment_id": "weekly_bear_v0302_pump_dump",
+  "name": "weekly_bear_v0302_pump_dump",
+  "description": "v0302 Bear pump_dump: 预测先涨后跌的倒V反转",
   "tags": [
     "weekly",
     "bear",
     "v0302",
-    "dip_recovery"
+    "pump_dump"
   ],
   "category": "weekly",
-  "created_at": "2026-02-23T17:08:32.703093",
+  "created_at": "2026-02-23T17:13:22.190624",
   "git": {
     "commit": "78d7828",
     "branch": "main",

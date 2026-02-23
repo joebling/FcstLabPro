@@ -1,5 +1,6 @@
 """实验运行器 — 串联完整实验流程."""
 
+import inspect
 import json
 import logging
 import time
@@ -26,6 +27,7 @@ import src.labels.reversal  # noqa: F401
 import src.labels.directional  # noqa: F401
 import src.labels.triple_barrier  # noqa: F401
 import src.labels.return_rate  # noqa: F401
+import src.labels.pump_dump  # noqa: F401
 
 # 触发新模型注册
 import src.models.stacking  # noqa: F401
@@ -42,6 +44,8 @@ logger = logging.getLogger(__name__)
 def run_experiment(
     config_path: str | Path,
     overrides: list[str] | None = None,
+    *,
+    overwrite: bool = False,
 ) -> str:
     """运行一次完整实验.
 
@@ -51,6 +55,8 @@ def run_experiment(
         实验配置 YAML 文件路径
     overrides : list[str] | None
         命令行参数覆盖, 如 ["label.T=21", "label.X=0.10"]
+    overwrite : bool
+        True 时使用实验名作为目录名并覆盖已有目录。
 
     Returns
     -------
@@ -64,9 +70,9 @@ def run_experiment(
     if overrides:
         config = apply_overrides(config, overrides)
 
-    experiment_id = generate_experiment_id(config)
+    experiment_id = generate_experiment_id(config, overwrite=overwrite)
     category = config.get("experiment", {}).get("category", "default")
-    exp_dir = create_experiment_dir(experiment_id, category=category)
+    exp_dir = create_experiment_dir(experiment_id, category=category, overwrite=overwrite)
 
     # 保存配置快照
     save_config(config, exp_dir / "config.yaml")
@@ -99,11 +105,13 @@ def run_experiment(
         label_cfg = config["label"]
         label_func = get_label_strategy(label_cfg["strategy"])
         
-        # 构建标签函数的参数（支持 triple_barrier 等策略的额外参数）
-        label_kwargs = {"T": label_cfg["T"], "X": label_cfg["X"]}
-        for extra_key in ["sl_ratio", "dynamic_threshold", "atr_window", "atr_multiplier"]:
-            if extra_key in label_cfg:
-                label_kwargs[extra_key] = label_cfg[extra_key]
+        # 构建标签函数的参数：只传递函数签名中接受的参数
+        _label_meta_keys = {"strategy", "map"}
+        _accepted = set(inspect.signature(label_func).parameters.keys()) - {"df"}
+        label_kwargs = {
+            k: v for k, v in label_cfg.items()
+            if k not in _label_meta_keys and k in _accepted
+        }
         
         labels = label_func(df, **label_kwargs)
         

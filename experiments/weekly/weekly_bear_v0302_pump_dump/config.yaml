@@ -1,11 +1,11 @@
 experiment:
-  name: weekly_bear_v0302_dip_recovery
-  description: 'v0302 Label 实验: bear - dip_recovery'
+  name: weekly_bear_v0302_pump_dump
+  description: 'v0302 Bear pump_dump: 预测先涨后跌的倒V反转'
   tags:
   - weekly
   - bear
   - v0302
-  - dip_recovery
+  - pump_dump
   category: weekly
 data:
   source: binance
@@ -24,7 +24,7 @@ features:
   drop_na_method: ffill_then_drop
   scaling: null
 label:
-  strategy: dip_recovery
+  strategy: pump_dump
   T: 28
   X: 0.08
 model:

@@ -47,7 +47,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.utils.logging import setup_logging
-from src.experiment.tracker import (
+from src.experiment.tracker_old import (
     list_experiments,
     filter_experiments,
     delete_experiment,

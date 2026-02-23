@@ -17,18 +17,30 @@ REGISTRY_PATH = EXPERIMENTS_DIR / "registry.json"
 ARCHIVE_DIR = PROJECT_ROOT / "experiments_archive"
 
 
-def generate_experiment_id(config: dict) -> str:
-    """根据配置生成唯一实验 ID.
+def generate_experiment_id(config: dict, *, overwrite: bool = False) -> str:
+    """根据配置生成实验 ID.
 
-    格式: {name}_{YYYYMMDD}_{HHmmss}_{hash6}
+    Parameters
+    ----------
+    config : dict
+        实验配置
+    overwrite : bool
+        True 时仅使用实验名称作为 ID（可覆盖已有目录）。
+        False 时追加时间戳 + hash 保证唯一性。
+
+    Returns
+    -------
+    str
+        格式 (overwrite=False): {name}_{YYYYMMDD}_{HHmmss}_{hash6}
+        格式 (overwrite=True):  {name}
     """
     name = config.get("experiment", {}).get("name", "unnamed")
-    # 用配置内容的 hash 来保证唯一性
+    if overwrite:
+        return name
     config_str = json.dumps(config, sort_keys=True, default=str)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     hash6 = hashlib.md5((config_str + ts).encode()).hexdigest()[:6]
-    exp_id = f"{name}_{ts}_{hash6}"
-    return exp_id
+    return f"{name}_{ts}_{hash6}"
 
 
 def get_git_info() -> dict:
@@ -55,12 +67,25 @@ def get_git_info() -> dict:
     return info
 
 
-def create_experiment_dir(experiment_id: str, category: str = "default") -> Path:
+def create_experiment_dir(
+    experiment_id: str,
+    category: str = "default",
+    *,
+    overwrite: bool = False,
+) -> Path:
     """创建实验目录（按 category 分级）.
 
     目录结构: experiments/{category}/{experiment_id}/
+
+    Parameters
+    ----------
+    overwrite : bool
+        True 时清空已有目录后重建。
     """
     exp_dir = EXPERIMENTS_DIR / category / experiment_id
+    if overwrite and exp_dir.exists():
+        shutil.rmtree(exp_dir)
+        logger.info(f"已清空旧实验目录: {exp_dir}")
     exp_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"实验目录已创建: {exp_dir}")
     return exp_dir

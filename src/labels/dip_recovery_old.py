@@ -49,9 +49,7 @@ def generate_dip_recovery_labels(
     close = df["close"]
     low = df["low"] if "low" in df.columns else df["close"]
 
-    # 反转序列 → 向后滚动最小值 → 再反转回来 → shift(-1) 排除当天
-    # 这样 future_low[i] = min(low[i+1], ..., low[i+T])
-    future_low = low.iloc[::-1].rolling(T, min_periods=1).min().iloc[::-1].shift(-1)
+    future_low = low.shift(-1).rolling(T, min_periods=1).min()
 
     dip = (future_low - close) / close
 
