@@ -1,0 +1,10 @@
+{
+  "cohen_kappa": 0.42914455886734054,
+  "cohen_kappa_overall": 0.5102098905131385,
+  "accuracy": 0.7743764172335601,
+  "f1_binary": 0.7416905192295576,
+  "precision_binary": 0.8360757691992738,
+  "recall_binary": 0.777388828827321,
+  "positive_kappa_ratio": 0.8928571428571429,
+  "n_folds": 28
+}

@@ -30,11 +30,11 @@ export MALLOC_ARENA_MAX=2
 export PYTORCH_NO_CUDA_MEMORY_CACHING=1
 
 # v0302 专属配置
-BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v27_orion_final}"
-BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7}"
+BULL_DIR="${BULL_DIR:-experiments/weekly/weekly_bull_v0302_dip_recovery}"
+BEAR_DIR="${BEAR_DIR:-experiments/weekly/weekly_bear_v0302_dip_recovery}"
 MODEL_VERSION="${MODEL_VERSION:-v0302}"
-BULL_KAPPA="${BULL_KAPPA:-0.11}"
-BEAR_KAPPA="${BEAR_KAPPA:-0.05}"
+BULL_KAPPA="${BULL_KAPPA:-0.44}"
+BEAR_KAPPA="${BEAR_KAPPA:-0.43}"
 LABEL_STRATEGY="${LABEL_STRATEGY:-dip_recovery}"
 # v0302: 不使用信号反转，使用 dip_recovery 策略
 INVERT_SIGNAL="${INVERT_SIGNAL:-false}"
@@ -85,7 +85,7 @@ python /app/scripts/weekly_signal.py \
 
 # 进程B: Bear 特征计算 + 推理（完成后进程退出，释放内存）
 echo ""
-echo "📥 Step 1B: Bear 特征计算 + 推理 (LightGBM)..."
+echo "📥 Step 1B: Bear 特征计算 + 推理 (Orion-BiX)..."
 python /app/scripts/weekly_signal.py \
     --mode bear-infer \
     --download \
@@ -105,13 +105,13 @@ from pathlib import Path
 
 temp_dir = Path("/tmp/signals")
 MODEL_VERSION = os.environ.get("MODEL_VERSION", "v0302")
-BULL_KAPPA = os.environ.get("BULL_KAPPA", "0.11")
-BEAR_KAPPA = os.environ.get("BEAR_KAPPA", "0.05")
+BULL_KAPPA = os.environ.get("BULL_KAPPA", "0.44")
+BEAR_KAPPA = os.environ.get("BEAR_KAPPA", "0.43")
 LABEL_STRATEGY = os.environ.get("LABEL_STRATEGY", "dip_recovery")
 
 # 模型名称（用于邮件标题显示）
-BULL_MODEL_NAME = "weekly_bull_v27_orion_final"
-BEAR_MODEL_NAME = "weekly_bear_v13_T28_fgi"
+BULL_MODEL_NAME = "weekly_bull_v0302_dip_recovery"
+BEAR_MODEL_NAME = "weekly_bear_v0302_dip_recovery"
 
 import pandas as pd
 
@@ -133,7 +133,7 @@ bear_meta = bear.get("meta", {})
 # 为缺失的 meta 信息提供默认值（v0302 专属）
 if not bull_meta:
     bull_meta = {
-        "version": "weekly_bull_v27_orion_final",
+        "version": "weekly_bull_v0302_dip_recovery",
         "kappa": "N/A",
         "label_strategy": "dip_recovery",
         "feature_set": ["technical", "volume", "flow", "market_structure", "external_fgi", "regime"]
@@ -141,7 +141,7 @@ if not bull_meta:
 
 if not bear_meta:
     bear_meta = {
-        "version": "weekly_bear_v13_T28_fgi",
+        "version": "weekly_bear_v0302_dip_recovery",
         "kappa": "0.05",
         "label_strategy": "dip_recovery",
         "feature_set": ["technical", "volume", "flow", "market_structure", "external_fgi"]
