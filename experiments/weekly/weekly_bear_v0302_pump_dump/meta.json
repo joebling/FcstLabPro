@@ -9,20 +9,13 @@
     "pump_dump"
   ],
   "category": "weekly",
-  "created_at": "2026-02-23T17:13:22.190624",
+  "created_at": "2026-02-24T09:37:35.139757",
   "git": {
-    "commit": "78d7828",
+    "commit": "7544a16",
     "branch": "main",
     "dirty": true
   },
   "seed": 42,
-  "status": "completed",
-  "duration_seconds": 23147.44,
-  "aggregate_metrics": {
-    "accuracy": 0.5266439909297053,
-    "f1_binary": 0.560757496054708,
-    "precision_binary": 0.5400202634245187,
-    "recall_binary": 0.5831509846827133,
-    "cohen_kappa": 0.04918121678776699
-  }
+  "status": "running",
+  "duration_seconds": null
 }

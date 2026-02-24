@@ -28,6 +28,8 @@ features:
 label:
   strategy: dip_recovery
   T: 28
+  dip_threshold: 0.05
+  recovery_threshold: 0.03
 
 model:
   type: orion_bix

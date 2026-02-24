@@ -26,9 +26,8 @@ features:
 label:
   strategy: pump_dump
   T: 28
-  X: 0.08
-  pump_threshold: 0.05
-  dump_threshold: 0.03
+  pump_threshold: 0.08
+  dump_threshold: 0.05
 model:
   type: orion_bix
   params:
