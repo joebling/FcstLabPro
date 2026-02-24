@@ -2670,14 +2670,47 @@
       "v0302",
       "dip_recovery"
     ],
-    "created_at": "2026-02-23T17:07:21.445097",
-    "status": "failed",
-    "duration_seconds": 0.08,
+    "created_at": "2026-02-23T17:08:32.703093",
+    "status": "completed",
+    "duration_seconds": 22908.11,
     "git_commit": "78d7828",
     "git_branch": "main",
     "git_dirty": true,
     "seed": 42,
-    "aggregate_metrics": {},
-    "error": "\"模型 'orion_bix' 未注册, 可用: ['lightgbm', 'tft_classifier', 'patchtst_classifier', 'tabpfn', 'stacking', 'lightgbm_regressor', 'lstm_classifier', 'gru_classifier', 'transformer_classifier']\""
+    "aggregate_metrics": {
+      "accuracy": 0.4971655328798186,
+      "f1_binary": 0.6348291477974475,
+      "precision_binary": 0.5269993164730007,
+      "recall_binary": 0.7981366459627329,
+      "cohen_kappa": -0.07298387096774173
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0302_pump_dump",
+    "name": "weekly_bear_v0302_pump_dump",
+    "description": "v0302 Bear pump_dump: 预测先涨后跌的倒V反转",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0302",
+      "pump_dump"
+    ],
+    "created_at": "2026-02-23T17:13:22.190624",
+    "status": "completed",
+    "duration_seconds": 23147.44,
+    "git_commit": "78d7828",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5266439909297053,
+      "f1_binary": 0.560757496054708,
+      "precision_binary": 0.5400202634245187,
+      "recall_binary": 0.5831509846827133,
+      "cohen_kappa": 0.04918121678776699
+    },
+    "error": null
   }
 ]
