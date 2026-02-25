@@ -2670,10 +2670,10 @@
       "v0302",
       "dip_recovery"
     ],
-    "created_at": "2026-02-23T17:08:32.703093",
+    "created_at": "2026-02-24T09:37:57.946979",
     "status": "completed",
-    "duration_seconds": 22908.11,
-    "git_commit": "78d7828",
+    "duration_seconds": 46639.39,
+    "git_commit": "7544a16",
     "git_branch": "main",
     "git_dirty": true,
     "seed": 42,
@@ -2697,10 +2697,10 @@
       "v0302",
       "pump_dump"
     ],
-    "created_at": "2026-02-23T17:13:22.190624",
+    "created_at": "2026-02-24T09:37:35.139757",
     "status": "completed",
-    "duration_seconds": 23147.44,
-    "git_commit": "78d7828",
+    "duration_seconds": 46639.5,
+    "git_commit": "7544a16",
     "git_branch": "main",
     "git_dirty": true,
     "seed": 42,
@@ -2710,6 +2710,33 @@
       "precision_binary": 0.5400202634245187,
       "recall_binary": 0.5831509846827133,
       "cohen_kappa": 0.04918121678776699
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bull_v0302_dip_recovery_20260224_093743_44f507",
+    "name": "weekly_bull_v0302_dip_recovery",
+    "description": "v0302 Label 实验: dip_recovery",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bull",
+      "v0302",
+      "dip_recovery"
+    ],
+    "created_at": "2026-02-24T09:37:43.790419",
+    "status": "completed",
+    "duration_seconds": 52513.45,
+    "git_commit": "7544a16",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5099206349206349,
+      "f1_binary": 0.6106732717856339,
+      "precision_binary": 0.49963154016212236,
+      "recall_binary": 0.7851766068326578,
+      "cohen_kappa": 0.03078955881539802
     },
     "error": null
   }
