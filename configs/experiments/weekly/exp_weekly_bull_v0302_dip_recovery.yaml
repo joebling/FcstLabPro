@@ -39,9 +39,10 @@ model:
 
 evaluation:
   method: walk_forward
+  parallel_workers: 4  # 并行执行
   init_train: 800
   oos_window: 63
-  step: 21
+  step: 42  # 加速: 21 → 42 (减少 fold 数量)
   purge_gap: 21
   metrics:
     - accuracy

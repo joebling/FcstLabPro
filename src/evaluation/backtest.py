@@ -1,7 +1,12 @@
 """回测引擎 — Walk-Forward 训练 + 评估."""
 
+import json
 import logging
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -54,6 +59,8 @@ def run_walk_forward(
     calibrate: str = "none",  # "none" | "platt" | "isotonic"
     regime_weights: dict | None = None,  # {"bull": 1.5, "sideways": 0.5, "bear": 1.2}
     regime_feature_idx: int | None = None,  # 哪个特征是 regime indicator
+    parallel_workers: int = 1,  # 并行 fold 数，1 为串行
+    exp_dir: Path | None = None,  # 实验目录，用于保存 fold 结果
 ) -> BacktestResult:
     """执行 Walk-Forward 回测.
 
@@ -88,6 +95,27 @@ def run_walk_forward(
     BacktestResult
     """
     folds = walk_forward_split(len(X), init_train, oos_window, step)
+
+    # 并行执行
+    if parallel_workers > 1:
+        return _run_parallel(
+            X=X, y=y,
+            folds=folds,
+            model_type=model_type,
+            model_params=model_params,
+            metric_names=metric_names,
+            purge_gap=purge_gap,
+            threshold_optimize=threshold_optimize,
+            threshold_metric=threshold_metric,
+            threshold_val_ratio=threshold_val_ratio,
+            calibrate=calibrate,
+            regime_weights=regime_weights,
+            regime_feature_idx=regime_feature_idx,
+            parallel_workers=parallel_workers,
+            exp_dir=exp_dir,
+        )
+
+    # 串行执行（原有逻辑）
     result = BacktestResult()
 
     all_y_true = []
@@ -208,3 +236,250 @@ def run_walk_forward(
                 f"总体 acc={result.aggregate_metrics.get('accuracy', 0):.4f}")
 
     return result
+
+
+def _run_parallel(
+    X: np.ndarray,
+    y: np.ndarray,
+    folds: list[FoldSplit],
+    model_type: str,
+    model_params: dict,
+    metric_names: list[str] | None,
+    purge_gap: int,
+    threshold_optimize: bool,
+    threshold_metric: str,
+    threshold_val_ratio: float,
+    calibrate: str,
+    regime_weights: dict | None,
+    regime_feature_idx: int | None,
+    parallel_workers: int,
+    exp_dir: Path | None,
+) -> BacktestResult:
+    """并行执行 Walk-Forward folds.
+
+    每个 fold 的结果保存到 folds/fold_XX/ 目录，最后合并结果。
+    """
+    logger.info(f"并行执行: {parallel_workers} workers, {len(folds)} folds")
+
+    # 创建 folds 目录
+    if exp_dir:
+        folds_dir = exp_dir / "folds"
+        folds_dir.mkdir(exist_ok=True)
+    else:
+        folds_dir = None
+
+    # 并行执行
+    all_fold_results = []
+    all_y_true = []
+    all_y_pred = []
+    importance_sum = None
+
+    # 使用 ThreadPoolExecutor 避免 pickle 问题
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=parallel_workers) as executor:
+        # 提交所有 fold 任务
+        future_to_fold = {}
+        for fold in folds:
+            future = executor.submit(
+                _execute_single_fold,
+                fold=fold,
+                X=X, y=y,
+                model_type=model_type,
+                model_params=model_params,
+                metric_names=metric_names,
+                purge_gap=purge_gap,
+                threshold_optimize=threshold_optimize,
+                threshold_metric=threshold_metric,
+                threshold_val_ratio=threshold_val_ratio,
+                calibrate=calibrate,
+                regime_weights=regime_weights,
+                regime_feature_idx=regime_feature_idx,
+                folds_dir=folds_dir,
+            )
+            future_to_fold[future] = fold
+
+        # 收集结果
+        for future in as_completed(future_to_fold):
+            fold = future_to_fold[future]
+            try:
+                fold_result = future.result()
+                all_fold_results.append(fold_result)
+
+                # 收集用于汇总的数据
+                all_y_true.append(fold_result.y_true)
+                all_y_pred.append(fold_result.y_pred)
+
+                if fold_result.feature_importance is not None:
+                    if importance_sum is None:
+                        importance_sum = fold_result.feature_importance.copy()
+                    else:
+                        importance_sum += fold_result.feature_importance
+
+                logger.info(f"Fold {fold_result.fold_id}: "
+                            f"train={fold_result.train_size}, test={fold_result.test_size}, "
+                            f"acc={fold_result.metrics.get('accuracy', 0):.4f}")
+            except Exception as e:
+                logger.error(f"Fold {fold.fold_id} 执行失败: {e}")
+
+    # 按 fold_id 排序
+    all_fold_results.sort(key=lambda x: x.fold_id)
+
+    # 汇总
+    result = BacktestResult()
+    result.folds = all_fold_results
+    result.all_y_true = np.concatenate(all_y_true)
+    result.all_y_pred = np.concatenate(all_y_pred)
+    result.aggregate_metrics = compute_metrics(result.all_y_true, result.all_y_pred, metric_names)
+
+    logger.info(f"并行 Walk-Forward 完成: {len(all_fold_results)} folds, "
+                f"总样本={len(result.all_y_true)}, "
+                f"总体 acc={result.aggregate_metrics.get('accuracy', 0):.4f}")
+
+    # 合并 fold 结果到 CSV
+    if folds_dir:
+        _merge_fold_results(all_fold_results, folds_dir)
+
+    return result
+
+
+def _execute_single_fold(
+    fold: FoldSplit,
+    X: np.ndarray,
+    y: np.ndarray,
+    model_type: str,
+    model_params: dict,
+    metric_names: list[str] | None,
+    purge_gap: int,
+    threshold_optimize: bool,
+    threshold_metric: str,
+    threshold_val_ratio: float,
+    calibrate: str,
+    regime_weights: dict | None,
+    regime_feature_idx: int | None,
+    folds_dir: Path | None,
+) -> FoldResult:
+    """执行单个 fold 的训练和预测。
+
+    结果保存到 folds/fold_XX/ 目录。
+    """
+    # 应用 purge gap
+    train_end = fold.train_end - purge_gap if purge_gap > 0 else fold.train_end
+    if train_end <= fold.train_start:
+        raise ValueError(f"Fold {fold.fold_id}: train_end <= train_start")
+
+    X_train = X[fold.train_start:train_end]
+    y_train = y[fold.train_start:train_end]
+    X_test = X[fold.test_start:fold.test_end]
+    y_test = y[fold.test_start:fold.test_end]
+
+    # 样本加权
+    sample_weight = None
+    if regime_weights and regime_feature_idx is not None:
+        try:
+            regime_values = X_train[:, regime_feature_idx]
+            sample_weight = np.ones(len(regime_values))
+            sample_weight[regime_values > 0] = regime_weights.get("bull", 1.0)
+            sample_weight[regime_values < 0] = regime_weights.get("bear", 1.0)
+            sample_weight[regime_values == 0] = regime_weights.get("sideways", 1.0)
+        except Exception:
+            pass
+
+    # 训练
+    model = create_model(model_type, model_params)
+    model.fit(X_train, y_train, sample_weight=sample_weight)
+
+    # 概率校准
+    if calibrate != "none" and calibrate != "None":
+        try:
+            from src.evaluation.calibration import apply_calibration
+            model = apply_calibration(model, X_train, y_train, method=calibrate, cv=3)
+        except Exception:
+            pass
+
+    # 阈值优化
+    if threshold_optimize:
+        from src.evaluation.threshold_optimizer import optimize_threshold, apply_threshold
+        val_size = max(int(len(X_train) * threshold_val_ratio), 50)
+        X_val = X_train[-val_size:]
+        y_val = y_train[-val_size:]
+        try:
+            val_proba = model.predict_proba(X_val)
+            best_t, _ = optimize_threshold(y_val, val_proba, metric=threshold_metric)
+            test_proba = model.predict_proba(X_test)
+            y_pred = apply_threshold(test_proba, best_t)
+        except Exception:
+            y_pred = model.predict(X_test)
+    else:
+        y_pred = model.predict(X_test)
+
+    # 确保 y_pred 是 1D 数组
+    if hasattr(y_pred, 'shape') and len(y_pred.shape) > 1:
+        y_pred = np.argmax(y_pred, axis=1)
+
+    # 对齐 y_test
+    if hasattr(model, 'sequence_length'):
+        seq_len = model.sequence_length
+        if len(y_test) > len(y_pred):
+            y_test = y_test[seq_len - 1:]
+
+    # 获取概率
+    try:
+        y_proba = model.predict_proba(X_test)
+        # 取正类概率
+        if hasattr(y_proba, 'shape') and len(y_proba.shape) > 1 and y_proba.shape[1] == 2:
+            y_proba = y_proba[:, 1]
+    except Exception:
+        y_proba = None
+
+    # 计算指标
+    metrics = compute_metrics(y_test, y_pred, metric_names)
+
+    # 特征重要性
+    fi = model.feature_importance()
+
+    # 创建 fold 目录并保存结果
+    if folds_dir:
+        fold_dir = folds_dir / f"fold_{fold.fold_id:02d}"
+        fold_dir.mkdir(exist_ok=True)
+
+        # 保存 metrics.json
+        with open(fold_dir / "metrics.json", "w") as f:
+            json.dump(metrics, f, indent=2)
+
+        # 保存 predictions.csv
+        preds_df = pd.DataFrame({
+            "y_true": y_test,
+            "y_pred": y_pred,
+        })
+        if y_proba is not None:
+            preds_df["y_proba"] = y_proba
+        preds_df.to_csv(fold_dir / "predictions.csv", index=False)
+
+    return FoldResult(
+        fold_id=fold.fold_id,
+        train_size=fold.train_end - fold.train_start,
+        test_size=fold.test_end - fold.test_start,
+        metrics=metrics,
+        y_true=y_test,
+        y_pred=y_pred,
+        y_proba=y_proba,
+        feature_importance=fi,
+    )
+
+
+def _merge_fold_results(folds: list[FoldResult], folds_dir: Path):
+    """合并所有 fold 结果到 merged_metrics.csv."""
+    rows = []
+    for fold in folds:
+        row = {
+            "fold_id": fold.fold_id,
+            "train_size": fold.train_size,
+            "test_size": fold.test_size,
+        }
+        row.update(fold.metrics)
+        rows.append(row)
+
+    df = pd.DataFrame(rows)
+    df.to_csv(folds_dir.parent / "merged_metrics.csv", index=False)
+    logger.info(f"已合并 {len(rows)} 个 fold 结果到 merged_metrics.csv")

@@ -1,0 +1,46 @@
+data:
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+  source: binance
+  symbol: BTCUSDT
+evaluation:
+  init_train: 800
+  method: walk_forward
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  oos_window: 63
+  purge_gap: 21
+  step: 21
+experiment:
+  category: weekly
+  description: 'v0302 Label 实验: dip_recovery - v1 复现'
+  name: weekly_bull_v0302_dip_recovery_v1_reproduce
+  tags:
+  - weekly
+  - bull
+  - v0302
+  - dip_recovery
+  - reproduce
+features:
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - regime
+label:
+  T: 21
+  strategy: dip_recovery
+model:
+  type: orion_bix
+  params:
+    n_estimators: 16
+    random_state: 42
+seed: 42

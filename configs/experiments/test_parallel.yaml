@@ -1,0 +1,45 @@
+# 小数据测试配置：快速验证并行功能
+experiment:
+  name: test_parallel
+  category: test
+  description: "并行执行测试"
+
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+
+features:
+  sets:
+    - technical
+  drop_na_method: ffill_then_drop
+  scaling: standard
+
+label:
+  strategy: directional
+  map:
+    0: 0
+    1: 0
+    2: 1  # 将上涨映射为 1
+
+model:
+  type: lightgbm
+  params:
+    n_estimators: 10
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+
+evaluation:
+  method: walk_forward
+  parallel_workers: 4  # 启用 4 个并行
+  init_train: 800
+  oos_window: 63
+  step: 42
+  purge_gap: 0
+  metrics:
+    - accuracy
+    - f1_binary
+
+seed: 42

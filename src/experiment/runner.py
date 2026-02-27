@@ -202,6 +202,8 @@ def run_experiment(
             calibrate=eval_cfg.get("calibrate", "none"),
             regime_weights=regime_weights,
             regime_feature_idx=regime_feature_idx,
+            parallel_workers=eval_cfg.get("parallel_workers", 1),
+            exp_dir=exp_dir,
         )
 
         # ========== 6. 保存产物 ==========
@@ -219,18 +221,22 @@ def run_experiment(
         fold_metrics_df.to_csv(exp_dir / "fold_metrics.csv", index=False)
 
         # 6c. 特征重要性 (使用最后一个 fold 的模型)
-        fi = bt_result.last_model.feature_importance()
         fi_df = None
-        if fi is not None:
-            fi_df = pd.DataFrame({"feature": feature_cols, "importance": fi})
-            fi_df = fi_df.sort_values("importance", ascending=False).reset_index(drop=True)
-            fi_df.to_csv(exp_dir / "feature_importance.csv", index=False)
+        if bt_result.last_model is not None:
+            fi = bt_result.last_model.feature_importance()
+            if fi is not None:
+                fi_df = pd.DataFrame({"feature": feature_cols, "importance": fi})
+                fi_df = fi_df.sort_values("importance", ascending=False).reset_index(drop=True)
+                fi_df.to_csv(exp_dir / "feature_importance.csv", index=False)
         else:
-            # 深度学习模型可能不支持特征重要性
-            logger.info("模型不支持特征重要性，跳过保存")
+            # 并行模式下 last_model 为 None
+            logger.info("并行模式跳过特征重要性保存")
 
         # 6d. 模型 (最后一个 fold)
-        joblib.dump(bt_result.last_model.model, exp_dir / "model.joblib")
+        if bt_result.last_model is not None:
+            joblib.dump(bt_result.last_model.model, exp_dir / "model.joblib")
+        else:
+            logger.info("并行模式跳过模型保存")
 
         # 6e. 预测结果
         pred_df = pd.DataFrame({

@@ -1,32 +1,20 @@
-data:
-  interval: 1d
-  path: data/raw/btc_binance_BTCUSDT_1d.csv
-  source: binance
-  symbol: BTCUSDT
-evaluation:
-  init_train: 800
-  method: walk_forward
-  metrics:
-  - accuracy
-  - f1_binary
-  - precision_binary
-  - recall_binary
-  - cohen_kappa
-  oos_window: 63
-  purge_gap: 21
-  step: 21
 experiment:
-  category: weekly
-  description: 'v0302 Label 实验: dip_recovery'
   name: weekly_bull_v0302_dip_recovery
+  description: 'v0302 Label 实验: dip_recovery'
   tags:
   - weekly
   - bull
   - v0302
   - dip_recovery
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
 features:
-  drop_na_method: ffill_then_drop
-  scaling: standard
   sets:
   - technical
   - volume
@@ -34,12 +22,38 @@ features:
   - market_structure
   - external_fgi
   - regime
+  drop_na_method: ffill_then_drop
+  scaling: standard
 label:
-  T: 21
   strategy: dip_recovery
+  T: 21
+  X: 0.08
 model:
+  type: orion_bix
   params:
     n_estimators: 16
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
     random_state: 42
-  type: orion_bix
+    verbose: -1
+    n_jobs: 1
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 42
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  parallel_workers: 4
+  purge_gap: 21
 seed: 42

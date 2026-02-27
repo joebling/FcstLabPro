@@ -1,0 +1,35 @@
+{
+  "experiment_id": "weekly_bull_v0302_dip_recovery",
+  "name": "weekly_bull_v0302_dip_recovery",
+  "description": "v0302 Label \u5b9e\u9a8c: dip_recovery",
+  "tags": [
+    "weekly",
+    "bull",
+    "v0302",
+    "dip_recovery"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-22T09:03:18.168796",
+  "git": {
+    "commit": "4fb132b1",
+    "branch": "refactor/v0302-unified-pipeline",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 38371.86,
+  "label_strategy": "dip_recovery",
+  "T": 21,
+  "n_features": 148,
+  "n_folds": 58,
+  "aggregate_metrics": {
+    "cohen_kappa": 0.4366241976806183,
+    "cohen_kappa_overall": 0.5082335324590085,
+    "accuracy": 0.7562555302435364,
+    "f1_binary": 0.7280364781442156,
+    "precision_binary": 0.820952069433732,
+    "recall_binary": 0.7447824593152736,
+    "positive_kappa_ratio": 0.8793103448275862,
+    "n_folds": 58
+  }
+}

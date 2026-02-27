@@ -1,11 +1,11 @@
 experiment:
-  name: weekly_bear_v0302_pump_dump
-  description: 'v0302 Bear pump_dump: 预测先涨后跌的倒V反转'
+  name: weekly_bull_v0302_dip_recovery_lgbm_no_scale
+  description: 'v0302 Label 实验: dip_recovery'
   tags:
   - weekly
-  - bear
+  - bull
   - v0302
-  - pump_dump
+  - dip_recovery
   category: weekly
 data:
   source: binance
@@ -21,15 +21,15 @@ features:
   - flow
   - market_structure
   - external_fgi
+  - regime
   drop_na_method: ffill_then_drop
-  scaling: null
+  scaling: standard
 label:
-  strategy: pump_dump
-  T: 28
-  pump_threshold: 0.08
-  dump_threshold: 0.05
+  strategy: dip_recovery
+  T: 21
+  X: 0.08
 model:
-  type: orion_bix
+  type: lightgbm
   params:
     n_estimators: 16
     max_depth: 6
@@ -42,12 +42,12 @@ model:
     reg_lambda: 0.1
     random_state: 42
     verbose: -1
-    n_jobs: 1
+    auto_scale_pos_weight: false
 evaluation:
   method: walk_forward
   init_train: 800
   oos_window: 63
-  step: 42
+  step: 21
   metrics:
   - accuracy
   - f1_binary

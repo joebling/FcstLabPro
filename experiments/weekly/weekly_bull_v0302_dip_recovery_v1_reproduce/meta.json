@@ -1,0 +1,22 @@
+{
+  "experiment_id": "weekly_bull_v0302_dip_recovery_v1_reproduce",
+  "name": "weekly_bull_v0302_dip_recovery_v1_reproduce",
+  "description": "v0302 Label 实验: dip_recovery - v1 复现",
+  "tags": [
+    "weekly",
+    "bull",
+    "v0302",
+    "dip_recovery",
+    "reproduce"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-27T09:57:02.278850",
+  "git": {
+    "commit": "e11e5af",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "running",
+  "duration_seconds": null
+}
