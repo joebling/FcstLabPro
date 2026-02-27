@@ -105,10 +105,36 @@ python scripts/weekly_signal.py --download --save
 
 ---
 
-## 六、 维护记录
+## 六、 GPU 远程训练 (vast.ai)
+
+### 6.1 运行命令模式
+
+在 vast.ai 等 GPU 服务器上运行实验的标准命令:
+
+```bash
+# 1. 创建实验目录
+mkdir -p experiments/weekly/{exp_name}
+
+# 2. 后台运行并保存日志
+nohup python scripts/run_experiment.py --config configs/experiments/weekly/{config_name}.yaml > experiments/weekly/{exp_name}/train.log 2>&1 &
+
+# 3. 查看日志
+tail -f experiments/weekly/{exp_name}/train.log
+```
+
+### 6.2 实验完成后的操作
+
+1. 检查 `meta.json` 中的 `status` 字段确认是否成功
+2. 查看 `metrics.json` 获取汇总指标
+3. 查看 `fold_metrics.csv` 分析各 fold 表现
+
+---
+
+## 七、 维护记录
 
 * **2026-02-18**: 初始版本。
 * **2026-02-19**: 引入 Institutional Framework，修正 IC 分析逻辑，增加 Layer 0-5 架构约束。
+* **2026-02-27**: 添加 vast.ai GPU 远程训练命令规范。
 
 ---
 

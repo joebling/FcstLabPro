@@ -1,7 +1,0 @@
-{
-  "accuracy": 0.5238095238095238,
-  "f1_binary": 0.6875,
-  "precision_binary": 0.5238095238095238,
-  "recall_binary": 1.0,
-  "cohen_kappa": 0.0
-}
