@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v13_prod",
+  "name": "weekly_bear_v13_prod",
+  "description": "v0301 Bear: T=28 天窗口 + FGI (生产版本)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v13",
+    "prod",
+    "v0301"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-28T11:22:27.915009",
+  "git": {
+    "commit": "ea4736c",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 28.3,
+  "aggregate_metrics": {
+    "accuracy": 0.44805194805194803,
+    "f1_binary": 0.26512968299711814,
+    "precision_binary": 0.24083769633507854,
+    "recall_binary": 0.2948717948717949,
+    "f1_macro": 0.4115943042368606,
+    "cohen_kappa": -0.16965509024840664
+  }
+}

@@ -24,6 +24,7 @@ from src.labels.dip_recovery import (
     generate_simple_return_labels,
 )
 from src.labels.pump_dump import generate_pump_dump_labels
+from src.labels.dip_recovery_v1 import generate_dip_recovery_v1_labels
 
 __all__ = [
     "register_label_strategy",
@@ -36,4 +37,5 @@ __all__ = [
     "generate_excess_return_labels",
     "generate_simple_return_labels",
     "generate_pump_dump_labels",
+    "generate_dip_recovery_v1_labels",
 ]
