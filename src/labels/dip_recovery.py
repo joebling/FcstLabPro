@@ -5,8 +5,11 @@
 Label = 1 if (未来 T 天先跌 > dip_threshold) AND (从低点反弹 > recovery_threshold)
 
 语义：
-  - dip: 未来 T 天内最低点相对当前价格的跌幅
+  - dip: 从现在到未来 T 天内最低点相对当前价格的跌幅
   - recovery: 未来 T 天收盘价相对未来最低点的反弹幅度
+
+注意：此版本包含当天的 low，即从今天到 T 天后的最低点，
+这更贴近实际交易场景——交易者关心的是"从现在起到未来 T 天内会跌多深"。
 """
 
 import logging
@@ -49,13 +52,16 @@ def generate_dip_recovery_labels(
     close = df["close"]
     low = df["low"] if "low" in df.columns else df["close"]
 
-    # 反转序列 → 向后滚动最小值 → 再反转回来 → shift(-1) 排除当天
-    # 这样 future_low[i] = min(low[i+1], ..., low[i+T])
-    future_low = low.iloc[::-1].rolling(T, min_periods=1).min().iloc[::-1].shift(-1)
+    # 从现在到未来 T 天的最低点 (包含当天的 low)
+    future_low = low.rolling(T, min_periods=1).min()
 
+    # 相对当前价格的跌幅
     dip = (future_low - close) / close
 
+    # T 天后的收盘价
     future_close = close.shift(-T)
+
+    # 从最低点到 T 天后收盘价的反弹幅度
     recovery = (future_close - future_low) / future_low
 
     label = pd.Series(0, index=df.index, name="label")

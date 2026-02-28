@@ -54,9 +54,8 @@ def generate_pump_dump_labels(
     close = df["close"]
     high = df["high"] if "high" in df.columns else df["close"]
 
-    # 反转序列 → 向后滚动最大值 → 再反转回来 → shift(-1) 排除当天
-    # 这样 future_high[i] = max(high[i+1], ..., high[i+T])
-    future_high = high.iloc[::-1].rolling(T, min_periods=1).max().iloc[::-1].shift(-1)
+    # 从现在到未来 T 天的最高点 (包含当天)
+    future_high = high.rolling(T, min_periods=1).max()
 
     # Pump: how much the price rises from current close to future high
     pump = (future_high - close) / close

@@ -6,6 +6,7 @@
 # Experiments outputs (keep configs, ignore large files)
 experiments/**/model.joblib
 experiments/**/predictions.csv
+experiments/
 
 # Python
 __pycache__/
