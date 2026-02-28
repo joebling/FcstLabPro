@@ -1,0 +1,55 @@
+# v0303 Bear 实验 - Exp B: Pump Dump 全对齐基线
+# 目标: 验证 pump_dump 标签在最优基础设施下能否学到信号
+
+experiment:
+  name: weekly_bear_v0303_pump_dump_aligned
+  description: 'Bear Pump Dump - 全对齐 Bull 配置'
+  tags:
+  - weekly
+  - bear
+  - v0303
+  - pump_dump
+  - aligned
+  category: weekly
+
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - regime
+  drop_na_method: ffill_then_drop
+  scaling: standard
+
+label:
+  strategy: pump_dump
+  T: 21
+
+model:
+  type: orion_bix
+  params:
+    n_estimators: 16
+    random_state: 42
+
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+
+seed: 42

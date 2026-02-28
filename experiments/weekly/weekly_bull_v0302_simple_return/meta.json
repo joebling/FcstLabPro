@@ -1,0 +1,35 @@
+{
+  "experiment_id": "weekly_bull_v0302_simple_return",
+  "name": "weekly_bull_v0302_simple_return",
+  "description": "v0302 Label \u5b9e\u9a8c: simple_return",
+  "tags": [
+    "weekly",
+    "bull",
+    "v0302",
+    "simple_return"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-21T03:58:36.602183",
+  "git": {
+    "commit": "d2e8d1a5",
+    "branch": "refactor/v0302-unified-pipeline",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 39424.54,
+  "label_strategy": "simple_return",
+  "T": 21,
+  "n_features": 148,
+  "n_folds": 58,
+  "aggregate_metrics": {
+    "cohen_kappa": 0.09102093289376852,
+    "cohen_kappa_overall": 0.00927347430430192,
+    "accuracy": 0.4929778076329801,
+    "f1_binary": 0.4178329221193585,
+    "precision_binary": 0.602997060629377,
+    "recall_binary": 0.48486939853106026,
+    "positive_kappa_ratio": 0.6551724137931034,
+    "n_folds": 58
+  }
+}

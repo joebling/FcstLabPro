@@ -1,0 +1,22 @@
+{
+  "experiment_id": "weekly_bear_v0303_dip_recovery_aligned_20260228_101307_19989e",
+  "name": "weekly_bear_v0303_dip_recovery_aligned",
+  "description": "Bear Dip Recovery - 全对齐 Bull 配置",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0303",
+    "dip_recovery",
+    "aligned"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-28T10:13:07.499948",
+  "git": {
+    "commit": "1164d91",
+    "branch": "main",
+    "dirty": false
+  },
+  "seed": 42,
+  "status": "running",
+  "duration_seconds": null
+}
