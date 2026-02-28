@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v13_T28_fgi_20260228_182300_098910",
+  "name": "weekly_bear_v13_T28_fgi",
+  "description": "Bear v13: T=28 天窗口 + FGI (更长预测窗口测试)",
+  "tags": [
+    "weekly",
+    "bear",
+    "binary",
+    "v13",
+    "longer_horizon",
+    "T28"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-28T18:23:00.685800",
+  "git": {
+    "commit": "f5b632a",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 29.62,
+  "aggregate_metrics": {
+    "accuracy": 0.44805194805194803,
+    "f1_binary": 0.26512968299711814,
+    "precision_binary": 0.24083769633507854,
+    "recall_binary": 0.2948717948717949,
+    "f1_macro": 0.4115943042368606,
+    "cohen_kappa": -0.16965509024840664
+  }
+}

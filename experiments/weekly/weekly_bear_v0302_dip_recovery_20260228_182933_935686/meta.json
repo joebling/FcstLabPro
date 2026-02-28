@@ -1,0 +1,21 @@
+{
+  "experiment_id": "weekly_bear_v0302_dip_recovery_20260228_182933_935686",
+  "name": "weekly_bear_v0302_dip_recovery",
+  "description": "v0302 Label 实验: bear - dip_recovery",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0302",
+    "dip_recovery"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-28T18:29:33.235722",
+  "git": {
+    "commit": "f5b632a",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "running",
+  "duration_seconds": null
+}

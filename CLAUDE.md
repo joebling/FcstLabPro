@@ -105,9 +105,38 @@ python scripts/weekly_signal.py --download --save
 
 ---
 
-## 六、 GPU 远程训练 (vast.ai)
+## 六、 本地 vs GPU 训练
 
-### 6.1 运行命令模式
+### 6.1 训练环境选择
+
+| 模型类型 | 训练环境 | 说明 |
+|----------|----------|------|
+| **LightGBM** | 本地 CPU | 快速训练，几分钟内完成 |
+| **Orion-BiX** | GPU (vast.ai) | 需要 GPU 显存 8GB+，约 10 分钟 |
+| **其他深度学习** | GPU (vast.ai) | 如 LSTM, Transformer 等 |
+
+### 6.2 训练命令
+
+**本地 (LightGBM)**:
+```bash
+python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml
+```
+
+**GPU (vast.ai)**:
+```bash
+# 1. 先提交代码到 GitHub
+git add . && git commit -m "feat: 添加实验配置"
+git push origin main
+
+# 2. 在 vast.ai 上拉取代码并训练
+nohup python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml > experiments/weekly/{exp_name}/train.log 2>&1 &
+```
+
+---
+
+## 七、 GPU 远程训练 (vast.ai)
+
+### 7.1 运行命令模式
 
 在 vast.ai 等 GPU 服务器上运行实验的标准命令:
 
@@ -122,7 +151,7 @@ nohup python scripts/run_experiment.py --config configs/experiments/weekly/{conf
 tail -f experiments/weekly/{exp_name}/train.log
 ```
 
-### 6.2 实验完成后的操作
+### 7.2 实验完成后的操作
 
 1. 检查 `meta.json` 中的 `status` 字段确认是否成功
 2. 查看 `metrics.json` 获取汇总指标
