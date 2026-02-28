@@ -1,5 +1,5 @@
 {
-  "experiment_id": "weekly_bull_v0302_dip_recovery_v1_lgbm_20260228_182601_d44e7e",
+  "experiment_id": "weekly_bull_v0302_dip_recovery_v1_lgbm",
   "name": "weekly_bull_v0302_dip_recovery_v1_lgbm",
   "description": "v0302 Label 实验: dip_recovery - v1 LightGBM 复现",
   "tags": [
@@ -11,15 +11,15 @@
     "reproduce"
   ],
   "category": "weekly",
-  "created_at": "2026-02-28T18:26:01.623947",
+  "created_at": "2026-02-28T18:46:30.209020",
   "git": {
-    "commit": "f5b632a",
+    "commit": "62b232d",
     "branch": "main",
     "dirty": true
   },
   "seed": 42,
   "status": "completed",
-  "duration_seconds": 12.44,
+  "duration_seconds": 12.35,
   "aggregate_metrics": {
     "accuracy": 0.812358276643991,
     "f1_binary": 0.8425309229305423,

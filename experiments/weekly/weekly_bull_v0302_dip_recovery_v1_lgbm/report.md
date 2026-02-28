@@ -1,6 +1,6 @@
-# 实验报告: weekly_bull_v0302_dip_recovery_v1_lgbm_20260228_182601_d44e7e
+# 实验报告: weekly_bull_v0302_dip_recovery_v1_lgbm
 
-**生成时间**: 2026-02-28 18:26:14
+**生成时间**: 2026-02-28 18:46:42
 
 ## 1. 实验概要
 
@@ -9,7 +9,7 @@
 | 实验名称 | weekly_bull_v0302_dip_recovery_v1_lgbm |
 | 描述 | v0302 Label 实验: dip_recovery - v1 LightGBM 复现 |
 | 标签 | ['weekly', 'bull', 'v0302', 'dip_recovery', 'lgbm', 'reproduce'] |
-| Git Commit | f5b632a |
+| Git Commit | 62b232d |
 | Git Branch | main |
 | 耗时 | (运行中) |
 | 随机种子 | 42 |

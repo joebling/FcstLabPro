@@ -1,6 +1,6 @@
-# 实验报告: weekly_bear_v13_T28_fgi_20260228_182300_098910
+# 实验报告: weekly_bear_v13_T28_fgi
 
-**生成时间**: 2026-02-28 18:23:30
+**生成时间**: 2026-02-28 18:46:19
 
 ## 1. 实验概要
 
@@ -9,7 +9,7 @@
 | 实验名称 | weekly_bear_v13_T28_fgi |
 | 描述 | Bear v13: T=28 天窗口 + FGI (更长预测窗口测试) |
 | 标签 | ['weekly', 'bear', 'binary', 'v13', 'longer_horizon', 'T28'] |
-| Git Commit | f5b632a |
+| Git Commit | 62b232d |
 | Git Branch | main |
 | 耗时 | (运行中) |
 | 随机种子 | 42 |
