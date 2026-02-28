@@ -6,6 +6,9 @@
 # Experiments outputs (keep configs, ignore large files)
 experiments/**/model.joblib
 experiments/**/predictions.csv
+
+# Production models (tracked in git)
+models/
 experiments/**/*.log
 
 # Python

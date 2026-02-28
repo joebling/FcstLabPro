@@ -1,0 +1,54 @@
+data:
+  end: '2025-12-31'
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+  source: binance
+  start: '2018-01-01'
+  symbol: BTCUSDT
+evaluation:
+  init_train: 800
+  method: walk_forward
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - f1_macro
+  - cohen_kappa
+  oos_window: 63
+  step: 21
+experiment:
+  category: weekly
+  description: "v0301 Bull: Orion-BiX + reversal (生产版本)"
+  name: weekly_bull_v27_prod
+  tags:
+  - weekly
+  - bull
+  - v27
+  - prod
+  - v0301
+  - orion
+features:
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - regime
+label:
+  T: 21
+  X: 0.05
+  map:
+    0: 0
+    1: 0
+    2: 1
+  strategy: reversal
+model:
+  params:
+    n_estimators: 16
+    random_state: 42
+  type: orion_bix
+seed: 42
