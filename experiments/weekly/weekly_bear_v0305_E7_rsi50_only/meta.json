@@ -1,0 +1,29 @@
+{
+  "experiment_id": "weekly_bear_v0305_E7_rsi50_only",
+  "name": "weekly_bear_v0305_E7_rsi50_only",
+  "description": "v0305 E7: directional_filtered (X=4%, RSI=50, 保持 MA), 去污染",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "decontamination",
+    "rsi50"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-01T10:41:27.551777",
+  "git": {
+    "commit": "b365c2a",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 38.21,
+  "aggregate_metrics": {
+    "accuracy": 0.8319160997732427,
+    "f1_binary": 0.4028197381671702,
+    "precision_binary": 0.3937007874015748,
+    "recall_binary": 0.41237113402061853,
+    "cohen_kappa": 0.3050744317306109
+  }
+}

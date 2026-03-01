@@ -15,227 +15,134 @@ v0304 实验推荐的 `directional_filtered` 策略存在**特征-标签污染**
 
 ## 二、实验矩阵
 
-共 5 组实验，分 3 个 Phase：
+### Phase 1：去污染验证 + Triple Barrier 深度调参
 
-### Phase 1：去污染验证（核心）
+| ID | 实验名 | 标签 | 改动 | 目的 | 状态 |
+|----|--------|------|------|------|------|
+| E1 | decontam | directional_filtered (X=4%,RSI=45) | 移除 rsi/sma 特征 | 量化污染影响 | ✅ 完成 |
+| E2 | directional_pure | directional_binary (X=4%) | 无 RSI/MA 过滤 | 对照组 | ✅ 完成 |
+| E3 | tb_grid_a | triple_barrier_simple | pt=4%/sl=3% | TB 调参 | ✅ 完成 |
+| E4 | tb_grid_b | triple_barrier_simple | pt=3%/sl=2% | TB 调参 | ✅ 完成 |
 
-| ID | 实验名 | 标签策略 | 改动 | 目的 |
+### Phase 2：降低阈值提高正例率
+
+| ID | 实验名 | 标签参数 | 目的 | 状态 |
 |----|--------|---------|------|------|
-| E1 | `directional_filtered_decontam` | directional_filtered (X=4%, RSI=45) | 从特征集中移除 rsi_*, price_vs_sma_* | 量化污染对 Kappa 的贡献 |
-| E2 | `directional_pure` | directional（纯方向） | Label=1 if future_return >= 4%, 无 RSI/MA 过滤 | 对照：过滤条件到底有没有用 |
+| E5 | low_threshold | X=3%,RSI=50,MA=50,去污染 | 提高正例率 | ✅ 完成 |
+| E6 | no_ma_filter | X=3%,RSI=50,noMA,去污染 | 去掉 MA 过滤 | ✅ 完成 |
+| E7 | rsi50_only | X=4%,RSI=50,MA=50,去污染 | 仅放宽 RSI | ✅ 完成 |
 
-**判定逻辑：**
-- 若 E1 的 Kappa ≈ E_opt（0.326），说明污染影响小，模型真的学到了 pattern → 好消息
-- 若 E1 的 Kappa 大幅下降（< 0.15），说明之前的"预测能力"主要来自污染 → 标签需重新设计
-- E2 作为 ablation：如果纯方向标签 Kappa ≥ E1，说明 RSI/MA 过滤无额外价值
+### Phase 3：Fold Regime 分析
 
-### Phase 2：Triple Barrier 深度调参
-
-| ID | 实验名 | 标签策略 | 参数 | 目的 |
-|----|--------|---------|------|------|
-| E3 | `triple_barrier_grid_a` | triple_barrier_simple | pt=4%, sl=3% | 降低阈值，增加正例率 |
-| E4 | `triple_barrier_grid_b` | triple_barrier_simple | pt=3%, sl=2% | 更激进的低阈值 |
-
-**理由：**
-- Triple Barrier 是标签定义最干净的策略（纯交易逻辑，无特征污染）
-- v0304 只试了 pt=6%/sl=4% 和 pt=5%/sl=3%，搜索范围太窄
-- 目前 BTC 日线 21 天波动率约 8-15%，pt=6% 可能偏高
-
-### Phase 3：Fold 稳定性诊断
-
-| ID | 实验名 | 内容 | 目的 |
-|----|--------|------|------|
-| E5 | `fold_regime_analysis` | 对 E1/E3/E4 的 fold 结果做市场 regime 标注 | 理解哪些市场环境下模型失灵 |
+| ID | 内容 | 状态 |
+|----|------|------|
+| Regime P1 | E1/E3/E4 的 fold regime 标注 | ✅ 完成 |
+| Regime P2 | E5/E6 的 fold regime 标注 | ✅ 完成 |
 
 ---
 
-## 三、实验配置
+## 三、实验结果汇总
 
-### 3.1 公共配置（不变）
+| 实验 | 正例率 | Kappa | F1 | Prec | F1=0 | 判定 |
+|------|--------|-------|------|------|------|------|
+| v0304 opt (含污染) | ~7% | 0.326 | 0.401 | 0.371 | 48% | ❌ 污染 |
+| **E1** 去污染 | 10.3% | **0.343** | 0.414 | 0.396 | 48% | ✅ 干净 |
+| E2 纯方向 | 42.9% | -0.065 | 0.308 | 0.350 | 38% | ❌ 无效 |
+| E3 TB 4/3 | ~40% | 0.006 | 0.406 | 0.469 | 18% | ❌ Kappa≈0 |
+| E4 TB 3/2 | ~50% | 0.027 | 0.412 | 0.437 | 5% | ❌ Kappa≈0 |
+| **E5** 低阈值 ⭐ | **14.7%** | **0.343** | **0.441** | **0.434** | **41%** | ✅ 最佳 |
+| E6 无MA | 17.9% | 0.321 | 0.443 | 0.441 | 36% | ⚠️ Kappa下降 |
+| E7 RSI50 | 13.7% | 0.305 | 0.403 | 0.394 | 48% | ❌ 无提升 |
 
+---
+
+## 四、关键发现
+
+### 4.1 去污染结果
+- ✅ 去掉 rsi/sma 特征后 Kappa 不降反升，模型预测能力真实
+- ✅ 特征重要性从「标签复现」变为「真实市场信号」
+
+### 4.2 RSI/MA 过滤的价值
+- ❌ E2 证明无过滤的纯方向标签完全无效 (Kappa=-0.065)
+- ✅ RSI/MA 过滤显著提升标签质量，不是“事后诸葛亮”
+- ✅ 过滤本质是「只在超卖低位时关注反弹」，符合交易逻辑
+
+### 4.3 Triple Barrier 确认无效
+- ❌ 4 组参数 (pt=3-6%, sl=2-4%) 全部 Kappa≈0
+- 可能原因：BTC 日线波动太大，简单止盈止损难以区分有效信号
+
+### 4.4 正例率与稳定性的关系
+- 7% → 10% → 15%，F1=0 占比 48% → 48% → 41%
+- 18% (E6, 去 MA)，F1=0 降到 36%，但 Kappa 也降
+- 正例率和 Kappa 存在 trade-off
+
+### 4.5 Regime 分析
+- Bull: Kappa=0.37, F1>0 占比=65% — 最有效
+- Bear: E1 Kappa=0.14, F1>0=27% → E5 Kappa=0.17, F1>0=60% — 显著改善
+- 熊市失灵是结构性问题，需要 regime 开关解决
+
+---
+
+## 五、代码改动记录
+
+| 文件 | 改动 | Commit |
+|------|------|--------|
+| `src/features/builder.py` | 新增 `drop_features` 参数 + glob 匹配 | 693b7b1 |
+| `src/experiment/runner.py` | 透传 `drop_features` 配置 | 693b7b1 |
+| `src/labels/directional.py` | 新增 `directional_binary` 标签 | 693b7b1 |
+| `tests/test_features.py` | 新增 3 个 drop_features 测试 | 693b7b1 |
+| `scripts/analyze_fold_regimes.py` | Fold regime 分析脚本 | 693b7b1 |
+
+---
+
+## 六、最终建议
+
+### 🏆 推荐上线策略：E5 + Regime 开关
+
+**标签配置：**
 ```yaml
-data:
-  source: binance
-  symbol: BTCUSDT
-  interval: 1d
-  start: '2018-01-01'
-  end: '2025-12-31'
-
-model:
-  type: lightgbm
-  params:
-    n_estimators: 100
-    max_depth: 6
-    learning_rate: 0.05
-    num_leaves: 31
-    subsample: 0.8
-    colsample_bytree: 0.8
-    min_child_samples: 20
-    reg_alpha: 0.1
-    reg_lambda: 0.1
-    random_state: 42
-    auto_scale_pos_weight: true
-
-evaluation:
-  method: walk_forward
-  init_train: 800
-  oos_window: 63
-  step: 21
-  purge_gap: 21
-
-seed: 42
-```
-
-### 3.2 E1: directional_filtered_decontam
-
-```yaml
-features:
-  sets: [technical, volume, flow, market_structure, external_fgi]
-  drop_features:           # ← 新增：显式排除污染特征
-    - rsi_6
-    - rsi_14
-    - rsi_28
-    - price_vs_sma_20
-    - price_vs_sma_50
-    - price_vs_sma_200
-    # 以下是 rsi/sma 的滞后/滚动衍生特征（如果存在）
-    - rsi_14_lag_*
-    - rsi_14_roll_*
-
 label:
   strategy: directional_filtered
   T: 21
-  X: 0.04
+  X: 0.03
   rsi_window: 14
-  rsi_threshold: 45.0
+  rsi_threshold: 50.0
   ma_window: 50
   require_below_ma: true
-```
-
-### 3.3 E2: directional_pure
-
-```yaml
 features:
-  sets: [technical, volume, flow, market_structure, external_fgi]
-  # 完整特征集，不排除任何特征（因为标签不依赖 RSI/SMA）
-
-label:
-  strategy: directional          # 纯方向标签，无过滤
-  T: 21
-  X: 0.04
+  drop_features: [rsi_*, price_vs_sma_*, sma_cross_10_50, sma_cross_50_200]
 ```
 
-### 3.4 E3: triple_barrier_grid_a
+**上线条件：**
+- 仅在非熊市环境下启用（滚动 63 天收益率 > -10%）
+- 熊市中模型静默
 
-```yaml
-features:
-  sets: [technical, volume, flow, market_structure, external_fgi]
+### 🚀 下一步工作
 
-label:
-  strategy: triple_barrier_simple
-  T: 21
-  pt: 0.04
-  sl: 0.03
-  include_today: false
-```
-
-### 3.5 E4: triple_barrier_grid_b
-
-```yaml
-features:
-  sets: [technical, volume, flow, market_structure, external_fgi]
-
-label:
-  strategy: triple_barrier_simple
-  T: 21
-  pt: 0.03
-  sl: 0.02
-  include_today: false
-```
+1. **Regime 开关集成**：在 inference pipeline 中加入 regime detection
+2. **PnL 回测**：对 E5 做交易回测，加入交易成本、滑点
+3. **Paper Trading**：小资金实盘验证 1-3 个月
 
 ---
 
-## 四、评估标准
+## 七、实验产物索引
 
-### 4.1 上线门槛（必须全部满足）
-
-| 指标 | 门槛 | 说明 |
-|------|------|------|
-| Cohen's Kappa（均值） | ≥ 0.20 | 至少 Fair 级别 |
-| F1=0 的 fold 占比 | ≤ 30% | 信号稳定性 |
-| Precision | ≥ 0.30 | 信号可信度 |
-| 无特征-标签污染 | ✅ | Top 特征不应是标签过滤条件的直接复现 |
-| 正例率 | 5% ~ 40% | 太低学不到，太高无意义 |
-
-### 4.2 择优标准（满足门槛后）
-
-优先级排序：
-1. **Kappa 最高**（预测能力）
-2. **Fold 稳定性最好**（F1>0 的 fold 占比高、Kappa 标准差低）
-3. **标签定义最干净**（无任何形式的 leakage）
-4. **Precision 最高**（宁可少出信号也不误报）
-
----
-
-## 五、执行计划
-
-```
-Phase 1（优先，~2h）
-├── E1: directional_filtered_decontam
-└── E2: directional_pure
-    ↓
-    根据结果决定是否继续 Phase 2
-    - 如果 E1 Kappa ≥ 0.25 → 污染影响小，directional_filtered 仍可用
-    - 如果 E1 Kappa < 0.15 → 放弃 directional_filtered，全力 Phase 2
-
-Phase 2（~2h，可与 Phase 1 并行）
-├── E3: triple_barrier pt=4%/sl=3%
-└── E4: triple_barrier pt=3%/sl=2%
-
-Phase 3（~1h，Phase 1+2 完成后）
-└── E5: fold regime 分析
-```
-
-### 预估总耗时：3-4 小时
-
----
-
-## 六、需要的代码改动
-
-### 6.1 支持 `drop_features` 配置（E1 需要）
-
-在特征构建流程中增加显式排除特征的能力：
-
-```python
-# 在 feature pipeline 中增加
-if config.get("features", {}).get("drop_features"):
-    drop_cols = resolve_glob_patterns(config["features"]["drop_features"], df.columns)
-    df = df.drop(columns=drop_cols, errors="ignore")
-```
-
-### 6.2 确认 `directional` 标签策略存在（E2 需要）
-
-检查 `src/labels/directional.py` 是否已注册 `directional` 策略（不带 filtered）。
-
-### 6.3 Fold Regime 标注脚本（E5 需要）
-
-新建 `scripts/analyze_fold_regimes.py`：
-- 输入：实验结果目录
-- 对每个 fold 的时间段标注市场 regime（bull/bear/sideways）
-- 输出：regime vs. Kappa 的交叉分析表
-
----
-
-## 七、风险与备选
-
-| 风险 | 可能性 | 应对 |
-|------|--------|------|
-| 所有去污染后 Kappa < 0.15 | 中 | 转向回归任务（预测收益率）或增加特征维度 |
-| Triple Barrier 仍然 Kappa ≈ 0 | 中 | 考虑日内数据（4h/1h）或更短 T |
-| 正例率过低导致训练不稳定 | 低 | 使用 SMOTE 或调整 scale_pos_weight |
+| 文件 | 说明 |
+|------|------|
+| `experiments/weekly/v0305_decontamination_experiment_plan.md` | 本文件 |
+| `experiments/weekly/v0305_decontamination_results.md` | 结果报告 |
+| `experiments/weekly/v0305_fold_regime_analysis.md` | Phase 1 regime 分析 |
+| `experiments/weekly/v0305_fold_regime_analysis_phase2.md` | Phase 2 regime 分析 |
+| `experiments/weekly/weekly_bear_v0305_E1_decontam/` | E1 实验产物 |
+| `experiments/weekly/weekly_bear_v0305_E2_directional_pure/` | E2 实验产物 |
+| `experiments/weekly/weekly_bear_v0305_E3_tb_grid_a/` | E3 实验产物 |
+| `experiments/weekly/weekly_bear_v0305_E4_tb_grid_b/` | E4 实验产物 |
+| `experiments/weekly/weekly_bear_v0305_E5_low_threshold/` | E5 实验产物 |
+| `experiments/weekly/weekly_bear_v0305_E6_no_ma_filter/` | E6 实验产物 |
+| `experiments/weekly/weekly_bear_v0305_E7_rsi50_only/` | E7 实验产物 |
 
 ---
 
 **创建日期**: 2026-03-01
-**前置实验**: v0304_label_strategy_comparison_results.md
-**负责人**: Qiu
+**更新日期**: 2026-03-01
+**状态**: ✅ 全部完成

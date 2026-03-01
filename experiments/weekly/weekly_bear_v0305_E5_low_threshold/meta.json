@@ -1,0 +1,29 @@
+{
+  "experiment_id": "weekly_bear_v0305_E5_low_threshold",
+  "name": "weekly_bear_v0305_E5_low_threshold",
+  "description": "v0305 E5: directional_filtered 降低阈值 (X=3%, RSI=50), 去污染",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "decontamination",
+    "low_threshold"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-01T10:41:27.552101",
+  "git": {
+    "commit": "b365c2a",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 37.63,
+  "aggregate_metrics": {
+    "accuracy": 0.8333333333333334,
+    "f1_binary": 0.44106463878326996,
+    "precision_binary": 0.4336448598130841,
+    "recall_binary": 0.44874274661508706,
+    "cohen_kappa": 0.3431636220634994
+  }
+}

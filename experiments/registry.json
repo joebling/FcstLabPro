@@ -614,5 +614,89 @@
       "cohen_kappa": -0.06495719001121136
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E5_low_threshold",
+    "name": "weekly_bear_v0305_E5_low_threshold",
+    "description": "v0305 E5: directional_filtered 降低阈值 (X=3%, RSI=50), 去污染",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "low_threshold"
+    ],
+    "created_at": "2026-03-01T10:41:27.552101",
+    "status": "completed",
+    "duration_seconds": 37.63,
+    "git_commit": "b365c2a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8333333333333334,
+      "f1_binary": 0.44106463878326996,
+      "precision_binary": 0.4336448598130841,
+      "recall_binary": 0.44874274661508706,
+      "cohen_kappa": 0.3431636220634994
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E7_rsi50_only",
+    "name": "weekly_bear_v0305_E7_rsi50_only",
+    "description": "v0305 E7: directional_filtered (X=4%, RSI=50, 保持 MA), 去污染",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "rsi50"
+    ],
+    "created_at": "2026-03-01T10:41:27.551777",
+    "status": "completed",
+    "duration_seconds": 38.21,
+    "git_commit": "b365c2a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8319160997732427,
+      "f1_binary": 0.4028197381671702,
+      "precision_binary": 0.3937007874015748,
+      "recall_binary": 0.41237113402061853,
+      "cohen_kappa": 0.3050744317306109
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E6_no_ma_filter",
+    "name": "weekly_bear_v0305_E6_no_ma_filter",
+    "description": "v0305 E6: directional_filtered (X=3%, RSI=50, 去掉 MA 过滤), 去污染",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "no_ma_filter"
+    ],
+    "created_at": "2026-03-01T10:41:27.546419",
+    "status": "completed",
+    "duration_seconds": 38.5,
+    "git_commit": "b365c2a",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.7998866213151927,
+      "f1_binary": 0.443217665615142,
+      "precision_binary": 0.4411302982731554,
+      "recall_binary": 0.44532488114104596,
+      "cohen_kappa": 0.32124449192148485
+    },
+    "error": null
   }
 ]

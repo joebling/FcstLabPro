@@ -1,0 +1,29 @@
+{
+  "experiment_id": "weekly_bear_v0305_E6_no_ma_filter",
+  "name": "weekly_bear_v0305_E6_no_ma_filter",
+  "description": "v0305 E6: directional_filtered (X=3%, RSI=50, 去掉 MA 过滤), 去污染",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "decontamination",
+    "no_ma_filter"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-01T10:41:27.546419",
+  "git": {
+    "commit": "b365c2a",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 38.5,
+  "aggregate_metrics": {
+    "accuracy": 0.7998866213151927,
+    "f1_binary": 0.443217665615142,
+    "precision_binary": 0.4411302982731554,
+    "recall_binary": 0.44532488114104596,
+    "cohen_kappa": 0.32124449192148485
+  }
+}
