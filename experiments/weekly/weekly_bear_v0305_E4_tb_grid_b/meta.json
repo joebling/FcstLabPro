@@ -1,0 +1,29 @@
+{
+  "experiment_id": "weekly_bear_v0305_E4_tb_grid_b",
+  "name": "weekly_bear_v0305_E4_tb_grid_b",
+  "description": "v0305 E4: Triple Barrier pt=3%/sl=2% (更激进低阈值)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "triple_barrier",
+    "grid_search"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-01T10:35:07.454213",
+  "git": {
+    "commit": "693b7b1",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 47.54,
+  "aggregate_metrics": {
+    "accuracy": 0.5328798185941043,
+    "f1_binary": 0.4122681883024251,
+    "precision_binary": 0.436885865457294,
+    "recall_binary": 0.39027683997299123,
+    "cohen_kappa": 0.02672375609035882
+  }
+}

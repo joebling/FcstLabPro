@@ -502,5 +502,117 @@
       "cohen_kappa": 0.04980154318073127
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E1_decontam",
+    "name": "weekly_bear_v0305_E1_decontam",
+    "description": "v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "directional_filtered"
+    ],
+    "created_at": "2026-03-01T10:35:07.466035",
+    "status": "completed",
+    "duration_seconds": 37.78,
+    "git_commit": "693b7b1",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8732993197278912,
+      "f1_binary": 0.41415465268676277,
+      "precision_binary": 0.39598997493734334,
+      "recall_binary": 0.4340659340659341,
+      "cohen_kappa": 0.3432908912830558
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E3_tb_grid_a",
+    "name": "weekly_bear_v0305_E3_tb_grid_a",
+    "description": "v0305 E3: Triple Barrier pt=4%/sl=3% (降低阈值)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "triple_barrier",
+      "grid_search"
+    ],
+    "created_at": "2026-03-01T10:35:07.438267",
+    "status": "completed",
+    "duration_seconds": 47.44,
+    "git_commit": "693b7b1",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5133219954648526,
+      "f1_binary": 0.4064984445212582,
+      "precision_binary": 0.4692737430167598,
+      "recall_binary": 0.35853658536585364,
+      "cohen_kappa": 0.006411375138928532
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E4_tb_grid_b",
+    "name": "weekly_bear_v0305_E4_tb_grid_b",
+    "description": "v0305 E4: Triple Barrier pt=3%/sl=2% (更激进低阈值)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "triple_barrier",
+      "grid_search"
+    ],
+    "created_at": "2026-03-01T10:35:07.454213",
+    "status": "completed",
+    "duration_seconds": 47.54,
+    "git_commit": "693b7b1",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5328798185941043,
+      "f1_binary": 0.4122681883024251,
+      "precision_binary": 0.436885865457294,
+      "recall_binary": 0.39027683997299123,
+      "cohen_kappa": 0.02672375609035882
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E2_directional_pure",
+    "name": "weekly_bear_v0305_E2_directional_pure",
+    "description": "v0305 E2: 纯方向标签 (无 RSI/MA 过滤, 对照组)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "directional_pure"
+    ],
+    "created_at": "2026-03-01T10:35:07.458287",
+    "status": "completed",
+    "duration_seconds": 51.14,
+    "git_commit": "693b7b1",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5082199546485261,
+      "f1_binary": 0.3084894380231168,
+      "precision_binary": 0.34959349593495936,
+      "recall_binary": 0.2760342368045649,
+      "cohen_kappa": -0.06495719001121136
+    },
+    "error": null
   }
 ]
