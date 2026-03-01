@@ -1,0 +1,20 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+
+# 系统依赖: libgomp = LightGBM OpenMP
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
+
+# Python 依赖 (无 PyTorch, 无 Orion-BiX — 镜像体积大幅缩小)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 强制重建层
+RUN date +%s > /tmp/build_timestamp.txt
+
+COPY . /app
+
+RUN chmod +x /app/deploy/docker_entrypoint_v0305.sh
+
+ENTRYPOINT ["/app/deploy/docker_entrypoint_v0305.sh"]
