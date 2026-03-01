@@ -161,6 +161,100 @@ features:
 
 ---
 
+## 九、线上使用指南
+
+### 9.1 推理脚本
+
+`scripts/live_signal.py` 是上线推理入口，每日运行一次，输出四种信号之一：
+
+| 信号 | 含义 | 行动 |
+|------|------|------|
+| 🟢 BUY | 模型检测到跌后反弹机会 | 以当日收盘价买入 |
+| 🟡 HOLD | 已持仓，未触发退出条件 | 继续持有 |
+| 🔴 SELL | 触发止盈/到期/熊市强平 | 以当日收盘价卖出 |
+| ⚪ SILENT | 无信号或熊市静默 | 不操作 |
+
+### 9.2 三个变体的使用方式
+
+```bash
+# 激进版: 模型信号 + 固定 21 天持仓
+python scripts/live_signal.py
+
+# 稳健版: + 到达 4% 即止盈
+python scripts/live_signal.py --take-profit
+
+# 保守版: + 熊市自动静默 (63d收益 ≤ -10%)
+python scripts/live_signal.py --take-profit --regime-switch
+
+# 干跑 (dry-run): 不更新状态文件，只看信号
+python scripts/live_signal.py --take-profit --regime-switch --dry-run
+```
+
+### 9.3 每日运行流程
+
+```
+1. 加载模型 (最后一个 walk-forward fold 训练的 LightGBM)
+       ↓
+2. 获取数据 (本地 CSV 或 Binance API)
+       ↓
+3. 构建 129 个特征 (已排除 8 个污染特征)
+       ↓
+4. [保守版] Regime 判断: 63d滚动收益 ≤ -10% → 熊市静默
+       ↓
+5. 如果已持仓 → 检查止盈 (≥+4%) / 到期 (21天) / 熊市强平
+       ↓
+6. 如果未持仓 → 模型预测 y_pred → 1=买入, 0=静默
+       ↓
+7. 更新持仓状态 (data/live/signal_state.json)
+```
+
+### 9.4 状态文件
+
+`data/live/signal_state.json` 持久化当前持仓状态：
+
+```json
+{
+  "in_position": true,
+  "entry_date": "2026-03-15",
+  "entry_price": 68500.0,
+  "days_held": 5,
+  "last_signal_date": "2026-03-20",
+  "last_signal": "HOLD",
+  "history": [
+    {
+      "entry_date": "2026-02-10",
+      "exit_date": "2026-02-18",
+      "entry_price": 65000.0,
+      "exit_price": 67600.0,
+      "pnl": 0.04,
+      "days_held": 8,
+      "reason": "止盈触发: PnL=4.00% ≥ 4%"
+    }
+  ]
+}
+```
+
+### 9.5 定时任务 (cron)
+
+```bash
+# 每日 UTC 00:05 运行 (币安日线收盘后 5 分钟)
+5 0 * * * cd /path/to/FcstLabPro && python scripts/live_signal.py --take-profit --regime-switch >> logs/signal.log 2>&1
+```
+
+### 9.6 模型更新
+
+模型是 walk-forward 最后一个 fold 训练的，训练数据截止到实验运行日。
+建议每月重新跑一次实验更新模型：
+
+```bash
+python scripts/run_experiment.py \
+  --config configs/experiments/weekly/exp_weekly_bear_v0305_E1_decontam.yaml \
+  --overwrite
+# 新模型自动保存到 experiments/weekly/weekly_bear_v0305_E1_decontam/model.joblib
+```
+
+---
+
 ## 八、实验产物索引
 
 | 文件 | 说明 |
@@ -178,9 +272,10 @@ features:
 | `weekly_bear_v0305_E6_no_ma_filter/` | E6 实验产物 |
 | `weekly_bear_v0305_E7_rsi50_only/` | E7 实验产物 |
 | `scripts/pnl_backtest_v0305.py` | PnL 回测脚本 |
+| `scripts/live_signal.py` | 线上推理脚本 |
 
 ---
 
 **创建日期**: 2026-03-01
 **更新日期**: 2026-03-01
-**状态**: ✅ Phase 1-4 全部完成
+**状态**: ✅ Phase 1-4 全部完成，推理脚本就绪
