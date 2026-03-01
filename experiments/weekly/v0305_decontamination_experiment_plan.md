@@ -113,7 +113,7 @@ v0304 实验推荐的 `directional_filtered` 策略存在**特征-标签污染**
 | `src/labels/directional.py` | 新增 `directional_binary` 标签 | 693b7b1 |
 | `tests/test_features.py` | 新增 3 个 drop_features 测试 | 693b7b1 |
 | `scripts/analyze_fold_regimes.py` | Fold regime 分析脚本 | 693b7b1 |
-| `scripts/pnl_backtest_v0305.py` | PnL 回测脚本 (+regime/+止盈/随机基线) | 本次 |
+| `scripts/pnl_backtest_v0305.py` | PnL 回测脚本 (+regime/+止盈/随机基线) | 43a0ff9 |
 
 ---
 
