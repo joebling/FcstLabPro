@@ -1,7 +1,9 @@
 # E1 Conservative — 生产模型报告
 
 > **模型哈希**: `4ca65e75f1df1b72`
+>
 > **晋升时间**: 2026-03-01
+>
 > **源实验**: `weekly_bear_v0305_E1_decontam` (git: `693b7b1`)
 
 ---
