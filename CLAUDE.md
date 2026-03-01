@@ -115,7 +115,27 @@ python scripts/weekly_signal.py --download --save
 | **Orion-BiX** | GPU (vast.ai) | 需要 GPU 显存 8GB+，约 10 分钟 |
 | **其他深度学习** | GPU (vast.ai) | 如 LSTM, Transformer 等 |
 
-### 6.2 训练命令
+### 6.2 实验命名规范
+
+**格式**: `{animal}_{direction}_{version}_{experiment_type}[_{variant}]`
+
+**示例**:
+- `weekly_bull_v0302_dip_recovery` (基础版)
+- `weekly_bull_v0302_dip_recovery_v1` (变体v1)
+- `weekly_bear_v0302_prod` (生产版)
+- `weekly_bear_v13_prod` (v13生产版)
+
+**重要**: 使用 `--overwrite` 参数生成简洁的目录名，避免时间戳。
+
+```bash
+# ✅ 正确
+python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml --overwrite
+
+# ❌ 错误：带时间戳
+python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml
+```
+
+### 6.3 训练命令
 
 **本地 (LightGBM)**:
 ```bash

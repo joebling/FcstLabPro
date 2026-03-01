@@ -1,0 +1,29 @@
+{
+  "experiment_id": "weekly_bear_v0302_prod_20260301_164621_67e586",
+  "name": "weekly_bear_v0302_prod",
+  "description": "v0302 Bear: dip_recovery V1 (生产版本)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0302",
+    "prod",
+    "dip_recovery"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-01T16:46:21.688078",
+  "git": {
+    "commit": "d546189",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 13.57,
+  "aggregate_metrics": {
+    "accuracy": 0.7874149659863946,
+    "f1_binary": 0.8194511314395763,
+    "precision_binary": 0.8859968766267569,
+    "recall_binary": 0.7622033139274519,
+    "cohen_kappa": 0.5645251596165057
+  }
+}
