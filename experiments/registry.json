@@ -144,5 +144,363 @@
       "cohen_kappa": 0.5645251596165057
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_triple_barrier_20260301_172821_66422b",
+    "name": "weekly_bear_v0304_triple_barrier",
+    "description": "v0304 Bear: Triple Barrier 简化版标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "triple_barrier"
+    ],
+    "created_at": "2026-03-01T17:28:21.123535",
+    "status": "completed",
+    "duration_seconds": 11.98,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5238095238095238,
+      "f1_binary": 0.3508500772797527,
+      "precision_binary": 0.4499504459861249,
+      "recall_binary": 0.2875237492083597,
+      "cohen_kappa": 0.0028603431806168977
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_dip_recovery_v2_20260301_172904_2167e6",
+    "name": "weekly_bear_v0304_dip_recovery_v2",
+    "description": "v0304 Bear: 改进版 Dip Recovery V2 标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "dip_recovery_v2"
+    ],
+    "created_at": "2026-03-01T17:29:04.432381",
+    "status": "failed",
+    "duration_seconds": 0.12,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {},
+    "error": "Addition/subtraction of integers and integer-arrays with Timestamp is no longer supported.  Instead of adding/subtracting `n`, use `n * obj.freq`"
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_directional_filtered_20260301_172904_886fbc",
+    "name": "weekly_bear_v0304_directional_filtered",
+    "description": "v0304 Bear: 带过滤的 Directional 标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "directional_filtered"
+    ],
+    "created_at": "2026-03-01T17:29:04.432383",
+    "status": "completed",
+    "duration_seconds": 8.39,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8914399092970522,
+      "f1_binary": 0.32451499118165783,
+      "precision_binary": 0.2866043613707165,
+      "recall_binary": 0.37398373983739835,
+      "cohen_kappa": 0.26661325934465296
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_dip_recovery_v2_20260301_173051_de1a0c",
+    "name": "weekly_bear_v0304_dip_recovery_v2",
+    "description": "v0304 Bear: 改进版 Dip Recovery V2 标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "dip_recovery_v2"
+    ],
+    "created_at": "2026-03-01T17:30:51.045078",
+    "status": "completed",
+    "duration_seconds": 12.51,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.7670068027210885,
+      "f1_binary": 0.11802575107296137,
+      "precision_binary": 0.17973856209150327,
+      "recall_binary": 0.0878594249201278,
+      "cohen_kappa": 0.0017101643244850084
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_triple_barrier_20260301_173851_2e1fbc",
+    "name": "weekly_bear_v0304_triple_barrier",
+    "description": "v0304 Bear: Triple Barrier 简化版标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "triple_barrier"
+    ],
+    "created_at": "2026-03-01T17:38:51.803164",
+    "status": "completed",
+    "duration_seconds": 12.01,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5238095238095238,
+      "f1_binary": 0.3508500772797527,
+      "precision_binary": 0.4499504459861249,
+      "recall_binary": 0.2875237492083597,
+      "cohen_kappa": 0.0028603431806168977
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_dip_recovery_v2_20260301_174015_6f556c",
+    "name": "weekly_bear_v0304_dip_recovery_v2",
+    "description": "v0304 Bear: 改进版 Dip Recovery V2 标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "dip_recovery_v2"
+    ],
+    "created_at": "2026-03-01T17:40:15.710849",
+    "status": "completed",
+    "duration_seconds": 12.32,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.7670068027210885,
+      "f1_binary": 0.11802575107296137,
+      "precision_binary": 0.17973856209150327,
+      "recall_binary": 0.0878594249201278,
+      "cohen_kappa": 0.0017101643244850084
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_directional_filtered_20260301_174108_3c8ef4",
+    "name": "weekly_bear_v0304_directional_filtered",
+    "description": "v0304 Bear: 带过滤的 Directional 标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "directional_filtered"
+    ],
+    "created_at": "2026-03-01T17:41:08.079268",
+    "status": "completed",
+    "duration_seconds": 8.41,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8914399092970522,
+      "f1_binary": 0.32451499118165783,
+      "precision_binary": 0.2866043613707165,
+      "recall_binary": 0.37398373983739835,
+      "cohen_kappa": 0.26661325934465296
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_triple_barrier",
+    "name": "weekly_bear_v0304_triple_barrier",
+    "description": "v0304 Bear: Triple Barrier 简化版标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "triple_barrier"
+    ],
+    "created_at": "2026-03-01T17:45:57.100402",
+    "status": "completed",
+    "duration_seconds": 12.03,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5238095238095238,
+      "f1_binary": 0.3508500772797527,
+      "precision_binary": 0.4499504459861249,
+      "recall_binary": 0.2875237492083597,
+      "cohen_kappa": 0.0028603431806168977
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_dip_recovery_v2",
+    "name": "weekly_bear_v0304_dip_recovery_v2",
+    "description": "v0304 Bear: 改进版 Dip Recovery V2 标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "dip_recovery_v2"
+    ],
+    "created_at": "2026-03-01T17:46:40.589600",
+    "status": "completed",
+    "duration_seconds": 12.3,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.7670068027210885,
+      "f1_binary": 0.11802575107296137,
+      "precision_binary": 0.17973856209150327,
+      "recall_binary": 0.0878594249201278,
+      "cohen_kappa": 0.0017101643244850084
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_directional_filtered",
+    "name": "weekly_bear_v0304_directional_filtered",
+    "description": "v0304 Bear: 带过滤的 Directional 标签对比",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_comparison",
+      "directional_filtered"
+    ],
+    "created_at": "2026-03-01T17:47:17.699698",
+    "status": "completed",
+    "duration_seconds": 8.28,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8914399092970522,
+      "f1_binary": 0.32451499118165783,
+      "precision_binary": 0.2866043613707165,
+      "recall_binary": 0.37398373983739835,
+      "cohen_kappa": 0.26661325934465296
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_directional_filtered_opt",
+    "name": "weekly_bear_v0304_directional_filtered_opt",
+    "description": "v0304 Bear: 带过滤的 Directional 标签优化 (X=4%, RSI=45)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_optimize",
+      "directional_filtered"
+    ],
+    "created_at": "2026-03-01T17:55:03.371387",
+    "status": "completed",
+    "duration_seconds": 10.55,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8653628117913832,
+      "f1_binary": 0.4010088272383354,
+      "precision_binary": 0.3706293706293706,
+      "recall_binary": 0.4368131868131868,
+      "cohen_kappa": 0.3257401649317291
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_triple_barrier_opt",
+    "name": "weekly_bear_v0304_triple_barrier_opt",
+    "description": "v0304 Bear: Triple Barrier 简化版标签优化 (pt=5%, sl=3%)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_optimize",
+      "triple_barrier"
+    ],
+    "created_at": "2026-03-01T17:55:03.971816",
+    "status": "completed",
+    "duration_seconds": 13.44,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.5294784580498866,
+      "f1_binary": 0.36251920122887865,
+      "precision_binary": 0.42560865644724977,
+      "recall_binary": 0.3157190635451505,
+      "cohen_kappa": 0.0024735130391710936
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0304_dip_recovery_v2_opt",
+    "name": "weekly_bear_v0304_dip_recovery_v2_opt",
+    "description": "v0304 Bear: 改进版 Dip Recovery V2 标签优化 (dip=5%, recovery=3%)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0304",
+      "label_optimize",
+      "dip_recovery_v2"
+    ],
+    "created_at": "2026-03-01T17:55:06.484130",
+    "status": "completed",
+    "duration_seconds": 13.06,
+    "git_commit": "da2dcdf",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.6992630385487528,
+      "f1_binary": 0.20761762509335324,
+      "precision_binary": 0.3210161662817552,
+      "recall_binary": 0.1534216335540839,
+      "cohen_kappa": 0.04980154318073127
+    },
+    "error": null
   }
 ]

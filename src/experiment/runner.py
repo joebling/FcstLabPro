@@ -28,6 +28,9 @@ import src.labels.directional  # noqa: F401
 import src.labels.triple_barrier  # noqa: F401
 import src.labels.return_rate  # noqa: F401
 import src.labels.pump_dump  # noqa: F401
+import src.labels.triple_barrier_simple  # noqa: F401
+import src.labels.dip_recovery_v2  # noqa: F401
+import src.labels.directional_filtered  # noqa: F401
 
 # 触发新模型注册
 import src.models.stacking  # noqa: F401

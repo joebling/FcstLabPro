@@ -139,7 +139,7 @@ python scripts/run_experiment.py --config configs/experiments/weekly/{config}.ya
 
 **本地 (LightGBM)**:
 ```bash
-python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml
+python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml --overwrite
 ```
 
 **GPU (vast.ai)**:
@@ -151,6 +151,26 @@ git push origin main
 # 2. 在 vast.ai 上拉取代码并训练
 nohup python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml > experiments/weekly/{exp_name}/train.log 2>&1 &
 ```
+
+### 6.4 实验提交规范
+
+**每个实验完成后提交一次**（保持commit历史清晰）:
+
+```bash
+# 方式1: 每个实验单独提交
+git add experiments/weekly/{exp_name}/
+git commit -m "feat: 实验 {exp_name} 完成，Kappa=0.xx"
+
+# 方式2: 多个相关实验一起提交
+git add experiments/weekly/label_comparison_*/
+git commit -m "feat: 完成标签策略对比实验"
+```
+
+**提交时机**:
+- ✅ 实验有实质性进展/明确结论
+- ✅ 文档/报告更新
+- ❌ 快速迭代调参中（暂不提交）
+- ❌ 结果不理想需要重做时
 
 ---
 

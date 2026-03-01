@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bull_v27_prod_20260228_105446_f6c3e2",
+  "name": "weekly_bull_v27_prod",
+  "description": "v0301 Bull: Orion-BiX + reversal (生产版本)",
+  "tags": [
+    "weekly",
+    "bull",
+    "v27",
+    "prod",
+    "v0301",
+    "orion"
+  ],
+  "category": "weekly",
+  "created_at": "2026-02-28T10:54:46.832316",
+  "git": {
+    "commit": "62b232d",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 438.26,
+  "aggregate_metrics": {
+    "accuracy": 0.5649092970521542,
+    "f1_binary": 0.6285990805710138,
+    "precision_binary": 0.6215311004784689,
+    "recall_binary": 0.6358296622613803,
+    "f1_macro": 0.5517268410039469,
+    "cohen_kappa": 0.1036175879965916
+  }
+}

@@ -25,6 +25,9 @@ from src.labels.dip_recovery import (
 )
 from src.labels.pump_dump import generate_pump_dump_labels
 from src.labels.dip_recovery_v1 import generate_dip_recovery_v1_labels
+from src.labels.triple_barrier_simple import generate_triple_barrier_simple_labels
+from src.labels.dip_recovery_v2 import generate_dip_recovery_v2_labels
+from src.labels.directional_filtered import generate_directional_filtered_labels
 
 __all__ = [
     "register_label_strategy",
@@ -38,4 +41,7 @@ __all__ = [
     "generate_simple_return_labels",
     "generate_pump_dump_labels",
     "generate_dip_recovery_v1_labels",
+    "generate_triple_barrier_simple_labels",
+    "generate_dip_recovery_v2_labels",
+    "generate_directional_filtered_labels",
 ]
