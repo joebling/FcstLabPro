@@ -7,8 +7,9 @@
 experiments/**/model.joblib
 experiments/**/predictions.csv
 
-# Production models (tracked in git)
-models/
+# Production models — models/production/ IS tracked (promote_model.py 管理)
+models/*
+!models/production/
 experiments/**/*.log
 
 # Python

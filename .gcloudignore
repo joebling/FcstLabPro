@@ -47,7 +47,7 @@ signals/
 # Keep external data for FGI features
 !data/external/
 
-# Experiments - exclude most, but keep v0302 models
+# Experiments - exclude most, keep production models
 experiments/baseline/
 experiments/*.csv
 experiments/*.json
@@ -55,6 +55,9 @@ experiments/registry.json
 experiments/weekly/*
 !experiments/weekly/weekly_bull_v27_orion_final/
 !experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7/
+
+# Production models — MUST be included in Docker image
+!models/production/
 
 # Logs
 *.log

@@ -80,9 +80,10 @@ command -v gcloud >/dev/null 2>&1 || { echo "❌ 请先安装 gcloud CLI"; exit 
 
 # 检查必要文件
 for f in deploy/Dockerfile.v0305 deploy/docker_entrypoint_v0305.sh scripts/live_signal.py \
-         experiments/weekly/weekly_bear_v0305_E1_decontam/model.joblib \
-         experiments/weekly/weekly_bear_v0305_E1_decontam/config.yaml; do
-    [ -f "$f" ] || { echo "❌ 缺少文件: $f"; exit 1; }
+         models/production/e1-conservative/model.joblib \
+         models/production/e1-conservative/config.yaml \
+         models/production/e1-conservative/manifest.json; do
+    [ -f "$f" ] || { echo "❌ 缺少文件: $f"; echo "   请先运行: python scripts/promote_model.py --experiment experiments/weekly/weekly_bear_v0305_E1_decontam --name e1-conservative"; exit 1; }
 done
 
 gcloud config set project "${PROJECT_ID}" --quiet

@@ -43,8 +43,8 @@ logging.basicConfig(
 logger = logging.getLogger("live_signal")
 
 # ----- 默认路径 -----
-DEFAULT_MODEL = PROJECT_ROOT / "experiments/weekly/weekly_bear_v0305_E1_decontam/model.joblib"
-DEFAULT_CONFIG = PROJECT_ROOT / "experiments/weekly/weekly_bear_v0305_E1_decontam/config.yaml"
+DEFAULT_MODEL = PROJECT_ROOT / "models/production/e1-conservative/model.joblib"
+DEFAULT_CONFIG = PROJECT_ROOT / "models/production/e1-conservative/config.yaml"
 DEFAULT_STATE = PROJECT_ROOT / "data/live/signal_state.json"
 
 

@@ -95,7 +95,43 @@ python scripts/ic_analysis_corrected.py --bull-dir experiments/weekly/{exp_name}
 * [ ] **Non-overlapping**: 确认标签采样步长与预测窗口一致。
 * [ ] **Docker 一致性**: 确认生产环境 Python 版本为 3.10。
 
-### 5.2 信号生成
+### 5.2 模型晋升流程 (Promotion)
+
+实验模型 **不能直接用于部署**。必须通过 `promote_model.py` 晋升到 `models/production/`：
+
+```bash
+# 1. 晋升 (自动执行 5.1 自检)
+python scripts/promote_model.py \
+    --experiment experiments/weekly/{exp_name} \
+    --name {production_name} \
+    --variant conservative
+
+# 2. 提交到 git (models/production/ 是 git-tracked 的)
+git add models/production/{production_name}/
+git commit -m "promote: {production_name} from {exp_name}"
+
+# 3. 部署
+./deploy/deploy_v0305.sh
+```
+
+**晋升产物** (`models/production/{name}/`):
+
+| 文件 | 说明 |
+|------|------|
+| `model.joblib` | 生产模型 |
+| `config.yaml` | 训练配置 (含特征集、标签定义) |
+| `manifest.json` | 模型谱系 (来源实验、git commit、哈希、指标、检查清单) |
+| `meta.json` | 实验元数据 |
+| `metrics.json` | 分类指标 |
+| `pnl_metrics.json` | PnL 回测指标 |
+
+**关键约束**:
+- 部署脚本 (`deploy_v0305.sh`) 检查 `models/production/` 是否存在，不存在则拒绝部署
+- `live_signal.py` 默认从 `models/production/{name}/` 加载模型
+- `.gcloudignore` 确保 `models/production/` 进入 Docker 镜像
+- 回滚 = `git revert` 晋升 commit
+
+### 5.3 信号生成
 
 ```bash
 # 信号生成时必须带上 --download 确保使用最新 Layer 0 数据
