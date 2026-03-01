@@ -72,6 +72,53 @@ def generate_directional_labels(
     return label
 
 
+@register_label_strategy("directional_binary")
+def generate_directional_binary_labels(
+    df: pd.DataFrame,
+    T: int = 21,
+    X: float = 0.05,
+) -> pd.Series:
+    """生成二分类方向性标签 — 未来 T 天涨幅是否超过 X%.
+
+    与 directional_filtered 的区别：不使用任何技术指标过滤，
+    纯粹基于未来收益率，避免特征-标签污染。
+
+    0 = 未来 T 天涨幅 < X%
+    1 = 未来 T 天涨幅 >= X%
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        必须包含 'close' 列
+    T : int
+        前瞻窗口长度（天数）
+    X : float
+        上涨阈值（如 0.04 表示 4%）
+
+    Returns
+    -------
+    pd.Series
+        标签序列, 1=上涨信号, 0=其他
+    """
+    close = df["close"]
+    future_return = close.pct_change(T).shift(-T)
+
+    label = pd.Series(0, index=df.index, name="label")
+    label[future_return >= X] = 1
+    label.iloc[-T:] = np.nan
+
+    valid = label.dropna()
+    pos_count = int(valid.sum())
+    total = len(valid)
+    pos_rate = pos_count / total if total > 0 else 0
+    logger.info(
+        f"二分类方向性标签 (T={T}, X={X*100:.1f}%): "
+        f"做多信号={pos_count}({pos_rate:.1%}), 不做多={total-pos_count}({1-pos_rate:.1%})"
+    )
+
+    return label
+
+
 @register_label_strategy("return_sign")
 def generate_return_sign_labels(
     df: pd.DataFrame,

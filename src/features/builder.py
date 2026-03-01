@@ -1,5 +1,8 @@
 """特征构建器 — 按配置组装特征集."""
 
+from __future__ import annotations
+
+import fnmatch
 import logging
 
 import pandas as pd
@@ -21,10 +24,28 @@ import src.features.bear_volatility   # noqa: F401
 logger = logging.getLogger(__name__)
 
 
+def _resolve_drop_patterns(
+    patterns: list[str], columns: list[str],
+) -> list[str]:
+    """将 glob 模式列表解析为实际要删除的列名.
+
+    支持精确匹配和 fnmatch 通配符, 如 ``rsi_*``, ``*_sma_*``。
+    """
+    matched: set[str] = set()
+    for pat in patterns:
+        if "*" in pat or "?" in pat or "[" in pat:
+            matched.update(c for c in columns if fnmatch.fnmatch(c, pat))
+        else:
+            if pat in columns:
+                matched.add(pat)
+    return sorted(matched)
+
+
 def build_features(
     df: pd.DataFrame,
     feature_sets: list[str],
     drop_na_method: str = "ffill_then_drop",
+    drop_features: list[str] | None = None,
 ) -> pd.DataFrame:
     """按配置组装特征.
 
@@ -36,6 +57,9 @@ def build_features(
         要使用的特征集名称列表, 如 ["technical", "volume"]
     drop_na_method : str
         NaN 处理方式: "ffill_then_drop" | "drop"
+    drop_features : list[str] | None
+        要显式排除的特征列表, 支持 glob 通配符
+        如 ["rsi_*", "price_vs_sma_50"]
 
     Returns
     -------
@@ -52,6 +76,17 @@ def build_features(
 
     n_features = len(df.columns) - n_cols_before
     logger.info(f"共构建 {n_features} 个特征")
+
+    # 排除指定特征
+    if drop_features:
+        cols_to_drop = _resolve_drop_patterns(drop_features, list(df.columns))
+        if cols_to_drop:
+            df = df.drop(columns=cols_to_drop)
+            logger.info(
+                f"已排除 {len(cols_to_drop)} 个特征: {cols_to_drop}"
+            )
+        else:
+            logger.warning(f"drop_features 未匹配到任何列: {drop_features}")
 
     # 处理 NaN
     n_before = len(df)

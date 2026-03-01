@@ -61,3 +61,22 @@ class TestBuildFeatures:
         assert "close" not in cols
         assert "open" not in cols
         assert len(cols) > 0
+
+    def test_drop_features_exact(self):
+        df = _make_sample_df()
+        result = build_features(df, ["technical"], drop_features=["rsi_14"])
+        assert "rsi_14" not in result.columns
+        # 其他 rsi 应该还在
+        assert "rsi_6" in result.columns
+
+    def test_drop_features_glob(self):
+        df = _make_sample_df()
+        result = build_features(df, ["technical"], drop_features=["rsi_*"])
+        rsi_cols = [c for c in result.columns if c.startswith("rsi_")]
+        assert len(rsi_cols) == 0
+
+    def test_drop_features_none(self):
+        df = _make_sample_df()
+        r1 = build_features(df, ["technical"])
+        r2 = build_features(df, ["technical"], drop_features=None)
+        assert list(r1.columns) == list(r2.columns)

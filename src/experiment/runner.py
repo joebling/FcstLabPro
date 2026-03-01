@@ -102,6 +102,7 @@ def run_experiment(
             df,
             feature_sets=feat_cfg["sets"],
             drop_na_method=feat_cfg.get("drop_na_method", "ffill_then_drop"),
+            drop_features=feat_cfg.get("drop_features"),
         )
 
         # ========== 4. 标签生成 ==========
