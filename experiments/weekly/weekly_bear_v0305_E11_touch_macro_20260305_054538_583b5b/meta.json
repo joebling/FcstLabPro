@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v0305_E11_touch_macro_20260305_054538_583b5b",
+  "name": "weekly_bear_v0305_E11_touch_macro",
+  "description": "v0305 E11: E8 + 宏观因子 (DXY/VIX/SPX/Gold/10Y) (消融实验)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "touch_label",
+    "decontamination",
+    "ablation",
+    "macro"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-05T05:45:38.929908",
+  "git": {
+    "commit": "5e985e0",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 54.3,
+  "aggregate_metrics": {
+    "accuracy": 0.9075963718820862,
+    "f1_binary": 0.7671428571428571,
+    "precision_binary": 0.7437673130193906,
+    "recall_binary": 0.7920353982300885,
+    "cohen_kappa": 0.7095759573836261
+  }
+}

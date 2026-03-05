@@ -1,0 +1,32 @@
+{
+  "experiment_id": "weekly_bear_v0305_E12_touch_fr_macro_20260305_054645_e70ca5",
+  "name": "weekly_bear_v0305_E12_touch_fr_macro",
+  "description": "v0305 E12: E8 + 真实 FR + 宏观因子 (全量外部数据)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "touch_label",
+    "decontamination",
+    "ablation",
+    "real_funding_rate",
+    "macro"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-05T05:46:45.727149",
+  "git": {
+    "commit": "5e985e0",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 58.82,
+  "aggregate_metrics": {
+    "accuracy": 0.909297052154195,
+    "f1_binary": 0.7717546362339515,
+    "precision_binary": 0.7472375690607734,
+    "recall_binary": 0.7979351032448377,
+    "cohen_kappa": 0.7152335520740005
+  }
+}

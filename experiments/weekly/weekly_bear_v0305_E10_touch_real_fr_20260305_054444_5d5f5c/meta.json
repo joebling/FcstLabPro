@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v0305_E10_touch_real_fr_20260305_054444_5d5f5c",
+  "name": "weekly_bear_v0305_E10_touch_real_fr",
+  "description": "v0305 E10: E8 + 真实 Funding Rate (消融实验)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "touch_label",
+    "decontamination",
+    "ablation",
+    "real_funding_rate"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-05T05:44:44.402807",
+  "git": {
+    "commit": "5e985e0",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 39.65,
+  "aggregate_metrics": {
+    "accuracy": 0.9121315192743764,
+    "f1_binary": 0.7753623188405797,
+    "precision_binary": 0.7621082621082621,
+    "recall_binary": 0.7890855457227138,
+    "cohen_kappa": 0.7207669258626077
+  }
+}
