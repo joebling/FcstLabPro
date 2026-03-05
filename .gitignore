@@ -49,3 +49,4 @@ signals/
 # Environment / Secrets
 .env
 .env.*
+!.env.example
