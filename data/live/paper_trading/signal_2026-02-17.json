@@ -1,0 +1,25 @@
+{
+  "date": "2026-02-17",
+  "price": 67753.44,
+  "models": {
+    "E1-conservative": {
+      "signal": "SILENT",
+      "prediction": 0,
+      "probability": 0.20893043294017485,
+      "regime": "熊市",
+      "rolling_63d": -0.22887772863837985,
+      "tp_threshold": 0.04,
+      "reason": "Regime=熊市 (63d收益=-22.89%)"
+    },
+    "E8-touch": {
+      "signal": "SILENT",
+      "prediction": 1,
+      "probability": 0.9373207781584725,
+      "regime": "熊市",
+      "rolling_63d": -0.22887772863837985,
+      "tp_threshold": 0.04,
+      "reason": "Regime=熊市 (63d收益=-22.89%)"
+    }
+  },
+  "consensus": true
+}
