@@ -49,8 +49,8 @@ MODELS = {
         "description": "生产模型 (directional_filtered, 止盈+regime)",
     },
     "E8-touch": {
-        "model": PROJECT_ROOT / "experiments/weekly/weekly_bear_v0305_E8_touch_label/model.joblib",
-        "config": PROJECT_ROOT / "experiments/weekly/weekly_bear_v0305_E8_touch_label/config.yaml",
+        "model": PROJECT_ROOT / "models/production/e8-touch/model.joblib",
+        "config": PROJECT_ROOT / "models/production/e8-touch/config.yaml",
         "state": PROJECT_ROOT / "data/live/paper_state_e8.json",
         "description": "Touch 标签候选 (touch_filtered, 止盈+regime)",
     },

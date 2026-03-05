@@ -1,0 +1,138 @@
+{
+  "name": "e8-touch",
+  "promoted_at": "2026-03-05T06:12:21.456305Z",
+  "source_experiment": {
+    "id": "weekly_bear_v0305_E8_touch_label",
+    "path": "experiments/weekly/weekly_bear_v0305_E8_touch_label",
+    "created_at": "2026-03-05T03:01:53.942532",
+    "git_commit": "7e2c901"
+  },
+  "model": {
+    "type": "lightgbm",
+    "sha256_prefix": "ef82f06646a7f79c",
+    "size_bytes": 184228
+  },
+  "strategy": {
+    "label": "touch_filtered",
+    "variant": "conservative",
+    "T": 21,
+    "X": 0.04
+  },
+  "features": {
+    "sets": [
+      "technical",
+      "volume",
+      "flow",
+      "market_structure",
+      "external_fgi"
+    ],
+    "drop_features": [
+      "rsi_*",
+      "price_vs_sma_*",
+      "sma_cross_10_50",
+      "sma_cross_50_200"
+    ],
+    "count": "129 (after decontamination)"
+  },
+  "metrics": {
+    "classification": {
+      "accuracy": 0.9226190476190477,
+      "f1_binary": 0.7991169977924945,
+      "precision_binary": 0.7973568281938326,
+      "recall_binary": 0.8008849557522124,
+      "cohen_kappa": 0.7511973291422939
+    },
+    "pnl": {
+      "策略(无开关)": {
+        "total_return": 0.7979346334363535,
+        "cagr": 0.19219830459627585,
+        "sharpe": 0.6609818177253505,
+        "sortino": 0.7501357796273723,
+        "max_drawdown": -0.3202251526449771,
+        "calmar": 0.6001974017617525,
+        "win_rate": 0.5061224489795918,
+        "profit_factor": 1.140795183511352,
+        "num_trades": 11,
+        "num_days_held": 736,
+        "avg_trade_return": 0.001121992133757672,
+        "exposure": 0.6042692939244664
+      },
+      "策略(+regime开关)": {
+        "total_return": 0.21335997509710958,
+        "cagr": 0.05966677267264764,
+        "sharpe": 0.34255295148864534,
+        "sortino": 0.3074738880593024,
+        "max_drawdown": -0.29643253420317084,
+        "calmar": 0.20128280734446255,
+        "win_rate": 0.5083333333333333,
+        "profit_factor": 1.0934941524859652,
+        "num_trades": 29,
+        "num_days_held": 481,
+        "avg_trade_return": 0.0007952319401386715,
+        "exposure": 0.3949096880131363
+      },
+      "策略(+止盈)": {
+        "total_return": 1.4222799873444245,
+        "cagr": 0.3035903001576925,
+        "sharpe": 1.0203634836067135,
+        "sortino": 1.0461344660836778,
+        "max_drawdown": -0.26029867474864526,
+        "calmar": 1.1663151971513162,
+        "win_rate": 0.5205479452054794,
+        "profit_factor": 1.2777577680612886,
+        "num_trades": 20,
+        "num_days_held": 512,
+        "avg_trade_return": 0.0020733669265059255,
+        "exposure": 0.42036124794745483
+      },
+      "策略(止盈+regime)": {
+        "total_return": 0.6428679908915642,
+        "cagr": 0.1604060781205825,
+        "sharpe": 0.7558275191660969,
+        "sortino": 0.5771022107263829,
+        "max_drawdown": -0.21400250164490836,
+        "calmar": 0.7495523504988847,
+        "win_rate": 0.5300353356890459,
+        "profit_factor": 1.2828003345708323,
+        "num_trades": 30,
+        "num_days_held": 284,
+        "avg_trade_return": 0.002179161323232764,
+        "exposure": 0.23316912972085385
+      },
+      "买入持有": {
+        "total_return": 3.507549997867688,
+        "cagr": 0.5702449558726956,
+        "sharpe": 1.1998176978325146,
+        "sortino": 1.8185799075729874,
+        "max_drawdown": -0.32022515264497736,
+        "calmar": 1.7807625389905166,
+        "win_rate": 0.5028759244042728,
+        "profit_factor": 1.1999314580043436,
+        "num_trades": 0,
+        "num_days_held": 1218,
+        "avg_trade_return": 0.001534876311110221,
+        "exposure": 1.0
+      }
+    }
+  },
+  "deployment": {
+    "variant": "conservative",
+    "cli_flags": "--take-profit --regime-switch",
+    "docker_image": "fcstlabpro-v0305-e1",
+    "memory": "2Gi",
+    "cpu": "2"
+  },
+  "promotion_git": {
+    "commit": "d90b000",
+    "branch": "main",
+    "dirty": true
+  },
+  "checklist": {
+    "experiment_completed": true,
+    "kappa_above_threshold": true,
+    "no_data_leakage_suspicion": false,
+    "pnl_backtested": true,
+    "decontaminated": true,
+    "python_version": "3.10"
+  }
+}

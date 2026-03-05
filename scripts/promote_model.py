@@ -69,8 +69,8 @@ def check_experiment_status(exp_dir: Path) -> list[str]:
     return errors
 
 
-def check_metrics_thresholds(exp_dir: Path) -> tuple[list[str], list[str]]:
-    """检查指标门槛，返回 (errors, warnings)."""
+def check_metrics_thresholds(exp_dir: Path, target_variant: str = "conservative") -> tuple[list[str], list[str]]:
+    """检查指标门槛，返回 (errors, warnings). 只对目标变体严格检查."""
     errors, warnings = [], []
 
     # 分类指标
@@ -87,20 +87,35 @@ def check_metrics_thresholds(exp_dir: Path) -> tuple[list[str], list[str]]:
     pnl_path = exp_dir / "pnl_metrics.json"
     if pnl_path.exists():
         pnl = json.loads(pnl_path.read_text())
-        # 检查所有策略变体
+
+        # 目标变体名映射
+        target_variant_map = {
+            "base": "策略(无开关)",
+            "moderate": "策略(+止盈)",
+            "conservative": "策略(止盈+regime)",
+        }
+        target_key = target_variant_map.get(target_variant, "")
+
         for variant_name, variant_metrics in pnl.items():
             if variant_name == "买入持有":
                 continue
             pf = variant_metrics.get("profit_factor", 0)
             mdd = variant_metrics.get("max_drawdown", 0)
+
+            is_target = (variant_name == target_key)
+
             if pf < MIN_PROFIT_FACTOR:
-                warnings.append(
-                    f"⚠️ {variant_name}: PF={pf:.2f} < {MIN_PROFIT_FACTOR}"
-                )
+                msg = f"{variant_name}: PF={pf:.2f} < {MIN_PROFIT_FACTOR}"
+                if is_target:
+                    errors.append(f"❌ {msg} (目标变体)")
+                else:
+                    warnings.append(f"⚠️ {msg}")
             if mdd < MAX_DRAWDOWN_LIMIT:
-                errors.append(
-                    f"❌ {variant_name}: MaxDD={mdd:.1%} < {MAX_DRAWDOWN_LIMIT:.0%}"
-                )
+                msg = f"{variant_name}: MaxDD={mdd:.1%} < {MAX_DRAWDOWN_LIMIT:.0%}"
+                if is_target:
+                    errors.append(f"❌ {msg} (目标变体)")
+                else:
+                    warnings.append(f"⚠️ {msg}")
     else:
         warnings.append("⚠️ 无 pnl_metrics.json，无法验证 PnL 门槛")
 
@@ -156,7 +171,7 @@ def promote(
     print("\n🔍 Phase 1: 部署前自检 (CLAUDE.md 5.1)")
 
     status_errors = check_experiment_status(exp_dir)
-    metric_errors, metric_warnings = check_metrics_thresholds(exp_dir)
+    metric_errors, metric_warnings = check_metrics_thresholds(exp_dir, target_variant=variant)
 
     all_errors = status_errors + metric_errors
     all_warnings = metric_warnings
