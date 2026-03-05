@@ -1,0 +1,31 @@
+{
+  "experiment_id": "weekly_bear_v0305_E9_touch_low_threshold",
+  "name": "weekly_bear_v0305_E9_touch_low_threshold",
+  "description": "v0305 E9: touch_filtered + 低阈值 (对标 E5: X=3%, RSI=50)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "touch_label",
+    "decontamination",
+    "label_alignment",
+    "low_threshold"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-05T03:02:52.847941",
+  "git": {
+    "commit": "7e2c901",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 36.0,
+  "aggregate_metrics": {
+    "accuracy": 0.9302721088435374,
+    "f1_binary": 0.8806983511154219,
+    "precision_binary": 0.8462255358807083,
+    "recall_binary": 0.9180990899898888,
+    "cohen_kappa": 0.8315546599973371
+  }
+}

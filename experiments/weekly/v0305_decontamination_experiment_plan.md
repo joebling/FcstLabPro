@@ -31,6 +31,15 @@ v0304 实验推荐的 `directional_filtered` 策略存在**特征-标签污染**
 | E6 | no_ma_filter | X=3%,RSI=50,noMA,去污染 | 去掉 MA 过滤 | ✅ 完成 |
 | E7 | rsi50_only | X=4%,RSI=50,MA=50,去污染 | 仅放宽 RSI | ✅ 完成 |
 
+### Phase 2.5：标签对齐实验 (touch_X_within_T)
+
+| ID | 实验名 | 标签策略 | 参数 | 目的 | 状态 |
+|----|--------|---------|------|------|------|
+| E8 | touch_label | touch_filtered | X=4%,RSI=45,MA=50,去污染 | 标签-策略对齐 (对标E1) | ✅ 完成 |
+| E9 | touch_low_threshold | touch_filtered | X=3%,RSI=50,MA=50,去污染 | 标签对齐+低阈值 (对标E5) | ✅ 完成 |
+
+**结论**: E8 分类+PnL 双赢 (Kappa 0.75, CAGR 16%), E9 分类好但 PnL 失败。详见 `v0305_touch_label_experiment_report.md`。
+
 ### Phase 3：Fold Regime 分析
 
 | ID | 内容 | 状态 |

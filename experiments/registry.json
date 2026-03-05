@@ -698,5 +698,64 @@
       "cohen_kappa": 0.32124449192148485
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E8_touch_label",
+    "name": "weekly_bear_v0305_E8_touch_label",
+    "description": "v0305 E8: touch_filtered 标签 (路径依赖, 对标 E1 参数)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "label_alignment"
+    ],
+    "created_at": "2026-03-05T03:01:53.942532",
+    "status": "completed",
+    "duration_seconds": 35.85,
+    "git_commit": "7e2c901",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9226190476190477,
+      "f1_binary": 0.7991169977924945,
+      "precision_binary": 0.7973568281938326,
+      "recall_binary": 0.8008849557522124,
+      "cohen_kappa": 0.7511973291422939
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E9_touch_low_threshold",
+    "name": "weekly_bear_v0305_E9_touch_low_threshold",
+    "description": "v0305 E9: touch_filtered + 低阈值 (对标 E5: X=3%, RSI=50)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "label_alignment",
+      "low_threshold"
+    ],
+    "created_at": "2026-03-05T03:02:52.847941",
+    "status": "completed",
+    "duration_seconds": 36.0,
+    "git_commit": "7e2c901",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9302721088435374,
+      "f1_binary": 0.8806983511154219,
+      "precision_binary": 0.8462255358807083,
+      "recall_binary": 0.9180990899898888,
+      "cohen_kappa": 0.8315546599973371
+    },
+    "error": null
   }
 ]

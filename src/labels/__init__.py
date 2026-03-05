@@ -28,6 +28,7 @@ from src.labels.dip_recovery_v1 import generate_dip_recovery_v1_labels
 from src.labels.triple_barrier_simple import generate_triple_barrier_simple_labels
 from src.labels.dip_recovery_v2 import generate_dip_recovery_v2_labels
 from src.labels.directional_filtered import generate_directional_filtered_labels
+from src.labels.touch_filtered import generate_touch_filtered_labels
 
 __all__ = [
     "register_label_strategy",
@@ -44,4 +45,5 @@ __all__ = [
     "generate_triple_barrier_simple_labels",
     "generate_dip_recovery_v2_labels",
     "generate_directional_filtered_labels",
+    "generate_touch_filtered_labels",
 ]
