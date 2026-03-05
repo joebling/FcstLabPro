@@ -757,5 +757,154 @@
       "cohen_kappa": 0.8315546599973371
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E10_touch_real_fr_20260305_054444_5d5f5c",
+    "name": "weekly_bear_v0305_E10_touch_real_fr",
+    "description": "v0305 E10: E8 + 真实 Funding Rate (消融实验)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "ablation",
+      "real_funding_rate"
+    ],
+    "created_at": "2026-03-05T05:44:44.402807",
+    "status": "completed",
+    "duration_seconds": 39.65,
+    "git_commit": "5e985e0",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9121315192743764,
+      "f1_binary": 0.7753623188405797,
+      "precision_binary": 0.7621082621082621,
+      "recall_binary": 0.7890855457227138,
+      "cohen_kappa": 0.7207669258626077
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E11_touch_macro_20260305_054538_583b5b",
+    "name": "weekly_bear_v0305_E11_touch_macro",
+    "description": "v0305 E11: E8 + 宏观因子 (DXY/VIX/SPX/Gold/10Y) (消融实验)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "ablation",
+      "macro"
+    ],
+    "created_at": "2026-03-05T05:45:38.929908",
+    "status": "completed",
+    "duration_seconds": 54.3,
+    "git_commit": "5e985e0",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9075963718820862,
+      "f1_binary": 0.7671428571428571,
+      "precision_binary": 0.7437673130193906,
+      "recall_binary": 0.7920353982300885,
+      "cohen_kappa": 0.7095759573836261
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E12_touch_fr_macro_20260305_054645_e70ca5",
+    "name": "weekly_bear_v0305_E12_touch_fr_macro",
+    "description": "v0305 E12: E8 + 真实 FR + 宏观因子 (全量外部数据)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "ablation",
+      "real_funding_rate",
+      "macro"
+    ],
+    "created_at": "2026-03-05T05:46:45.727149",
+    "status": "completed",
+    "duration_seconds": 58.82,
+    "git_commit": "5e985e0",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.909297052154195,
+      "f1_binary": 0.7717546362339515,
+      "precision_binary": 0.7472375690607734,
+      "recall_binary": 0.7979351032448377,
+      "cohen_kappa": 0.7152335520740005
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E13_touch_pruned_light_20260305_060301_247269",
+    "name": "weekly_bear_v0305_E13_touch_pruned_light",
+    "description": "v0305 E13: E8 + 特征精简 (删除 importance≤1, 129→02)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "feature_pruning"
+    ],
+    "created_at": "2026-03-05T06:03:01.613626",
+    "status": "completed",
+    "duration_seconds": 28.74,
+    "git_commit": "f9909de",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9203514739229025,
+      "f1_binary": 0.7959331880900509,
+      "precision_binary": 0.7839771101573677,
+      "recall_binary": 0.8082595870206489,
+      "cohen_kappa": 0.7464669434803024
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0305_E14_touch_pruned_heavy_20260305_060340_e7168d",
+    "name": "weekly_bear_v0305_E14_touch_pruned_heavy",
+    "description": "v0305 E14: E8 + 特征深度精简 (删除 importance≤3, 129→81)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "feature_pruning"
+    ],
+    "created_at": "2026-03-05T06:03:40.202562",
+    "status": "completed",
+    "duration_seconds": 22.85,
+    "git_commit": "f9909de",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.921485260770975,
+      "f1_binary": 0.801148600143575,
+      "precision_binary": 0.7804195804195804,
+      "recall_binary": 0.8230088495575221,
+      "cohen_kappa": 0.7522775873239909
+    },
+    "error": null
   }
 ]
