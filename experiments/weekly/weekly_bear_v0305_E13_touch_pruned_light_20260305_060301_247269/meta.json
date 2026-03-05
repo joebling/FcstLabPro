@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v0305_E13_touch_pruned_light_20260305_060301_247269",
+  "name": "weekly_bear_v0305_E13_touch_pruned_light",
+  "description": "v0305 E13: E8 + 特征精简 (删除 importance≤1, 129→02)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "touch_label",
+    "decontamination",
+    "feature_pruning"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-05T06:03:01.613626",
+  "git": {
+    "commit": "f9909de",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 28.74,
+  "aggregate_metrics": {
+    "accuracy": 0.9203514739229025,
+    "f1_binary": 0.7959331880900509,
+    "precision_binary": 0.7839771101573677,
+    "recall_binary": 0.8082595870206489,
+    "cohen_kappa": 0.7464669434803024
+  }
+}
