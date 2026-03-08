@@ -32,14 +32,21 @@ import src.labels.triple_barrier_simple  # noqa: F401
 import src.labels.dip_recovery_v2  # noqa: F401
 import src.labels.directional_filtered  # noqa: F401
 
-# 触发新模型注册
-import src.models.stacking  # noqa: F401
-import src.models.lgbm_regressor  # noqa: F401
-import src.models.lstm_classifier  # noqa: F401
-import src.models.gru_classifier  # noqa: F401
-import src.models.transformer_classifier  # noqa: F401
-import src.models.tft_classifier  # noqa: F401
-import src.models.patchtst_classifier  # noqa: F401
+# 触发新模型注册（可选模型缺依赖时静默跳过）
+import importlib as _importlib
+for _mod in [
+    "src.models.stacking",
+    "src.models.lgbm_regressor",
+    "src.models.lstm_classifier",
+    "src.models.gru_classifier",
+    "src.models.transformer_classifier",
+    "src.models.tft_classifier",
+    "src.models.patchtst_classifier",
+]:
+    try:
+        _importlib.import_module(_mod)
+    except Exception:
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +110,7 @@ def run_experiment(
             feature_sets=feat_cfg["sets"],
             drop_na_method=feat_cfg.get("drop_na_method", "ffill_then_drop"),
             drop_features=feat_cfg.get("drop_features"),
+            smoothing=feat_cfg.get("smoothing"),
         )
 
         # ========== 4. 标签生成 ==========

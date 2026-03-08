@@ -8,6 +8,7 @@ import logging
 import pandas as pd
 
 from src.features.registry import get_feature_set
+from src.features.smoothing import apply_smoothing
 
 # 触发所有特征集的注册（导入即注册）
 import src.features.technical         # noqa: F401
@@ -46,6 +47,7 @@ def build_features(
     feature_sets: list[str],
     drop_na_method: str = "ffill_then_drop",
     drop_features: list[str] | None = None,
+    smoothing: dict | None = None,
 ) -> pd.DataFrame:
     """按配置组装特征.
 
@@ -60,6 +62,10 @@ def build_features(
     drop_features : list[str] | None
         要显式排除的特征列表, 支持 glob 通配符
         如 ["rsi_*", "price_vs_sma_50"]
+    smoothing : dict | None
+        数据平滑配置, 如 {"method": "savgol", "window": 11, "polyorder": 3}
+        在特征计算之前对 OHLCV 原始列进行去噪平滑。
+        灵感来源: arXiv:2506.05764v2 (Wang, 2025)
 
     Returns
     -------
@@ -67,6 +73,19 @@ def build_features(
         构建完特征后的 DataFrame（已处理 NaN）
     """
     df = df.copy()
+
+    # ====== 平滑去噪 (在特征计算之前) ======
+    if smoothing and smoothing.get("method", "none") != "none":
+        df = apply_smoothing(
+            df,
+            method=smoothing.get("method", "savgol"),
+            window=smoothing.get("window", 11),
+            polyorder=smoothing.get("polyorder", 3),
+            columns=smoothing.get("columns"),
+            suffix=smoothing.get("suffix", ""),
+            keep_original=smoothing.get("keep_original", False),
+        )
+
     n_cols_before = len(df.columns)
 
     for name in feature_sets:

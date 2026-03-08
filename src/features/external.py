@@ -10,6 +10,8 @@
   3. builder.py 会自动加载并合并
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 

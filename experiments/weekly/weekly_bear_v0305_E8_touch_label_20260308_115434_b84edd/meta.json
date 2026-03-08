@@ -1,0 +1,23 @@
+{
+  "experiment_id": "weekly_bear_v0305_E8_touch_label_20260308_115434_b84edd",
+  "name": "weekly_bear_v0305_E8_touch_label",
+  "description": "v0305 E8: touch_filtered 标签 (路径依赖, 对标 E1 参数)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "touch_label",
+    "decontamination",
+    "label_alignment"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-08T11:54:34.961574",
+  "git": {
+    "commit": "3e6c824",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "running",
+  "duration_seconds": null
+}

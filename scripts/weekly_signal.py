@@ -330,7 +330,11 @@ def compute_latest_features(config: dict, download: bool = False) -> pd.DataFram
         df = df.tail(max_rows).copy()
 
     feat_cfg = config["features"]
-    df = build_features(df, feature_sets=feat_cfg["sets"])
+    df = build_features(
+        df,
+        feature_sets=feat_cfg["sets"],
+        smoothing=feat_cfg.get("smoothing"),
+    )
     
     # 再次裁剪：特征计算后只保留最后 600 行
     if len(df) > 600:

@@ -1,5 +1,7 @@
 """数据加载与校验模块."""
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 
