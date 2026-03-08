@@ -1,0 +1,29 @@
+{
+  "experiment_id": "weekly_bear_v0308_E16b_savgol_close_only",
+  "name": "weekly_bear_v0308_E16b_savgol_close_only",
+  "description": "v0308 E16b: touch_label + SG平滑仅close (window=11, poly=2)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0308",
+    "savgol",
+    "ablation"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-08T12:06:01.839995",
+  "git": {
+    "commit": "c585f0c",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 44.77,
+  "aggregate_metrics": {
+    "accuracy": 0.9178004535147393,
+    "f1_binary": 0.8176100628930818,
+    "precision_binary": 0.7995079950799509,
+    "recall_binary": 0.8365508365508365,
+    "cohen_kappa": 0.764589916794712
+  }
+}

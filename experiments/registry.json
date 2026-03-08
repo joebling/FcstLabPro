@@ -992,5 +992,89 @@
       "cohen_kappa": 0.7166890506821235
     },
     "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0308_E16a_savgol_light",
+    "name": "weekly_bear_v0308_E16a_savgol_light",
+    "description": "v0308 E16a: touch_label + SG平滑仅价格列 (window=7, poly=2)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0308",
+      "savgol",
+      "ablation"
+    ],
+    "created_at": "2026-03-08T12:05:13.785968",
+    "status": "completed",
+    "duration_seconds": 42.36,
+    "git_commit": "393edf6",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9189342403628118,
+      "f1_binary": 0.8115942028985508,
+      "precision_binary": 0.7642679900744417,
+      "recall_binary": 0.8651685393258427,
+      "cohen_kappa": 0.7602030534060878
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0308_E16b_savgol_close_only",
+    "name": "weekly_bear_v0308_E16b_savgol_close_only",
+    "description": "v0308 E16b: touch_label + SG平滑仅close (window=11, poly=2)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0308",
+      "savgol",
+      "ablation"
+    ],
+    "created_at": "2026-03-08T12:06:01.839995",
+    "status": "completed",
+    "duration_seconds": 44.77,
+    "git_commit": "c585f0c",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9178004535147393,
+      "f1_binary": 0.8176100628930818,
+      "precision_binary": 0.7995079950799509,
+      "recall_binary": 0.8365508365508365,
+      "cohen_kappa": 0.764589916794712
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "weekly_bear_v0308_E16c_savgol_strong",
+    "name": "weekly_bear_v0308_E16c_savgol_strong",
+    "description": "v0308 E16c: touch_label + SG平滑 OHLCV (window=21, poly=3)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0308",
+      "savgol",
+      "ablation"
+    ],
+    "created_at": "2026-03-08T12:06:52.318875",
+    "status": "completed",
+    "duration_seconds": 45.44,
+    "git_commit": "c585f0c",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8920068027210885,
+      "f1_binary": 0.7514677103718199,
+      "precision_binary": 0.7480519480519481,
+      "recall_binary": 0.7549148099606815,
+      "cohen_kappa": 0.6824853002453817
+    },
+    "error": null
   }
 ]

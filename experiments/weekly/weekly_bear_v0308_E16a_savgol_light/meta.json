@@ -17,6 +17,13 @@
     "dirty": true
   },
   "seed": 42,
-  "status": "running",
-  "duration_seconds": null
+  "status": "completed",
+  "duration_seconds": 42.36,
+  "aggregate_metrics": {
+    "accuracy": 0.9189342403628118,
+    "f1_binary": 0.8115942028985508,
+    "precision_binary": 0.7642679900744417,
+    "recall_binary": 0.8651685393258427,
+    "cohen_kappa": 0.7602030534060878
+  }
 }
