@@ -1,206 +1,186 @@
-# FcstLabPro — 比特币价格预测实验平台
+# FcstLabPro — 比特币周线反转预测系统
 
 ## 项目简介
 
-基于机器学习的比特币价格反转预测系统，核心设计目标：**实验可追溯、版本可对比、配置驱动、模块解耦**。
+基于 LightGBM Walk-Forward 的 BTC/USDT **日线级别反转预测系统**，生产部署于 Google Cloud Run。
 
-当前支持日线级别预测，架构预留周线预测扩展能力。
+核心能力：每日自动下载行情 → 特征工程 → 模型推理 → 信号 JSON 生成 → 邮件推送。
+
+**当前生产模型**：
+
+| 模型 | 标签策略 | Kappa | Sharpe | MaxDD | 定位 |
+|------|----------|-------|--------|-------|------|
+| **E1** | directional_filtered (终点) | 0.343 | 0.633 | -12.7% | 🛡️ 风控优先 |
+| **E8** | touch_filtered (路径触达) | 0.751 | 0.756 | -21.4% | 💰 收益优先 |
+
+详见 [`models/production/SUMMARY.md`](models/production/SUMMARY.md)。
+
+---
 
 ## 核心设计理念
 
 | 原则 | 说明 |
 |------|------|
-| **配置驱动** | 每次实验由一个 YAML 配置文件完整定义（数据源、特征集、标签参数、模型超参） |
-| **实验隔离** | 每次实验生成唯一 `experiment_id`，所有产物（模型、指标、报告）存储在独立目录 |
-| **自动报告** | 训练/回测完成后自动生成 Markdown 实验报告 |
-| **对比分析** | 内置实验对比工具，可跨版本对比指标、特征重要性、equity curve |
-| **可复现** | 配置 + git commit hash + 随机种子 → 完全可复现 |
+| **配置驱动** | 每次实验由一个 YAML 完整定义（数据、特征、标签、模型超参） |
+| **实验隔离** | 每次实验生成唯一 ID，所有产物存储在独立目录 |
+| **可复现** | `seed=42` + git commit hash → bit-exact 复现（已验证） |
+| **模型晋升** | 实验 → `promote_model.py` → `models/production/` → 部署 |
+| **分层架构** | Layer 0 数据 → Layer 1 标签 → Layer 2 信号 → Layer 3 验证 → Layer 4 组合 → Layer 5 执行 |
+
+---
 
 ## 项目结构
 
 ```
 FcstLabPro/
-├── configs/                          # ⚙️ 实验配置（YAML）
-│   ├── base.yaml                     #   基础默认配置
-│   └── experiments/                  #   每次实验的配置文件
-│       ├── exp_001_baseline.yaml
-│       └── exp_002_flow_features.yaml
+├── configs/                          # ⚙️ 实验配置
+│   ├── base.yaml                     #   默认配置
+│   └── experiments/weekly/           #   v0305/v0308 实验配置 (E1-E16)
 │
-├── src/                              # 📦 核心源码（Python包）
-│   ├── __init__.py
-│   ├── data/                         #   数据层
-│   │   ├── __init__.py
-│   │   ├── downloader.py             #     数据下载（Binance/Yahoo）
-│   │   ├── loader.py                 #     数据加载与校验
-│   │   └── splitter.py               #     数据集划分（WalkForward等）
-│   ├── features/                     #   特征工程层
-│   │   ├── __init__.py
-│   │   ├── registry.py               #     特征集注册表
-│   │   ├── technical.py              #     技术指标特征
-│   │   ├── volume.py                 #     成交量特征
-│   │   ├── flow.py                   #     资金流特征
-│   │   └── builder.py                #     特征构建器（按配置组装）
-│   ├── labels/                       #   标签层
-│   │   ├── __init__.py
-│   │   ├── reversal.py               #     反转标签生成
-│   │   └── registry.py               #     标签策略注册表
-│   ├── models/                       #   模型层
-│   │   ├── __init__.py
-│   │   ├── registry.py               #     模型注册表
-│   │   ├── lgbm.py                   #     LightGBM 实现
-│   │   └── base.py                   #     模型基类
-│   ├── evaluation/                   #   评估层
-│   │   ├── __init__.py
-│   │   ├── metrics.py                #     评估指标计算
-│   │   ├── backtest.py               #     回测引擎
-│   │   └── comparison.py             #     实验对比分析
-│   ├── experiment/                   #   实验管理层（核心）
-│   │   ├── __init__.py
-│   │   ├── config.py                 #     配置加载与合并
-│   │   ├── runner.py                 #     实验运行器
-│   │   ├── tracker.py                #     实验追踪器（记录全流程）
-│   │   └── reporter.py               #     报告生成器
+├── src/                              # 📦 核心源码
+│   ├── data/                         #   数据下载 & 加载
+│   ├── features/                     #   特征工程 (technical, volume, flow, market_structure, external)
+│   ├── labels/                       #   标签策略 (directional_filtered, touch_filtered, ...)
+│   ├── models/                       #   模型 (LightGBM 为主, torch 模型可选)
+│   ├── evaluation/                   #   评估 & PnL 回测
+│   ├── experiment/                   #   实验运行 & 追踪
+│   ├── backtest/                     #   模块化回测引擎
+│   ├── llm/                          #   LLM 信号分析增强
 │   └── utils/                        #   工具函数
-│       ├── __init__.py
-│       ├── io.py                     #     文件读写
-│       ├── logging.py                #     日志配置
-│       └── reproducibility.py        #     可复现性工具
 │
-├── scripts/                          # 🛠️ 命令行入口
-│   ├── run_experiment.py             #   运行单次实验
-│   ├── compare_experiments.py        #   对比多个实验
-│   ├── download_data.py              #   下载数据
-│   ├── predict.py                    #   生产预测
-│   └── param_search.py              #   参数搜索
+├── scripts/                          # 🛠️ 命令行工具
+│   ├── run_experiment.py             #   运行实验
+│   ├── promote_model.py              #   晋升模型到生产
+│   ├── live_signal.py                #   生产推理
+│   ├── build_signal_json.py          #   信号 JSON 构建
+│   ├── send_signal_email.py          #   邮件推送
+│   ├── weekly_signal.py              #   完整信号流水线
+│   ├── pnl_backtest_v0305.py         #   PnL 回测分析
+│   ├── ic_analysis_corrected.py      #   IC 统计分析
+│   └── ...                           #   其他分析工具 (28个)
 │
-├── data/                             # 📊 数据文件（git忽略大文件）
-│   └── raw/                          #   原始数据
+├── deploy/                           # 🚀 部署
+│   ├── Dockerfile                    #   生产镜像 (LightGBM only, 无 torch)
+│   ├── deploy.sh                     #   Cloud Run 部署脚本
+│   ├── docker_entrypoint.sh          #   容器入口 (MODEL_NAME 环境变量控制)
+│   └── archive/                      #   历史版本部署文件
 │
-├── experiments/                      # 🧪 实验产物（核心目录）
-│   ├── registry.json                 #   实验注册表（索引）
-│   └── {experiment_id}/              #   每个实验独立目录
-│       ├── config.yaml               #     本次实验的完整配置快照
-│       ├── meta.json                 #     元信息（时间、git hash、耗时等）
-│       ├── metrics.json              #     评估指标
-│       ├── fold_metrics.csv          #     Walk-Forward 各 fold 指标
-│       ├── feature_importance.csv    #     特征重要性
-│       ├── model.joblib              #     模型文件
-│       ├── predictions.csv           #     预测结果
-│       └── report.md                 #     自动生成的实验报告
+├── models/production/                # 🏭 生产模型
+│   ├── SUMMARY.md                    #   模型对比总结
+│   ├── e1-conservative/              #   E1 模型 (model.joblib + config + manifest)
+│   └── e8-touch/                     #   E8 模型
 │
-├── reports/                          # 📋 对比报告
-│   └── compare_{id1}_vs_{id2}.md     #   实验对比报告
+├── experiments/                      # 🧪 实验产物
+│   ├── registry.json                 #   实验注册表
+│   ├── weekly/                       #   v0305 实验结果 (E1-E14)
+│   └── archive/                      #   历史实验归档 (tar.gz)
 │
-├── tests/                            # 🧪 单元测试
-│   ├── test_features.py
-│   ├── test_labels.py
-│   ├── test_models.py
-│   └── test_experiment.py
+├── data/                             # 📊 数据
+│   ├── raw/                          #   BTC/USDT 日线 OHLCV
+│   └── external/                     #   FGI, 资金费率, 宏观因子
 │
-├── notebooks/                        # 📓 探索性分析
-│
-├── requirements.txt
+├── docs/                             # 📖 文档 & 代码审查
+├── tests/                            # 🧪 测试
+├── CLAUDE.md                         #   AI 操作手册 (开发规范)
 ├── pyproject.toml
-└── .gitignore
+└── requirements.txt
 ```
+
+---
 
 ## 快速开始
 
 ### 1. 安装
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 pip install -e .
 ```
 
-### 2. 下载数据
+### 2. 运行实验
+
 ```bash
-python scripts/download_data.py --symbol BTCUSDT --interval 1d --start 2018-01-01
+# 运行 v0305 E1 去污染实验
+python scripts/run_experiment.py \
+    --config configs/experiments/weekly/exp_weekly_bear_v0305_E1_decontam.yaml \
+    --overwrite
+
+# 运行 PnL 回测
+python scripts/pnl_backtest_v0305.py \
+    --experiment experiments/weekly/weekly_bear_v0305_E1_decontam \
+    --data data/raw/btc_binance_BTCUSDT_1d.csv \
+    --take-profit --regime-switch
 ```
 
-### 3. 运行实验
+### 3. 晋升模型到生产
+
 ```bash
-# 使用配置文件运行
-python scripts/run_experiment.py --config configs/experiments/exp_001_baseline.yaml
+python scripts/promote_model.py \
+    --experiment experiments/weekly/weekly_bear_v0305_E1_decontam \
+    --name e1-conservative \
+    --variant conservative
 
-# 快速覆盖参数
-python scripts/run_experiment.py --config configs/experiments/exp_001_baseline.yaml \
-  --override label.T=21 label.X=0.08
+git add models/production/e1-conservative/
+git commit -m "promote: e1-conservative"
 ```
 
-### 4. 对比实验
+### 4. 部署
+
 ```bash
-python scripts/compare_experiments.py --ids exp_001 exp_002 --output reports/
+MODEL_NAME=e1-conservative ./deploy/deploy.sh
 ```
 
-## 实验工作流
+---
+
+## 生产信号流水线
 
 ```
-编写/复制 YAML 配置
-        │
-        ▼
-  run_experiment.py
-        │
-        ├─ 1. 加载配置 + 生成 experiment_id
-        ├─ 2. 下载/加载数据
-        ├─ 3. 特征工程（按配置选择特征集）
-        ├─ 4. 标签生成（按配置选择 T, X）
-        ├─ 5. Walk-Forward 训练 + 评估
-        ├─ 6. 保存模型 + 指标 + 预测结果
-        ├─ 7. 生成实验报告 (Markdown)
-        └─ 8. 更新实验注册表 registry.json
+Cloud Run Job (每日触发)
+    │
+    ├─ 1. 下载最新 BTC/USDT 日线数据 (Binance API)
+    ├─ 2. 特征工程 (129 个特征)
+    ├─ 3. LightGBM 推理 → 概率 + 信号
+    ├─ 4. 生成信号 JSON (data/live/signals/)
+    ├─ 5. [可选] LLM 分析增强
+    └─ 6. 邮件推送到指定邮箱
 ```
 
-## 配置示例
+---
 
-```yaml
-experiment:
-  name: "baseline_T14_X8"
-  description: "基线模型，14天窗口，8%阈值"
-  tags: ["baseline", "v1"]
+## 实验体系
 
-data:
-  source: "binance"
-  symbol: "BTCUSDT"
-  interval: "1d"
-  start: "2018-01-01"
-  end: "2025-12-31"
-  path: "data/raw/btc_binance_BTCUSDT_1d.csv"
+当前 v0305 系列实验 (E1-E14) 对比了不同标签策略、过滤条件和特征组合：
 
-features:
-  sets: ["technical", "volume"]    # 使用的特征集
-  # sets: ["technical", "volume", "flow"]  # 加入资金流特征
+| 实验 | 核心变量 | 结论 |
+|------|----------|------|
+| E1 | directional_filtered + 去污染 | ✅ **生产模型** |
+| E2-E7 | 不同过滤/阈值变体 | ❌ 不如 E1 |
+| E8 | touch_filtered (路径触达) | ✅ **生产模型** |
+| E9 | touch + 低阈值 | ❌ 信号过多 |
+| E10-E12 | 真实资金费率 / 宏观因子 | ❌ 劣化 |
+| E13-E14 | 特征精简 | ❌ 劣化 |
 
-label:
-  strategy: "reversal"
-  T: 14        # 窗口长度
-  X: 0.08      # 阈值
-
-model:
-  type: "lightgbm"
-  params:
-    n_estimators: 500
-    max_depth: 6
-    learning_rate: 0.05
-    num_leaves: 31
-    subsample: 0.8
-    colsample_bytree: 0.8
-
-evaluation:
-  method: "walk_forward"
-  init_train: 1500
-  oos_window: 63
-  step: 21
-  metrics: ["accuracy", "f1_macro", "precision", "recall"]
-
-seed: 42
-```
+---
 
 ## 技术栈
-- Python 3.10+
-- pandas / numpy — 数据处理
-- LightGBM — 梯度提升模型
-- scikit-learn — ML工具
-- PyYAML — 配置管理
-- joblib — 模型序列化
-- tabulate — 报告格式化
+
+- **Python 3.10+** — 运行环境
+- **LightGBM** — 梯度提升模型
+- **pandas / numpy** — 数据处理
+- **scikit-learn** — ML 工具链
+- **PyYAML** — 配置管理
+- **joblib** — 模型序列化
+- **Google Cloud Run** — 生产部署
+- **Docker** — 容器化
+
+---
+
+## 关键文档
+
+| 文档 | 说明 |
+|------|------|
+| [`CLAUDE.md`](CLAUDE.md) | 开发操作手册 (实验规范, 部署流程, 复现验证) |
+| [`models/production/SUMMARY.md`](models/production/SUMMARY.md) | E1 vs E8 模型完整对比 |
+| [`deploy/README.md`](deploy/README.md) | 部署架构说明 |
+| [`docs/cr_0308.md`](docs/cr_0308.md) | 代码审查报告 |
