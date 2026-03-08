@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E9_touch_low_threshold
+  name: v0305_E9_touch_low_threshold
   description: 'v0305 E9: touch_filtered + 低阈值 (对标 E5: X=3%, RSI=50)'
   tags:
   - weekly

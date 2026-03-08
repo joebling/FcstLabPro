@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E12_touch_fr_macro
+  name: v0305_E12_touch_fr_macro
   description: 'v0305 E12: E8 + 真实 FR + 宏观因子 (全量外部数据)'
   tags:
   - weekly

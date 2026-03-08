@@ -3,7 +3,7 @@
 # 假设: volume 本身不应被平滑 (它不是连续信号)
 # =============================================================
 experiment:
-  name: weekly_bear_v0308_E16a_savgol_light
+  name: v0308_E16a_savgol_light
   description: 'v0308 E16a: touch_label + SG平滑仅价格列 (window=7, poly=2)'
   tags: [weekly, bear, v0308, savgol, ablation]
   category: weekly

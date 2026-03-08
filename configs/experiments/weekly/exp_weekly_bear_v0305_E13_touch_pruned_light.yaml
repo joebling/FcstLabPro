@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E13_touch_pruned_light
+  name: v0305_E13_touch_pruned_light
   description: 'v0305 E13: E8 + 特征精简 (删除 importance≤1, 129→02)'
   tags:
   - weekly

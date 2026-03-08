@@ -187,22 +187,26 @@ python scripts/weekly_signal.py --download --save
 
 ### 6.2 实验命名规范
 
-**格式**: `{animal}_{direction}_{version}_{experiment_type}[_{variant}]`
+**Config name 格式**: `{version}_E{N}_{description}`
+目录路径已包含分类信息 (`experiments/weekly/`)，name 不再重复 `weekly_bear_` 前缀。
 
 **示例**:
-- `weekly_bull_v0302_dip_recovery` (基础版)
-- `weekly_bull_v0302_dip_recovery_v1` (变体v1)
-- `weekly_bear_v0302_prod` (生产版)
-- `weekly_bear_v13_prod` (v13生产版)
+- `v0305_E1_decontam` → 目录: `experiments/weekly/v0305_E1_decontam_run1`
+- `v0305_E8_touch_label` → 目录: `experiments/weekly/v0305_E8_touch_label_run1`
+- `v0308_E15_savgol` → 目录: `experiments/weekly/v0308_E15_savgol_run1`
 
-**重要**: 使用 `--overwrite` 参数生成简洁的目录名，避免时间戳。
+**后缀规则**:
+- 默认: 自动追加 `_runN` 序号 (N = 1, 2, 3...)，同一配置多次运行不冲突
+- `--overwrite`: 不加后缀，直接用 name 作为目录名（清空重跑）
 
 ```bash
-# ✅ 正确
-python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml --overwrite
-
-# ❌ 错误：带时间戳
+# 默认: 自动追加 _runN
 python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml
+# → experiments/weekly/v0305_E1_decontam_run1/
+
+# 覆盖模式: 直接用 name
+python scripts/run_experiment.py --config configs/experiments/weekly/{config}.yaml --overwrite
+# → experiments/weekly/v0305_E1_decontam/
 ```
 
 ### 6.3 训练命令

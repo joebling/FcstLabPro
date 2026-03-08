@@ -4,7 +4,7 @@
 # 灵感来源: arXiv:2506.05764v2 (Wang, 2025)
 # =============================================================
 experiment:
-  name: weekly_bear_v0308_E15_savgol
+  name: v0308_E15_savgol
   description: 'v0308 E15: 基于 E8 + Savitzky-Golay 平滑 (window=11, poly=3)'
   tags:
   - weekly

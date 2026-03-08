@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E1_decontam
+  name: v0305_E1_decontam
   description: 'v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)'
   tags:
   - weekly

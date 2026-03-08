@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E6_no_ma_filter
+  name: v0305_E6_no_ma_filter
   description: 'v0305 E6: directional_filtered (X=3%, RSI=50, 去掉 MA 过滤), 去污染'
   tags:
   - weekly

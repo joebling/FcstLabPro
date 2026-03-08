@@ -28,21 +28,29 @@ def generate_experiment_id(config: dict, *, overwrite: bool = False) -> str:
         实验配置
     overwrite : bool
         True 时仅使用实验名称作为 ID（可覆盖已有目录）。
-        False 时追加时间戳 + hash 保证唯一性。
+        False 时追加 _runN 序号保证唯一性。
 
     Returns
     -------
     str
-        格式 (overwrite=False): {name}_{YYYYMMDD}_{HHmmss}_{hash6}
+        格式 (overwrite=False): {name}_runN  (N = 1, 2, 3, ...)
         格式 (overwrite=True):  {name}
     """
     name = config.get("experiment", {}).get("name", "unnamed")
     if overwrite:
         return name
-    config_str = json.dumps(config, sort_keys=True, default=str)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    hash6 = hashlib.md5((config_str + ts).encode()).hexdigest()[:6]
-    return f"{name}_{ts}_{hash6}"
+    # 扫描所有 category 目录，找到已有的最大 run 序号
+    category = config.get("experiment", {}).get("category", "weekly")
+    category_dir = EXPERIMENTS_DIR / category
+    max_run = 0
+    if category_dir.exists():
+        prefix = f"{name}_run"
+        for d in category_dir.iterdir():
+            if d.is_dir() and d.name.startswith(prefix):
+                suffix = d.name[len(prefix):]
+                if suffix.isdigit():
+                    max_run = max(max_run, int(suffix))
+    return f"{name}_run{max_run + 1}"
 
 
 def get_git_info() -> dict:

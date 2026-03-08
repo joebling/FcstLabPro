@@ -2,7 +2,7 @@
 # E16b: 中等 SG 平滑 — 只平滑 close, 稍大窗口
 # =============================================================
 experiment:
-  name: weekly_bear_v0308_E16b_savgol_close_only
+  name: v0308_E16b_savgol_close_only
   description: 'v0308 E16b: touch_label + SG平滑仅close (window=11, poly=2)'
   tags: [weekly, bear, v0308, savgol, ablation]
   category: weekly

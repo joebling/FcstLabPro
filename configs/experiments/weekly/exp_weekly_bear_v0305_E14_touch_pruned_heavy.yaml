@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E14_touch_pruned_heavy
+  name: v0305_E14_touch_pruned_heavy
   description: 'v0305 E14: E8 + 特征深度精简 (删除 importance≤3, 129→81)'
   tags:
   - weekly

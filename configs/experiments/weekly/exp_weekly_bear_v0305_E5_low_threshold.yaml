@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E5_low_threshold
+  name: v0305_E5_low_threshold
   description: 'v0305 E5: directional_filtered 降低阈值 (X=3%, RSI=50), 去污染'
   tags:
   - weekly

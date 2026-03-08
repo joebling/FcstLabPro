@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E2_directional_pure
+  name: v0305_E2_directional_pure
   description: 'v0305 E2: 纯方向标签 (无 RSI/MA 过滤, 对照组)'
   tags:
   - weekly

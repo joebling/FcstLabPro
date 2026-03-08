@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E10_touch_real_fr
+  name: v0305_E10_touch_real_fr
   description: 'v0305 E10: E8 + 真实 Funding Rate (消融实验)'
   tags:
   - weekly

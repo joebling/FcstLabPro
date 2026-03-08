@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E7_rsi50_only
+  name: v0305_E7_rsi50_only
   description: 'v0305 E7: directional_filtered (X=4%, RSI=50, 保持 MA), 去污染'
   tags:
   - weekly

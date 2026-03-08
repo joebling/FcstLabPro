@@ -2,7 +2,7 @@
 # E16c: 强 SG 平滑 — 全部 OHLCV + 大窗口 (window=21)
 # =============================================================
 experiment:
-  name: weekly_bear_v0308_E16c_savgol_strong
+  name: v0308_E16c_savgol_strong
   description: 'v0308 E16c: touch_label + SG平滑 OHLCV (window=21, poly=3)'
   tags: [weekly, bear, v0308, savgol, ablation]
   category: weekly

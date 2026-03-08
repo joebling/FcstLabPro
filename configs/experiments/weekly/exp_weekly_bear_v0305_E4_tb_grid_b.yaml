@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E4_tb_grid_b
+  name: v0305_E4_tb_grid_b
   description: 'v0305 E4: Triple Barrier pt=3%/sl=2% (更激进低阈值)'
   tags:
   - weekly

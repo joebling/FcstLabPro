@@ -1,5 +1,5 @@
 experiment:
-  name: weekly_bear_v0305_E11_touch_macro
+  name: v0305_E11_touch_macro
   description: 'v0305 E11: E8 + 宏观因子 (DXY/VIX/SPX/Gold/10Y) (消融实验)'
   tags:
   - weekly
