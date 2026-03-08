@@ -61,6 +61,9 @@ class PositionState:
     days_held: int = 0
     last_signal_date: str | None = None
     last_signal: str | None = None
+    last_reason: str | None = None
+    last_regime: str | None = None
+    last_regime_detail: str | None = None
     history: list[dict] = field(default_factory=list)
 
     @classmethod
@@ -171,6 +174,7 @@ def generate_signal(
         "date": str(today.date()),
         "price": current_price,
         "regime": "unknown",
+        "regime_detail": "",
         "model_pred": None,
         "reason": "",
     }
@@ -179,6 +183,10 @@ def generate_signal(
     if use_regime:
         bear = is_bear_market(df["close"])
         meta["regime"] = "熊市" if bear else "非熊市"
+        # 记录 regime 详情
+        if len(df["close"]) >= 64:
+            rolling_ret = (df["close"].iloc[-1] / df["close"].iloc[-64]) - 1
+            meta["regime_detail"] = f"63d 滚动收益 = {rolling_ret:+.1%} (threshold=-10%)"
         if bear:
             # 熊市: 如果有持仓，强制平仓
             if state.in_position:
@@ -326,6 +334,9 @@ def main():
 
     state.last_signal_date = today_str
     state.last_signal = signal
+    state.last_reason = meta.get("reason", "")
+    state.last_regime = meta.get("regime", "未知")
+    state.last_regime_detail = meta.get("regime_detail", "")
 
     # 输出
     print_signal(signal, meta, state)
