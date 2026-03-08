@@ -6,6 +6,8 @@
   2 = 底部反转 (未来 T 天涨幅 >= X%)
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

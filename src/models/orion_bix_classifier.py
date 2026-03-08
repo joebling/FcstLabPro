@@ -4,6 +4,8 @@ Orion-BiX 是基于 Bi-Axial Attention + In-Context Learning 的
 表格数据基础模型，适用于小样本分类任务。
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

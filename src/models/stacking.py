@@ -8,6 +8,8 @@ Walk-Forward 中每个 fold 独立做 Stacking 内部 CV，
 避免任何形式的信息泄漏。
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

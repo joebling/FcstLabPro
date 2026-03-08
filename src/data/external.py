@@ -7,6 +7,8 @@
   4. FRED API — M2 货币供应量 (可选)
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from datetime import datetime, timedelta

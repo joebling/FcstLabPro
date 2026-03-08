@@ -1,5 +1,7 @@
 """Regime 特征集 — 市场状态识别特征."""
 
+from __future__ import annotations
+
 import pandas as pd
 import numpy as np
 from src.features.registry import register_feature_set

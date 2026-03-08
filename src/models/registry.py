@@ -1,5 +1,7 @@
 """模型注册表."""
 
+from __future__ import annotations
+
 import logging
 from typing import Type
 

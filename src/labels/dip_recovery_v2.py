@@ -14,6 +14,8 @@ Label = 1 if:
   (3) 从最低点到未来 T 天内最高点的反弹 > recovery_threshold
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

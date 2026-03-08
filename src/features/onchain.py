@@ -4,6 +4,8 @@
 MVRV、SOPR、活跃地址、矿工流出等链上指标的代理特征。
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 

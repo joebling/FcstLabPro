@@ -12,6 +12,8 @@ Label = 1 if (未来 T 天先跌 > dip_threshold) AND (从低点反弹 > recover
 这更贴近实际交易场景——交易者关心的是"从现在起到未来 T 天内会跌多深"。
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

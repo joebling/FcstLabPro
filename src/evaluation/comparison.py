@@ -1,5 +1,7 @@
 """实验对比分析模块 — 生成详细的 Markdown 对比报告."""
 
+from __future__ import annotations
+
 import json
 import logging
 from datetime import datetime

@@ -1,5 +1,7 @@
 """实验报告生成器 — 自动生成 Markdown 实验报告."""
 
+from __future__ import annotations
+
 import json
 import logging
 from pathlib import Path

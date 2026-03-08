@@ -1,5 +1,7 @@
 """概率校准模块 — Platt Scaling + Isotonic Regression."""
 
+from __future__ import annotations
+
 import logging
 from enum import Enum
 

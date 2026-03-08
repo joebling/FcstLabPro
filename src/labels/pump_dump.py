@@ -13,6 +13,8 @@ Label = 1 if (未来 T 天先涨 > pump_threshold) AND (从高点回落 > dump_t
   pump_dump:     先涨后跌 (看空信号)
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

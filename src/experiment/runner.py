@@ -1,5 +1,7 @@
 """实验运行器 — 串联完整实验流程."""
 
+from __future__ import annotations
+
 import inspect
 import json
 import logging

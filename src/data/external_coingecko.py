@@ -6,6 +6,8 @@
     from src.data.external_coingecko import download_coingecko_market_data
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import time

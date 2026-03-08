@@ -1,5 +1,7 @@
 """组合模型评估器 — Bull/Bear 硬切策略."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 

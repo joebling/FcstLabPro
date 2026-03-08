@@ -1,5 +1,7 @@
 """资金流特征集（预留扩展）."""
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 

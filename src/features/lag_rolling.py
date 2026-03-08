@@ -4,6 +4,8 @@
 捕捉指标变化趋势和动态背离信号。
 """
 
+from __future__ import annotations
+
 import pandas as pd
 
 from src.features.registry import register_feature_set

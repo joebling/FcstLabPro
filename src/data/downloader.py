@@ -1,5 +1,7 @@
 """数据下载模块 — 支持 Binance / Yahoo 数据源."""
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from datetime import datetime

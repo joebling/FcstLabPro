@@ -19,6 +19,8 @@ Chapter 3: The Triple-Barrier Method.
   - 可设置动态阈值（基于 ATR 自适应波动率）
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

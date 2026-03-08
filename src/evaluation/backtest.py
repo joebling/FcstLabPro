@@ -1,5 +1,7 @@
 """回测引擎 — Walk-Forward 训练 + 评估."""
 
+from __future__ import annotations
+
 import json
 import logging
 import os

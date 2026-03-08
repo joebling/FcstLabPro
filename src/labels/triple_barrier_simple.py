@@ -14,6 +14,8 @@
   - 时间序列上可解释性强
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

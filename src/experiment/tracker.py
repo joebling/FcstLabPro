@@ -1,5 +1,7 @@
 """实验追踪器 — 管理实验 ID、注册表、元信息."""
 
+from __future__ import annotations
+
 import json
 import hashlib
 import logging

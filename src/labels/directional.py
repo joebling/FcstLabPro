@@ -6,6 +6,8 @@
   3. 改进的二分类标签（基于 T 日收益率而非极值）
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

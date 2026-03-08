@@ -8,6 +8,8 @@ Label = 1 if (未来 T 天先跌 > dip_threshold) AND (从低点反弹 > recover
 这是原始 V1 版本使用的算法。
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

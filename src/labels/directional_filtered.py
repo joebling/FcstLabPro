@@ -13,6 +13,8 @@ Label = 1 if:
   - 与传统技术分析结合
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

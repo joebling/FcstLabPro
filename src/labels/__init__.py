@@ -10,6 +10,8 @@
 - pump_dump: Pump+Dump 标签（dip_recovery 的镜像，看空信号）
 """
 
+from __future__ import annotations
+
 from src.labels.registry import (
     register_label_strategy,
     get_label_strategy,

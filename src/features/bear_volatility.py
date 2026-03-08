@@ -1,5 +1,7 @@
 """Bear 专用波动率特征集 — 波动率标准化."""
 
+from __future__ import annotations
+
 import pandas as pd
 import numpy as np
 from src.features.registry import register_feature_set

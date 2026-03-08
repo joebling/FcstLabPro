@@ -1,5 +1,7 @@
 """收益率标签生成器 - 用于回归目标预测."""
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

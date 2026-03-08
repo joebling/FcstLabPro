@@ -9,6 +9,8 @@ Label = 1 if (未来 T 天先跌 > dip_threshold) AND (从低点反弹 > recover
   - recovery: 未来 T 天收盘价相对未来最低点的反弹幅度
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

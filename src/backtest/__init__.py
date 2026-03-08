@@ -1,4 +1,6 @@
 """Backtest module."""
+
+from __future__ import annotations
 from .engine import BacktestEngine
 from .triggers import TriggerStrategy, BaselineTrigger, TriggerA
 from .exits import ExitStrategy, BaselineExit, TP_SL_Exit, FixedHoldExit

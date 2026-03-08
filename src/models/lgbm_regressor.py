@@ -7,6 +7,8 @@
   - 避免分类标签化带来的信息损失
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

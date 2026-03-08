@@ -1,5 +1,7 @@
 """TFT (Temporal Fusion Transformer) 时间序列分类器."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

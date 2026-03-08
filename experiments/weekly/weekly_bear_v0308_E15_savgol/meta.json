@@ -1,0 +1,30 @@
+{
+  "experiment_id": "weekly_bear_v0308_E15_savgol",
+  "name": "weekly_bear_v0308_E15_savgol",
+  "description": "v0308 E15: 基于 E8 + Savitzky-Golay 平滑 (window=11, poly=3)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0308",
+    "savgol",
+    "smoothing",
+    "paper_2506_05764"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-08T12:02:31.890603",
+  "git": {
+    "commit": "bfe4842",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 41.87,
+  "aggregate_metrics": {
+    "accuracy": 0.905328798185941,
+    "f1_binary": 0.7767379679144385,
+    "precision_binary": 0.7634691195795007,
+    "recall_binary": 0.7904761904761904,
+    "cohen_kappa": 0.7166890506821235
+  }
+}

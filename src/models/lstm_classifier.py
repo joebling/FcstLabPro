@@ -1,5 +1,7 @@
 """简单的 LSTM 时间序列分类器 - 用于深度学习实验."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 

@@ -4,6 +4,8 @@
 以及价格行为衍生的资金面代理指标。
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 

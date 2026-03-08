@@ -13,6 +13,8 @@
   4. Youden's J 统计量
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

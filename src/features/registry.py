@@ -1,5 +1,7 @@
 """特征集注册表 — 通过名称映射到特征生成函数."""
 
+from __future__ import annotations
+
 import logging
 from typing import Callable
 

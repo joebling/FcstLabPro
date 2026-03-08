@@ -10,6 +10,8 @@
 标签-策略一致性是本策略的核心价值。
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np
