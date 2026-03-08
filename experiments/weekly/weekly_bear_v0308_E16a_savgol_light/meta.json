@@ -1,0 +1,22 @@
+{
+  "experiment_id": "weekly_bear_v0308_E16a_savgol_light",
+  "name": "weekly_bear_v0308_E16a_savgol_light",
+  "description": "v0308 E16a: touch_label + SG平滑仅价格列 (window=7, poly=2)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0308",
+    "savgol",
+    "ablation"
+  ],
+  "category": "weekly",
+  "created_at": "2026-03-08T12:05:13.785968",
+  "git": {
+    "commit": "393edf6",
+    "branch": "main",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "running",
+  "duration_seconds": null
+}
