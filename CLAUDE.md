@@ -110,8 +110,8 @@ python scripts/promote_model.py \
 git add models/production/{production_name}/
 git commit -m "promote: {production_name} from {exp_name}"
 
-# 3. 部署
-./deploy/deploy_v0305.sh
+# 3. 部署 (MODEL_NAME 环境变量切换模型)
+MODEL_NAME={production_name} ./deploy/deploy.sh
 ```
 
 **晋升产物** (`models/production/{name}/`):
@@ -131,7 +131,41 @@ git commit -m "promote: {production_name} from {exp_name}"
 - `.gcloudignore` 确保 `models/production/` 进入 Docker 镜像
 - 回滚 = `git revert` 晋升 commit
 
-### 5.3 信号生成
+### 5.3 复现性验证 (Reproducibility)
+
+**任何重构/代码修改后**，必须重跑生产模型验证数值一致：
+
+```bash
+# 重跑 E1
+.venv/bin/python scripts/run_experiment.py \
+    --config models/production/e1-conservative/config.yaml
+
+# 重跑 E8
+.venv/bin/python scripts/run_experiment.py \
+    --config models/production/e8-touch/config.yaml
+
+# 对比 metrics（必须 bit-exact）
+diff models/production/e1-conservative/metrics.json \
+     experiments/weekly/{新生成的E1目录}/metrics.json
+
+# 对比 predictions（必须逐行一致）
+diff experiments/weekly/weekly_bear_v0305_E1_decontam/predictions.csv \
+     experiments/weekly/{新生成的E1目录}/predictions.csv
+```
+
+**已验证基线** (2026-03-08)：
+
+| 模型 | Accuracy | Kappa | F1 | 状态 |
+|------|----------|-------|----|------|
+| E1 | 0.8733 | 0.3433 | 0.4142 | ✅ bit-exact |
+| E8 | 0.9226 | 0.7512 | 0.7991 | ✅ bit-exact |
+
+复现条件：`seed=42` + LightGBM 确定性训练 + 固定数据 (`data/raw/btc_binance_BTCUSDT_1d.csv`)。
+
+> ⚠️ **历史教训**：v0301 Bear 模型 Kappa 从 0.05 崩到 -0.17 的事故
+> 就是因为没有及时做复现验证。详见 `experiments/weekly/MODEL_REPRODUCE_SUMMARY.md`。
+
+### 5.4 信号生成
 
 ```bash
 # 信号生成时必须带上 --download 确保使用最新 Layer 0 数据
@@ -235,11 +269,34 @@ tail -f experiments/weekly/{exp_name}/train.log
 
 ---
 
-## 七、 维护记录
+## 八、 代码可复用性注意事项
+
+### 8.1 可选依赖 (Optional Imports)
+
+`src/models/__init__.py` 和 `src/experiment/runner.py` 中的 torch 模型（LSTM, GRU, TFT, PatchTST 等）使用 `try/except` 导入。**不安装 torch 也能正常运行 LightGBM 实验。**
+
+### 8.2 已知 DRY 违规（待修复）
+
+| 优先级 | 问题 | 位置 |
+|--------|------|------|
+| 🔴 高 | `_calculate_rsi/sma` 复制 3 份 | `labels/directional_filtered.py`, `labels/touch_filtered.py`, `features/technical.py` |
+| 🔴 高 | `backtest.py` 串行/并行 fold 逻辑重复 ~80 行 | `src/evaluation/backtest.py` |
+| 🟡 中 | `get_git_info()` 复制 2 份 | `src/experiment/tracker.py`, `scripts/promote_model.py` |
+| 🟡 中 | `BaseModel.fit()` 缺少 `sample_weight` 参数 | `src/models/base.py` |
+| 🟡 低 | `src/utils/io.py` 已写好但 0 处 import | 全项目 28 处裸 json/yaml 操作 |
+
+**修复这些问题前，必须先通过 5.3 节的复现性验证。**
+
+详见 `docs/cr_0308_reusability.md`。
+
+---
+
+## 九、 维护记录
 
 * **2026-02-18**: 初始版本。
 * **2026-02-19**: 引入 Institutional Framework，修正 IC 分析逻辑，增加 Layer 0-5 架构约束。
 * **2026-02-27**: 添加 vast.ai GPU 远程训练命令规范。
+* **2026-03-08**: 添加复现性验证流程 (E1/E8 bit-exact 确认)；torch 模型改为可选导入；记录 DRY 违规清单。
 
 ---
 
