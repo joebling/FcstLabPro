@@ -89,7 +89,18 @@ STATE_FILE="/tmp/state/signal_state.json"
 if [ -n "${STATE_BUCKET}" ]; then
     echo ""
     echo "=== Step 2: 恢复持仓状态 ==="
-    gsutil cp "${STATE_BUCKET}/signal_state.json" "${STATE_FILE}" 2>/dev/null || {
+    python3 -c "
+from google.cloud import storage
+client = storage.Client()
+bucket_name, prefix = '${STATE_BUCKET}'.replace('gs://', '').split('/', 1)
+bucket = client.bucket(bucket_name)
+blob = bucket.blob(prefix + '/signal_state.json')
+if blob.exists():
+    blob.download_to_filename('${STATE_FILE}')
+    print('✅ 状态已恢复')
+else:
+    print('ℹ️ 无历史状态，初始化空仓位')
+" 2>/dev/null || {
         echo "ℹ️ 无历史状态，初始化空仓位"
     }
 fi
@@ -107,8 +118,15 @@ python /app/scripts/live_signal.py \
 if [ -n "${STATE_BUCKET}" ] && [ -f "${STATE_FILE}" ]; then
     echo ""
     echo "=== Step 4: 上传持仓状态 ==="
-    gsutil cp "${STATE_FILE}" "${STATE_BUCKET}/signal_state.json"
-    echo "✅ 状态已保存: ${STATE_BUCKET}/signal_state.json"
+    python3 -c "
+from google.cloud import storage
+client = storage.Client()
+bucket_name, prefix = '${STATE_BUCKET}'.replace('gs://', '').split('/', 1)
+bucket = client.bucket(bucket_name)
+blob = bucket.blob(prefix + '/signal_state.json')
+blob.upload_from_filename('${STATE_FILE}')
+print('✅ 状态已保存')
+"
 fi
 
 # ── Step 5: 生成信号 JSON (从 manifest.json 读取模型元信息) ──
@@ -144,8 +162,17 @@ fi
 if [ -n "${STATE_BUCKET}" ]; then
     echo ""
     echo "=== Step 8: 上传信号 ==="
-    gsutil -m cp /tmp/signals/signal_*.json "${STATE_BUCKET}/signals/" 2>/dev/null || true
-    echo "✅ 信号已上传"
+    python3 -c "
+from google.cloud import storage
+import glob
+client = storage.Client()
+bucket_name, prefix = '${STATE_BUCKET}'.replace('gs://', '').split('/', 1)
+bucket = client.bucket(bucket_name)
+for f in glob.glob('/tmp/signals/signal_*.json'):
+    blob = bucket.blob(prefix + '/signals/' + f.split('/')[-1])
+    blob.upload_from_filename(f)
+print('✅ 信号已上传')
+" 2>/dev/null || true
 fi
 
 echo ""

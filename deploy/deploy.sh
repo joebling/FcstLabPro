@@ -75,11 +75,11 @@ if [[ "${1:-}" == "build" || -z "${1:-}" ]]; then
         gsutil mb -l "${REGION}" "gs://${BUCKET_NAME}" || true
     }
 
-    gcloud builds submit \
+    gcloud builds submit . \
         --tag "${IMAGE_URI}" \
         --project="${PROJECT_ID}" \
         --gcs-log-dir="gs://forecastlab-prod-builds/builds" \
-        --dockerfile="deploy/Dockerfile"
+        --ignore-file=.dockerignore
 
     echo "✅ 镜像构建完成: ${IMAGE_URI}"
 fi

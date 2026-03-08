@@ -1,30 +1,31 @@
+# Git
 .git
+
+# Python
 __pycache__
 *.pyc
+*.pyo
 lab-venv/
 .venv/
 venv_py310/
+venv/
+*.egg-info/
+
+# Data (not for deployment)
+data/raw/
+data/processed/
+
+# Experiments
+experiments/
+signals/
+
+# Docs & IDE
 notebooks/
 reports/
-logs/
-tests/
 *.md
+.idea/
+.vscode/
 .DS_Store
-signals/
-data/raw/
-experiments/weekly/weekly_bull_v29_*
-experiments/weekly/weekly_bull_v28_*
-experiments/weekly/weekly_bull_v17_*
-experiments/weekly/weekly_bull_v8b_*
-experiments/weekly/weekly_bull_v6_*
-experiments/weekly/weekly_bull_v5_*
-experiments/weekly/weekly_bull_v4_*
-experiments/weekly/weekly_bull_v3_*
-experiments/weekly/weekly_bull_v9_*
-experiments/weekly/weekly_bull_v25_*
-experiments/weekly/weekly_bull_model_*
-experiments/weekly/weekly_bear_v8b_*
-experiments/weekly/weekly_bear_v6_*
-experiments/weekly/weekly_bear_v5_*
-experiments/weekly/weekly_bear_model_*
-experiments/baseline/
+
+# Archive
+deploy/archive/
