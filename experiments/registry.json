@@ -1076,5 +1076,119 @@
       "cohen_kappa": 0.6824853002453817
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0305_E1_decontam_run1",
+    "name": "v0305_E1_decontam",
+    "description": "v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "directional_filtered"
+    ],
+    "created_at": "2026-03-08T12:13:47.797354",
+    "status": "completed",
+    "duration_seconds": 43.81,
+    "git_commit": "785ba4b",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8732993197278912,
+      "f1_binary": 0.41415465268676277,
+      "precision_binary": 0.39598997493734334,
+      "recall_binary": 0.4340659340659341,
+      "cohen_kappa": 0.3432908912830558
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0305_E8_touch_label_run1",
+    "name": "v0305_E8_touch_label",
+    "description": "v0305 E8: touch_filtered 标签 (路径依赖, 对标 E1 参数)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "label_alignment"
+    ],
+    "created_at": "2026-03-08T12:14:43.226669",
+    "status": "completed",
+    "duration_seconds": 40.85,
+    "git_commit": "785ba4b",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9226190476190477,
+      "f1_binary": 0.7991169977924945,
+      "precision_binary": 0.7973568281938326,
+      "recall_binary": 0.8008849557522124,
+      "cohen_kappa": 0.7511973291422939
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0308_E15_savgol_run1",
+    "name": "v0308_E15_savgol",
+    "description": "v0308 E15: 基于 E8 + Savitzky-Golay 平滑 (window=11, poly=3)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0308",
+      "savgol",
+      "smoothing",
+      "paper_2506_05764"
+    ],
+    "created_at": "2026-03-08T12:15:36.407416",
+    "status": "completed",
+    "duration_seconds": 42.32,
+    "git_commit": "785ba4b",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.905328798185941,
+      "f1_binary": 0.7767379679144385,
+      "precision_binary": 0.7634691195795007,
+      "recall_binary": 0.7904761904761904,
+      "cohen_kappa": 0.7166890506821235
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0305_E1_decontam_run2",
+    "name": "v0305_E1_decontam",
+    "description": "v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "directional_filtered"
+    ],
+    "created_at": "2026-03-08T12:16:58.559858",
+    "status": "completed",
+    "duration_seconds": 43.47,
+    "git_commit": "785ba4b",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8732993197278912,
+      "f1_binary": 0.41415465268676277,
+      "precision_binary": 0.39598997493734334,
+      "recall_binary": 0.4340659340659341,
+      "cohen_kappa": 0.3432908912830558
+    },
+    "error": null
   }
 ]
