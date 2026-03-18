@@ -135,14 +135,17 @@ if [[ "${1:-}" == "scheduler" || -z "${1:-}" ]]; then
         SCHEDULER_ACTION="create"
     fi
 
+    # 获取项目数字 ID (Cloud Run URI 需要用数字 ID)
+    PROJECT_NUMBER=$(gcloud projects describe "${PROJECT_ID}" --format="value(number)" 2>/dev/null || echo "${PROJECT_ID}")
+
     ${SCHEDULER_CMD} ${SCHEDULER_ACTION} http "${SCHEDULER_NAME}" \
         --location="${REGION}" \
         --project="${PROJECT_ID}" \
-        --uri="https://${REGION}-run.googleapis.com/apis/run/v1/namespaces/${PROJECT_ID}/jobs/${JOB_NAME}:run" \
+        --uri="https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${PROJECT_NUMBER}/jobs/${JOB_NAME}:run" \
         --schedule="5 0 * * *" \
         --time-zone="UTC" \
         --http-method=POST \
-        --oauth-service-account-email="${SA_EMAIL:-${PROJECT_ID}@appspot.gserviceaccount.com}" \
+        --oauth-service-account-email="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
         --quiet
 
     echo "✅ 调度器: ${SCHEDULER_NAME} (每天 UTC 00:05)"
