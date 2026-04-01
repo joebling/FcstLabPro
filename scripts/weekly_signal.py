@@ -76,11 +76,9 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
-# ── 默认模型路径 (v0218: Orion-BiX + 三重MA过滤) ──
-# 注意: 使用 weekly_bull_v27_orion_final (有 model.joblib)
-# v0218 策略通过三重MA过滤在推理后应用
-DEFAULT_BULL_DIR = "experiments/weekly/weekly_bull_v27_orion_final"
-DEFAULT_BEAR_DIR = "experiments/weekly/weekly_bear_v13_T28_fgi_20260215_134804_ff4ad7"
+# ── 默认模型路径 (v0305 生产模型) ──
+DEFAULT_BULL_DIR = "models/production/e1-conservative"
+DEFAULT_BEAR_DIR = "models/production/e8-touch"
 
 
 # ── 进程级隔离函数 ──
@@ -333,6 +331,8 @@ def compute_latest_features(config: dict, download: bool = False) -> pd.DataFram
     df = build_features(
         df,
         feature_sets=feat_cfg["sets"],
+        drop_na_method=feat_cfg.get("drop_na_method"),
+        drop_features=feat_cfg.get("drop_features"),
         smoothing=feat_cfg.get("smoothing"),
     )
     
