@@ -6,14 +6,16 @@
 
 核心能力：每日自动下载行情 → 特征工程 → 模型推理 → 信号 JSON 生成 → 邮件推送。
 
-**当前生产模型**：
+**当前生产模型**（Cloud Run Job 每日 UTC 00:05 自动触发）：
 
 | 模型 | 标签策略 | Kappa | Sharpe | MaxDD | 定位 |
 |------|----------|-------|--------|-------|------|
 | **E1** | directional_filtered (终点) | 0.343 | 0.633 | -12.7% | 🛡️ 风控优先 |
 | **E8** | touch_filtered (路径触达) | 0.751 | 0.756 | -21.4% | 💰 收益优先 |
 
-详见 [`models/production/SUMMARY.md`](models/production/SUMMARY.md)。
+> ⚠️ **不要直接对比 E1 与 E8 的 Kappa** —— touch 标签正例率约为 directional 的 2 倍，任务天然更易，Kappa 不可比；横向对比请看 PnL。详见 [`models/production/SUMMARY.md`](models/production/SUMMARY.md)。
+
+**SOTA 候选**：v0308 系列 **E16b**（touch + Savitzky-Golay 平滑仅 close, Kappa **0.7646**）在离线分类指标上超越 E8，PnL 回测尚未完成、暂未晋升生产。详见 [`experiments/weekly/SUMMARY.md`](experiments/weekly/SUMMARY.md)。
 
 ---
 
@@ -35,7 +37,7 @@
 FcstLabPro/
 ├── configs/                          # ⚙️ 实验配置
 │   ├── base.yaml                     #   默认配置
-│   └── experiments/weekly/           #   v0305/v0308 实验配置 (E1-E16)
+│   └── experiments/weekly/           #   v0305 (E1-E14) + v0308 (E15, E16a/b/c)
 │
 ├── src/                              # 📦 核心源码
 │   ├── data/                         #   数据下载 & 加载
@@ -48,31 +50,40 @@ FcstLabPro/
 │   ├── llm/                          #   LLM 信号分析增强
 │   └── utils/                        #   工具函数
 │
-├── scripts/                          # 🛠️ 命令行工具
+├── scripts/                          # 🛠️ 命令行工具 (29 个)
 │   ├── run_experiment.py             #   运行实验
 │   ├── promote_model.py              #   晋升模型到生产
-│   ├── live_signal.py                #   生产推理
+│   ├── live_signal.py                #   生产推理 (统一入口)
 │   ├── build_signal_json.py          #   信号 JSON 构建
 │   ├── send_signal_email.py          #   邮件推送
-│   ├── weekly_signal.py              #   完整信号流水线
+│   ├── enrich_llm_analysis.py        #   LLM 信号增强 (Gemini)
 │   ├── pnl_backtest_v0305.py         #   PnL 回测分析
+│   ├── sensitivity_e8.py             #   E8 敏感性扫描 (regime/cost/TP)
+│   ├── paper_trading_e1_vs_e8.py     #   E1 vs E8 双模型 paper trading
+│   ├── consensus_e1_e8.py            #   E1 + E8 共识信号实验
 │   ├── ic_analysis_corrected.py      #   IC 统计分析
-│   └── ...                           #   其他分析工具 (28个)
+│   ├── prob_calibration_analysis.py  #   概率校准分析
+│   └── ...                           #   其他分析工具 (约 17 个)
 │
 ├── deploy/                           # 🚀 部署
 │   ├── Dockerfile                    #   生产镜像 (LightGBM only, 无 torch)
-│   ├── deploy.sh                     #   Cloud Run 部署脚本
+│   ├── deploy.sh                     #   Cloud Run 一键部署 (build/deploy/scheduler)
 │   ├── docker_entrypoint.sh          #   容器入口 (MODEL_NAME 环境变量控制)
-│   └── archive/                      #   历史版本部署文件
+│   ├── run_signal.sh                 #   本地双模型一键信号脚本 (macOS)
+│   ├── com.fcstlab.signal.plist      #   macOS launchd 定时配置 (本地备份运行)
+│   └── archive/                      #   历史版本部署文件 (v0215~v0305)
 │
 ├── models/production/                # 🏭 生产模型
-│   ├── SUMMARY.md                    #   模型对比总结
-│   ├── e1-conservative/              #   E1 模型 (model.joblib + config + manifest)
-│   └── e8-touch/                     #   E8 模型
+│   ├── SUMMARY.md                    #   E1 vs E8 完整对比 (横向对比唯一权威)
+│   ├── e1-conservative/              #   E1 模型 + REPORT.md + gpt_REVIEW.md
+│   └── e8-touch/                     #   E8 模型 + REPORT.md + gpt_REVIEW.md
 │
 ├── experiments/                      # 🧪 实验产物
 │   ├── registry.json                 #   实验注册表
-│   ├── weekly/                       #   v0305 实验结果 (E1-E14)
+│   ├── weekly/                       #   实验目录 + SUMMARY.md (实验总览/SOTA)
+│   │   ├── consensus_E1_E8/          #     E1×E8 共识实验
+│   │   ├── weekly_bear_v0305_E*/     #     v0305 系列 (E1-E14)
+│   │   └── weekly_bear_v0308_E*/     #     v0308 SG 平滑系列 (E15, E16a/b/c)
 │   └── archive/                      #   历史实验归档 (tar.gz)
 │
 ├── data/                             # 📊 数据
@@ -127,8 +138,23 @@ git commit -m "promote: e1-conservative"
 
 ### 4. 部署
 
+**云端（Google Cloud Run，生产主路径）**：
+
 ```bash
-MODEL_NAME=e1-conservative ./deploy/deploy.sh
+MODEL_NAME=e1-conservative ./deploy/deploy.sh    # 一键部署 (build + deploy + scheduler)
+MODEL_NAME=e8-touch       ./deploy/deploy.sh
+```
+
+详见 [`deploy/README.md`](deploy/README.md)。
+
+**本地定时（macOS launchd，云端镜像备份）**：
+
+```bash
+# 加载定时任务（双模型串行，每日本地运行）
+launchctl load deploy/com.fcstlab.signal.plist
+
+# 手动触发一次
+bash deploy/run_signal.sh
 ```
 
 ---
@@ -150,16 +176,29 @@ Cloud Run Job (每日触发)
 
 ## 实验体系
 
-当前 v0305 系列实验 (E1-E14) 对比了不同标签策略、过滤条件和特征组合：
+### v0305 系列（E1–E14）—— 标签与过滤条件探索
 
 | 实验 | 核心变量 | 结论 |
 |------|----------|------|
-| E1 | directional_filtered + 去污染 | ✅ **生产模型** |
-| E2-E7 | 不同过滤/阈值变体 | ❌ 不如 E1 |
-| E8 | touch_filtered (路径触达) | ✅ **生产模型** |
+| E1 | directional_filtered + 去污染 | ✅ **生产模型**（风控优先） |
+| E2–E7 | 不同过滤/阈值变体 | ❌ 不如 E1 |
+| E8 | touch_filtered（路径触达） | ✅ **生产模型**（收益优先） |
 | E9 | touch + 低阈值 | ❌ 信号过多 |
-| E10-E12 | 真实资金费率 / 宏观因子 | ❌ 劣化 |
-| E13-E14 | 特征精简 | ❌ 劣化 |
+| E10–E12 | 真实资金费率 / 宏观因子 | ❌ 劣化 |
+| E13–E14 | 特征精简 | ❌ 劣化 |
+
+### v0308 系列（E15–E16）—— Savitzky-Golay 因果平滑消融
+
+灵感来源：arXiv:2506.05764v2 —— 「数据预处理比模型复杂度更重要」。
+
+| 实验 | 配置 | Kappa | 结论 |
+|------|------|-------|------|
+| E15 | SG 全列 (w=11, p=3) | 0.7167 | ❌ 平滑 volume 有害 |
+| E16a | SG 价格列 (w=7, p=2) | 0.7602 | 高 Recall |
+| **E16b** | **SG 仅 close (w=11, p=2)** | **0.7646** | ⭐ **新 SOTA（待 PnL 验证）** |
+| E16c | SG 全列 (w=21, p=3) | 0.6825 | ❌ 过度平滑 |
+
+详见 [`experiments/weekly/SUMMARY.md`](experiments/weekly/SUMMARY.md)。
 
 ---
 
@@ -180,7 +219,13 @@ Cloud Run Job (每日触发)
 
 | 文档 | 说明 |
 |------|------|
-| [`CLAUDE.md`](CLAUDE.md) | 开发操作手册 (实验规范, 部署流程, 复现验证) |
-| [`models/production/SUMMARY.md`](models/production/SUMMARY.md) | E1 vs E8 模型完整对比 |
-| [`deploy/README.md`](deploy/README.md) | 部署架构说明 |
+| [`CLAUDE.md`](CLAUDE.md) | AI/开发操作手册（实验规范、部署流程、复现验证） |
+| [`docs/specs/data_pipeline.md`](docs/specs/data_pipeline.md) | 🔥 **数据链路完整文档**（数据源/训练推理同构/生产流水线/故障回退） |
+| [`models/production/SUMMARY.md`](models/production/SUMMARY.md) | E1 vs E8 生产模型完整对比 |
+| [`models/production/e1-conservative/REPORT.md`](models/production/e1-conservative/REPORT.md) | E1 生产模型深度报告 |
+| [`models/production/e1-conservative/gpt_REVIEW.md`](models/production/e1-conservative/gpt_REVIEW.md) | E1 上线 Go/No-Go 评审 |
+| [`models/production/e8-touch/REPORT.md`](models/production/e8-touch/REPORT.md) | E8 生产模型深度报告 |
+| [`models/production/e8-touch/gpt_REVIEW.md`](models/production/e8-touch/gpt_REVIEW.md) | E8 上线 Go/No-Go 评审 |
+| [`experiments/weekly/SUMMARY.md`](experiments/weekly/SUMMARY.md) | 实验总览 + 当前 SOTA |
+| [`deploy/README.md`](deploy/README.md) | 部署架构说明（云端 + 本地） |
 | [`docs/cr_0308.md`](docs/cr_0308.md) | 代码审查报告 |

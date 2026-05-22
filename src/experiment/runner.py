@@ -246,6 +246,22 @@ def run_experiment(
             # 并行模式下 last_model 为 None
             logger.info("并行模式跳过特征重要性保存")
 
+        # 6c-bis. 特征列名快照 (按训练时的真实列序保存)
+        # 详见 docs/specs/data_pipeline.md §10 P0 技术债:
+        # model.joblib 内部只记 Column_0..N, 需额外产物保护推理时的列对齐。
+        import hashlib as _hashlib
+        _cols_payload = ",".join(feature_cols)
+        _feature_cols_doc = {
+            "version": 1,
+            "n_features": len(feature_cols),
+            "feature_cols": list(feature_cols),
+            "sha256": _hashlib.sha256(_cols_payload.encode("utf-8")).hexdigest(),
+            "generated_by": "src.experiment.runner.run_experiment",
+        }
+        with open(exp_dir / "feature_cols.json", "w") as _f:
+            json.dump(_feature_cols_doc, _f, indent=2, ensure_ascii=False)
+        logger.info(f"特征列名快照已保存: feature_cols.json ({len(feature_cols)} 列)")
+
         # 6d. 模型 (最后一个 fold)
         if bt_result.last_model is not None:
             joblib.dump(bt_result.last_model.model, exp_dir / "model.joblib")

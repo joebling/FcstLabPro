@@ -214,12 +214,17 @@ def promote(
 
     # 复制核心文件
     files_to_copy = ["model.joblib", "config.yaml", "meta.json",
-                     "metrics.json", "pnl_metrics.json"]
+                     "metrics.json", "pnl_metrics.json",
+                     # 特征列名快照与重要性 (推理时需要)
+                     "feature_cols.json", "feature_importance.csv"]
     for f in files_to_copy:
         src = exp_dir / f
         if src.exists():
             shutil.copy2(src, target_dir / f)
             print(f"  ✅ {f}")
+        elif f == "feature_cols.json":
+            # 老实验 (在 runner.py 加此产物之前跑的) 可能没有, 响亮警告
+            print(f"  ⚠️  {f} 不存于实验目录 — 推理时列序校验将被跳过 (P0 隐患)")
 
     # --- Phase 3: 生成 manifest ---
     print("\n📝 Phase 3: 生成 manifest.json")
@@ -252,6 +257,11 @@ def promote(
             "sets": config.get("features", {}).get("sets"),
             "drop_features": config.get("features", {}).get("drop_features"),
             "count": "129 (after decontamination)",
+            # feature_cols.json 的 sha256 — 加载时可交叉验证是否被篡改
+            "feature_cols_sha256": (
+                json.loads((target_dir / "feature_cols.json").read_text()).get("sha256")
+                if (target_dir / "feature_cols.json").exists() else None
+            ),
         },
         "metrics": {
             "classification": metrics,
