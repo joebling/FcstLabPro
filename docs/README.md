@@ -5,10 +5,22 @@
 ```
 docs/
 ├── README.md                 ← 本文件
+├── specs/                    ← 🔥 架构规格文档
+│   └── data_pipeline.md      ←    数据链路完整文档 (E1/E8)
+├── cr_0308*.md               ← 代码审查报告
 ├── guides/                   ← LLM Prompt 模板 & 开发指南
 ├── proposals/                ← 策略提案 & 技术讨论
 └── references/               ← 外部论文 & 学术参考
 ```
+
+## 核心架构文档
+
+| 文件 | 说明 |
+|------|------|
+| **`specs/data_pipeline.md`** | **数据链路完整文档**：数据源清单、训练 vs 推理同构、生产 8 步流水线、故障回退 |
+| `cr_0308.md` | 代码审查报告 (2026-03-08) |
+| `cr_0308_paper_comparison.md` | 与 arXiv 论文对比 |
+| `cr_0308_reusability.md` | 可复用性 / DRY 违规识别 |
 
 ## guides/ — 指南与 Prompt
 
