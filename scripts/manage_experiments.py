@@ -33,7 +33,7 @@ Usage:
     python scripts/manage_experiments.py delete <experiment_id>
 
     # 导出注册表为 CSV
-    python scripts/manage_experiments.py export --output reports/experiments.csv
+    python scripts/manage_experiments.py export --output docs/reports/experiments.csv
 """
 
 import argparse
@@ -47,7 +47,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.utils.logging import setup_logging
-from src.experiment.tracker_old import (
+from src.experiment.tracker import (
     list_experiments,
     filter_experiments,
     delete_experiment,
@@ -392,7 +392,7 @@ def main():
 
     # export
     p_export = subparsers.add_parser("export", help="导出注册表为 CSV")
-    p_export.add_argument("--output", default="reports/experiments_registry.csv", help="输出文件路径")
+    p_export.add_argument("--output", default="docs/reports/experiments_registry.csv", help="输出文件路径")
 
     args = parser.parse_args()
 

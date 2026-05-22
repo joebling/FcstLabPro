@@ -1,9 +1,14 @@
 """组合模型实验运行器."""
 
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 import json
 import logging
 import time
-from pathlib import Path
 
 import pandas as pd
 
@@ -12,7 +17,7 @@ import src.labels.reversal  # noqa: F401
 import src.labels.directional  # noqa: F401
 
 from src.data.loader import load_csv
-from src.experiment.tracker_old import create_experiment_dir, generate_experiment_id, save_meta, update_registry
+from src.experiment.tracker import create_experiment_dir, generate_experiment_id, save_meta, update_registry
 from src.evaluation.ensemble import run_ensemble_evaluation
 from src.evaluation.metrics import compute_metrics
 

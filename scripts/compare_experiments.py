@@ -20,7 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.utils.logging import setup_logging
-from src.experiment.tracker_old import (
+from src.experiment.tracker import (
     list_experiments, filter_experiments, get_experiment_dir,
     EXPERIMENTS_DIR,
 )
@@ -55,7 +55,7 @@ def main():
     parser.add_argument("--status", default="completed", help="按状态筛选 (默认: completed)")
     parser.add_argument("--all", action="store_true", help="对比所有已完成实验")
     parser.add_argument("--list", action="store_true", help="列出所有实验")
-    parser.add_argument("--output", default="reports/", help="报告输出目录")
+    parser.add_argument("--output", default="docs/reports/", help="报告输出目录")
     parser.add_argument("--log-level", default="INFO", help="日志级别")
     args = parser.parse_args()
 

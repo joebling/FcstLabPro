@@ -23,7 +23,7 @@ from src.data.loader import load_csv
 from src.data.downloader import download_binance_klines
 from src.features.builder import build_features, get_feature_columns
 from src.experiment.config import load_experiment_config
-from src.experiment.tracker_old import EXPERIMENTS_DIR
+from src.experiment.tracker import EXPERIMENTS_DIR
 
 
 def main():
