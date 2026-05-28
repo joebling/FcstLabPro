@@ -220,6 +220,27 @@ gcloud scheduler jobs delete trigger-e1-conservative --location=asia-east1
 
 ---
 
+## VPS 自建部署
+
+如果你不想依赖 Google Cloud，可以把整套流水线跑在任意 VPS 上：
+
+```bash
+# 在 VPS 上 clone 项目后，一键初始化
+bash deploy/vps/setup_vps.sh
+
+# 手动触发测试
+bash deploy/vps/run_daily.sh
+```
+
+详见 [`deploy/vps/VPS_GUIDE.md`](vps/VPS_GUIDE.md)
+
+| 方案 | 调度 | 状态持久化 | 适用场景 |
+|------|------|-----------|----------|
+| Cloud Run（默认）| Cloud Scheduler | GCS Bucket | 托管、按量付费 |
+| VPS（新）| cron | 本地 Docker 卷 | 固定月费、完全自控 |
+
+---
+
 ## archive/ 目录
 
 包含 v0215 ~ v0305 的历史部署脚本、Dockerfile、实验报告。
