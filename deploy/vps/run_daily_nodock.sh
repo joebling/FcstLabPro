@@ -35,6 +35,7 @@ set -a
 source "${ENV_FILE}"
 set +a
 
+export REPO_DIR
 export PYTHONPATH="${REPO_DIR}:${PYTHONPATH:-}"
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1

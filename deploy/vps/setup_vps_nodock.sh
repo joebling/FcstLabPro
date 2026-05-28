@@ -43,7 +43,7 @@ echo "✅ 系统依赖就绪 (Python $(python3 --version))"
 echo ""
 echo ">>> [2/4] 安装 Python 依赖..."
 python3 -m venv "${VENV_DIR}"
-"${VENV_DIR}/bin/pip" install --quiet --upgrade pip
+"${VENV_DIR}/bin/pip" install --quiet --upgrade pip setuptools wheel
 "${VENV_DIR}/bin/pip" install --quiet -r "${REPO_DIR}/requirements.txt"
 # 安装项目本身（让 src/ 可以被 import）
 "${VENV_DIR}/bin/pip" install --quiet -e "${REPO_DIR}"
