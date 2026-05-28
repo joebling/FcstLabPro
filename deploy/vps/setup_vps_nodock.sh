@@ -67,7 +67,9 @@ if [ ! -f "${ENV_FILE}" ]; then
 # FcstLabPro VPS 环境变量  —  填写后保存
 # ============================================================
 
-MODEL_NAME=e1-conservative
+# 串行运行多个模型，用英文逗号分隔。
+# 如果只想跑一个模型，也可以只保留一个值。
+MODEL_NAMES=e1-conservative,e8-touch
 STRATEGY_VARIANT=conservative
 
 SMTP_USER=your_qq@qq.com

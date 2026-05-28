@@ -76,7 +76,8 @@ nano /opt/fcstlabpro/.env
 必填：
 
 ```ini
-MODEL_NAME=e1-conservative
+# 串行运行两个模型
+MODEL_NAMES=e1-conservative,e8-touch
 STRATEGY_VARIANT=conservative
 
 SMTP_USER=your_qq@qq.com
@@ -96,7 +97,7 @@ STATE_BUCKET=
 bash deploy/vps/run_daily_nodock.sh
 ```
 
-看到 `🎉 e1-conservative 完成！` 就成功。
+看到 `🎉 全部模型完成！` 就成功。两个模型会串行运行，互不覆盖状态和信号。
 
 ---
 
@@ -109,11 +110,15 @@ bash ~/FcstLabPro/deploy/vps/run_daily_nodock.sh
 # 查看今日日志
 tail -f /opt/fcstlabpro/logs/daily_$(date +%Y%m%d).log
 
-# 查看最新信号
-ls -lt /opt/fcstlabpro/signals/ | head
+# 查看最新信号（E1）
+ls -lt /opt/fcstlabpro/signals/e1-conservative/ | head
 
-# 查看持仓状态
-cat /opt/fcstlabpro/state/signal_state.json | python3 -m json.tool
+# 查看最新信号（E8）
+ls -lt /opt/fcstlabpro/signals/e8-touch/ | head
+
+# 查看持仓状态（每个模型独立）
+cat /opt/fcstlabpro/state/e1-conservative_state.json | python3 -m json.tool
+cat /opt/fcstlabpro/state/e8-touch_state.json | python3 -m json.tool
 
 # 查看 cron
 crontab -l
@@ -136,12 +141,21 @@ bash deploy/vps/run_daily_nodock.sh
 
 ---
 
-## 切换模型
+## 配置运行模型
 
-编辑 `/opt/fcstlabpro/.env`：
+编辑 `/opt/fcstlabpro/.env`。
+
+串行运行两个模型：
 
 ```ini
-MODEL_NAME=e8-touch
+MODEL_NAMES=e1-conservative,e8-touch
+STRATEGY_VARIANT=conservative
+```
+
+只运行一个模型：
+
+```ini
+MODEL_NAMES=e1-conservative
 STRATEGY_VARIANT=conservative
 ```
 

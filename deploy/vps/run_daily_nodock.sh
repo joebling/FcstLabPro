@@ -2,8 +2,9 @@
 # =============================================================================
 # FcstLabPro VPS 每日信号运行脚本（无 Docker）
 #
-# cron 自动调用，也可手动运行:
-#   bash deploy/vps/run_daily_nodock.sh
+# 支持单模型或多模型串行：
+#   MODEL_NAME=e1-conservative
+#   MODEL_NAMES=e1-conservative,e8-touch
 # =============================================================================
 set -euo pipefail
 
@@ -11,8 +12,8 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DATA_DIR="/opt/fcstlabpro"
 VENV_PYTHON="${REPO_DIR}/.venv/bin/python"
 ENV_FILE="${DATA_DIR}/.env"
-STATE_FILE="${DATA_DIR}/state/signal_state.json"
-OUT_DIR="${DATA_DIR}/signals"
+STATE_DIR="${DATA_DIR}/state"
+SIGNALS_DIR="${DATA_DIR}/signals"
 
 echo "=============================================="
 echo "🔮 FcstLabPro 每日信号 — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
@@ -41,37 +42,38 @@ export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 
-MODEL_NAME="${MODEL_NAME:?MODEL_NAME 未在 .env 中设置}"
 STRATEGY_VARIANT="${STRATEGY_VARIANT:-conservative}"
-MODEL_DIR="${REPO_DIR}/models/production/${MODEL_NAME}"
+MODEL_LIST="${MODEL_NAMES:-${MODEL_NAME:-e1-conservative}}"
 
-mkdir -p "${OUT_DIR}"
+mkdir -p "${STATE_DIR}" "${SIGNALS_DIR}"
 
 echo ""
 echo "📊 配置:"
-echo "  模型: ${MODEL_NAME}  变体: ${STRATEGY_VARIANT}"
+echo "  模型队列: ${MODEL_LIST}"
+echo "  变体:     ${STRATEGY_VARIANT}"
 echo ""
 
-# ── Step 1: 下载数据 ────────────────────────────────────────────────────────
+# ── Step 1: 下载数据（所有模型共享，一天只下它一次，别当流量刺客）──────────────
 echo "=== Step 1: 下载数据 ==="
 "${VENV_PYTHON}" - << 'PYEOF'
+import os
 import sys
-sys.path.insert(0, __import__('os').environ['REPO_DIR'] if 'REPO_DIR' in __import__('os').environ else '.')
 from pathlib import Path
 
-Path("/tmp/fcstlabpro_data/raw").mkdir(parents=True, exist_ok=True)
+repo_dir = Path(os.environ.get("REPO_DIR", "."))
+sys.path.insert(0, str(repo_dir))
 
 try:
     from src.data.downloader import download_binance_klines
     print("📥 下载 Binance BTCUSDT 日线...")
     df = download_binance_klines(symbol="BTCUSDT", interval="1d", start="2020-01-01")
-    out = Path(__import__('os').environ.get('REPO_DIR', '.')) / "data/raw/btc_binance_BTCUSDT_1d.csv"
+    out = repo_dir / "data/raw/btc_binance_BTCUSDT_1d.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out)
     print(f"✅ 已保存: {out} ({len(df)} 行)")
 except Exception as e:
     print(f"⚠️  Binance API: {e}，尝试使用本地缓存...")
-    cache = Path(__import__('os').environ.get('REPO_DIR', '.')) / "data/raw/btc_binance_BTCUSDT_1d.csv"
+    cache = repo_dir / "data/raw/btc_binance_BTCUSDT_1d.csv"
     if not cache.exists():
         print("❌ 无缓存且 API 不可用")
         sys.exit(1)
@@ -85,57 +87,86 @@ except Exception as e:
     print(f"⚠️  FGI: {e}（跳过）")
 PYEOF
 
-# ── Step 2: 模型推理 ───────────────────────────────────────────────────────
-echo ""
-echo "=== Step 2: ${MODEL_NAME} 推理 ==="
+signal_flags_for_variant() {
+    case "${STRATEGY_VARIANT}" in
+        base)         echo "" ;;
+        moderate)     echo "--take-profit" ;;
+        conservative) echo "--take-profit --regime-switch" ;;
+        *) echo "❌ 未知 STRATEGY_VARIANT: ${STRATEGY_VARIANT}" >&2; return 1 ;;
+    esac
+}
 
-case "${STRATEGY_VARIANT}" in
-    base)         SIGNAL_FLAGS="" ;;
-    moderate)     SIGNAL_FLAGS="--take-profit" ;;
-    conservative) SIGNAL_FLAGS="--take-profit --regime-switch" ;;
-    *) echo "❌ 未知 STRATEGY_VARIANT: ${STRATEGY_VARIANT}"; exit 1 ;;
-esac
+run_model() {
+    local model_name="$1"
+    local model_dir="${REPO_DIR}/models/production/${model_name}"
+    local state_file="${STATE_DIR}/${model_name}_state.json"
+    local out_dir="${SIGNALS_DIR}/${model_name}"
+    local latest_signal=""
+    local signal_flags=""
 
-# shellcheck disable=SC2086
-"${VENV_PYTHON}" "${REPO_DIR}/scripts/live_signal.py" \
-    --model "${MODEL_DIR}/model.joblib" \
-    --config "${MODEL_DIR}/config.yaml" \
-    --state "${STATE_FILE}" \
-    ${SIGNAL_FLAGS}
+    signal_flags="$(signal_flags_for_variant)"
+    mkdir -p "${out_dir}"
 
-# ── Step 3: 生成信号 JSON ─────────────────────────────────────────────────
-echo ""
-echo "=== Step 3: 生成信号 JSON ==="
-"${VENV_PYTHON}" "${REPO_DIR}/scripts/build_signal_json.py" \
-    --model-dir "${MODEL_DIR}" \
-    --state-file "${STATE_FILE}" \
-    --variant "${STRATEGY_VARIANT}" \
-    --output-dir "${OUT_DIR}" || echo "⚠️  build_signal_json 失败，跳过"
-
-# ── Step 4: LLM 分析（可选）──────────────────────────────────────────────
-if [ -n "${GEMINI_API_KEY:-}" ]; then
     echo ""
-    echo "=== Step 4: LLM 分析 ==="
-    LATEST_SIGNAL=$(ls -t "${OUT_DIR}"/signal_*.json 2>/dev/null | head -1 || true)
-    if [ -n "${LATEST_SIGNAL}" ]; then
-        "${VENV_PYTHON}" "${REPO_DIR}/scripts/enrich_llm_analysis.py" "${LATEST_SIGNAL}" \
-            || echo "⚠️  LLM 分析失败，跳过"
-    fi
-fi
+    echo "=============================================="
+    echo "🚀 开始模型: ${model_name}"
+    echo "  状态文件: ${state_file}"
+    echo "  信号目录: ${out_dir}"
+    echo "=============================================="
 
-# ── Step 5: 发送邮件 ───────────────────────────────────────────────────────
-if [ -n "${SMTP_USER:-}" ] && [ -n "${SMTP_PASS:-}" ]; then
+    for f in "${model_dir}/model.joblib" "${model_dir}/config.yaml" "${model_dir}/manifest.json"; do
+        if [ ! -f "$f" ]; then
+            echo "❌ 缺少模型文件: $f"
+            return 1
+        fi
+    done
+
     echo ""
-    echo "=== Step 5: 发送邮件 ==="
-    LATEST_SIGNAL=$(ls -t "${OUT_DIR}"/signal_*.json 2>/dev/null | head -1 || true)
-    if [ -n "${LATEST_SIGNAL}" ]; then
-        "${VENV_PYTHON}" "${REPO_DIR}/scripts/send_signal_email.py" "${LATEST_SIGNAL}" \
-            || echo "⚠️  邮件发送失败，跳过"
+    echo "=== ${model_name}: 推理 ==="
+    # shellcheck disable=SC2086
+    "${VENV_PYTHON}" "${REPO_DIR}/scripts/live_signal.py" \
+        --model "${model_dir}/model.joblib" \
+        --config "${model_dir}/config.yaml" \
+        --state "${state_file}" \
+        ${signal_flags}
+
+    echo ""
+    echo "=== ${model_name}: 生成信号 JSON ==="
+    "${VENV_PYTHON}" "${REPO_DIR}/scripts/build_signal_json.py" \
+        --model-dir "${model_dir}" \
+        --state-file "${state_file}" \
+        --variant "${STRATEGY_VARIANT}" \
+        --output-dir "${out_dir}" || echo "⚠️  ${model_name}: build_signal_json 失败，跳过"
+
+    latest_signal=$(ls -t "${out_dir}"/signal_*.json 2>/dev/null | head -1 || true)
+
+    if [ -n "${GEMINI_API_KEY:-}" ] && [ -n "${latest_signal}" ]; then
+        echo ""
+        echo "=== ${model_name}: LLM 分析 ==="
+        "${VENV_PYTHON}" "${REPO_DIR}/scripts/enrich_llm_analysis.py" "${latest_signal}" \
+            || echo "⚠️  ${model_name}: LLM 分析失败，跳过"
     fi
-fi
+
+    if [ -n "${SMTP_USER:-}" ] && [ -n "${SMTP_PASS:-}" ] && [ -n "${latest_signal}" ]; then
+        echo ""
+        echo "=== ${model_name}: 发送邮件 ==="
+        "${VENV_PYTHON}" "${REPO_DIR}/scripts/send_signal_email.py" "${latest_signal}" \
+            || echo "⚠️  ${model_name}: 邮件发送失败，跳过"
+    fi
+
+    echo "✅ ${model_name} 完成"
+}
+
+# 逗号分隔模型列表，串行执行。
+IFS=',' read -ra MODELS <<< "${MODEL_LIST}"
+for raw_model in "${MODELS[@]}"; do
+    model="$(echo "${raw_model}" | xargs)"
+    [ -n "${model}" ] || continue
+    run_model "${model}"
+done
 
 echo ""
 echo "=============================================="
-echo "🎉 ${MODEL_NAME} 完成！— $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-echo "  信号目录: ${OUT_DIR}"
+echo "🎉 全部模型完成！— $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+echo "  信号根目录: ${SIGNALS_DIR}"
 echo "=============================================="
