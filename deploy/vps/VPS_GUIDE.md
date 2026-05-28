@@ -184,12 +184,28 @@ nc -zv smtp.qq.com 465
 
 再确认 `/opt/fcstlabpro/.env` 里的 `SMTP_PASS` 是授权码。
 
-### Binance API 不可用
+### Binance Klines API 不可用
 
-你当前 IP 已测通；如果以后换机房，先测：
+`/api/v3/ping` 只能证明健康检查可访问，不能证明市场数据 API 可用。请测真正用到的 K 线接口：
 
 ```bash
-curl -s --max-time 10 https://api.binance.com/api/v3/ping && echo OK
+curl -i --max-time 10 'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1'
+```
+
+如果主域名返回 `451`，新版 downloader 会自动尝试备用端点：
+
+```text
+https://data-api.binance.vision
+https://api1.binance.com
+https://api2.binance.com
+https://api3.binance.com
+https://api4.binance.com
+```
+
+也可以在 `/opt/fcstlabpro/.env` 中强制指定：
+
+```ini
+BINANCE_BASE_URL=https://data-api.binance.vision
 ```
 
 ---

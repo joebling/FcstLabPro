@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -10,6 +11,56 @@ import pandas as pd
 import requests
 
 logger = logging.getLogger(__name__)
+
+
+_BINANCE_KLINES_ENDPOINT = "/api/v3/klines"
+_DEFAULT_BINANCE_BASE_URLS = [
+    "https://api.binance.com",
+    "https://data-api.binance.vision",
+    "https://api1.binance.com",
+    "https://api2.binance.com",
+    "https://api3.binance.com",
+    "https://api4.binance.com",
+]
+
+
+def _binance_base_urls() -> list[str]:
+    """Return Binance base URLs with env-configurable fallback order."""
+    env_urls = []
+    for key in ("BINANCE_BASE_URL", "BINANCE_API_BASE_URL", "BINANCE_BASE_URLS"):
+        raw = os.getenv(key, "").strip()
+        if raw:
+            env_urls.extend(part.strip() for part in raw.split(",") if part.strip())
+
+    urls: list[str] = []
+    for url in [*env_urls, *_DEFAULT_BINANCE_BASE_URLS]:
+        normalized = url.rstrip("/")
+        if normalized not in urls:
+            urls.append(normalized)
+    return urls
+
+
+def _get_binance_klines(params: dict, base_urls: list[str]) -> tuple[list, str]:
+    """Fetch klines from the first Binance endpoint that works."""
+    errors: list[str] = []
+    for base_url in base_urls:
+        url = f"{base_url}{_BINANCE_KLINES_ENDPOINT}"
+        try:
+            resp = requests.get(url, params=params, timeout=30)
+            resp.raise_for_status()
+            return resp.json(), base_url
+        except requests.HTTPError as exc:
+            status = exc.response.status_code if exc.response is not None else "unknown"
+            errors.append(f"{base_url}: HTTP {status}")
+            # 451/403 常见于地域限制；继续试备用端点。
+            if status in (403, 451, 418, 429):
+                continue
+            raise
+        except requests.RequestException as exc:
+            errors.append(f"{base_url}: {exc}")
+            continue
+
+    raise requests.HTTPError("所有 Binance Klines 端点均失败: " + "; ".join(errors))
 
 
 def download_binance_klines(
@@ -39,7 +90,8 @@ def download_binance_klines(
     pd.DataFrame
         OHLCV 数据, 列名: open_time, open, high, low, close, volume
     """
-    base_url = "https://api.binance.com/api/v3/klines"
+    base_urls = _binance_base_urls()
+    active_base_url = base_urls[0]
     start_ts = int(datetime.strptime(start, "%Y-%m-%d").timestamp() * 1000)
     end_ts = int(datetime.strptime(end, "%Y-%m-%d").timestamp() * 1000) if end else None
 
@@ -57,9 +109,7 @@ def download_binance_klines(
         if end_ts:
             params["endTime"] = end_ts
 
-        resp = requests.get(base_url, params=params, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
+        data, active_base_url = _get_binance_klines(params, base_urls)
 
         if not data:
             break
