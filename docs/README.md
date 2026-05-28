@@ -5,9 +5,14 @@
 ```
 docs/
 ├── README.md                 ← 本文件
-├── specs/                    ← 🔥 架构规格文档
-│   └── data_pipeline.md      ←    数据链路完整文档 (E1/E8)
-├── cr_0308*.md               ← 代码审查报告
+├── specs/                    ← 🔥 架构规格文档 (当前状态 / 事实)
+│   ├── data_pipeline.md      ←    数据链路完整文档 (E1/E8)
+│   └── feature_dictionary.csv←    129 特征完整字典 (含公式/重要性)
+├── reviews/                  ← 代码/架构审查报告 (诊断 / 问题 snapshot)
+│   ├── cr_0308*.md           ←    v0308 代码审查系列 (3 份)
+│   └── cr_0522_feature_engineering.md ← 特征工程诊断 (7 大问题 + 缺失维度)
+├── plans/                    ← 🗺️ 改进路线图 / 行动计划
+│   └── feature_engineering_roadmap.md ← 特征改进 4-Phase Plan (含 MVRV 集成)
 ├── guides/                   ← LLM Prompt 模板 & 开发指南
 ├── proposals/                ← 策略提案 & 技术讨论
 └── references/               ← 外部论文 & 学术参考
@@ -18,9 +23,12 @@ docs/
 | 文件 | 说明 |
 |------|------|
 | **`specs/data_pipeline.md`** | **数据链路完整文档**：数据源清单、训练 vs 推理同构、生产 8 步流水线、故障回退 |
-| `cr_0308.md` | 代码审查报告 (2026-03-08) |
-| `cr_0308_paper_comparison.md` | 与 arXiv 论文对比 |
-| `cr_0308_reusability.md` | 可复用性 / DRY 违规识别 |
+| `specs/feature_dictionary.csv` | 129 特征完整字典 (Excel 可直接打开) |
+| **`reviews/cr_0522_feature_engineering.md`** | **特征工程诊断**：7 大问题按严重度排序 (P0 fake 特征 / P1 真数据未启用 / P2 冗余共线性) |
+| **`plans/feature_engineering_roadmap.md`** | **特征改进路线图**：4-Phase (清污 → 启用真数据+MVRV → 剪枝 → 长期演进) |
+| `reviews/cr_0308.md` | 代码审查报告 (2026-03-08) |
+| `reviews/cr_0308_paper_comparison.md` | 与 arXiv 论文对比 |
+| `reviews/cr_0308_reusability.md` | 可复用性 / DRY 违规识别 |
 
 ## guides/ — 指南与 Prompt
 

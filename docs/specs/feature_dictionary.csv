@@ -1,0 +1,130 @@
+﻿feature_name,category,subcategory,source_module,formula,description,importance_e1,rank_e1,pct_e1,importance_e8,rank_e8,pct_e8
+funding_rate_14,市场结构,模拟资金费率,src/features/market_structure.py,close.pct_change().rolling(14).mean() * 100,基于价格动量模拟的 14 日资金费率代理 (无外部 OI 数据时使用),79,1,5.26,166,1,11.94
+high_50d_dist,技术指标,极值距离,src/features/technical.py,(close - high.rolling(50).max()) / close,"距 50 日最高价的百分比, 0=刚创新高 / 负=回撤",32,4,2.13,84,2,6.04
+low_50d_dist,技术指标,极值距离,src/features/technical.py,(close - low.rolling(50).min()) / close,"距 50 日最低价的百分比, 衡量反弹强度",23,14,1.53,57,3,4.1
+return_3d,技术指标,收益率,src/features/technical.py,close.pct_change(3),过去 3 日累计收益率,23,14,1.53,46,4,3.31
+obv,量能,OBV,src/features/volume.py,(sign(close.diff()) * volume).cumsum(),"On-Balance Volume, 累积净成交量, 衡量资金累积/派发",33,3,2.2,31,8,2.23
+return_14d,技术指标,收益率,src/features/technical.py,close.pct_change(14),过去 14 日累计收益率,23,14,1.53,39,5,2.81
+bb_pctb_20,技术指标,布林带,src/features/technical.py,(close - bb_lower_20) / (bb_upper_20 - bb_lower_20),"价格在布林带中的相对位置, 0=下轨 / 1=上轨",16,42,1.07,39,5,2.81
+macd,技术指标,MACD,src/features/technical.py,ema_12 - ema_26,"MACD 快慢线之差, 衡量动量方向",22,18,1.47,30,10,2.16
+obv_sma_20,量能,OBV,src/features/volume.py,obv.rolling(20).mean(),"OBV 20 日均线, 用于趋势确认",29,5,1.93,23,14,1.65
+volatility_20d,技术指标,波动率,src/features/technical.py,close.pct_change().rolling(20).std(),过去 20 日日收益率标准差,43,2,2.86,6,59,0.43
+vol_volatility_10,量能,成交量波动,src/features/volume.py,volume.pct_change().rolling(10).std(),"10 日成交量波动率, 高 = 资金流动不稳定",21,23,1.4,27,11,1.94
+obv_sma_10,量能,OBV,src/features/volume.py,obv.rolling(10).mean(),"OBV 10 日均线, 用于趋势确认",21,23,1.4,24,12,1.73
+buy_pressure_ma_5,市场结构,买入压力,src/features/market_structure.py,buy_pressure.rolling(5).mean(),"买压 5 日均值, 平滑后看趋势性多/空",24,11,1.6,19,17,1.37
+cvd_ma_7,市场结构,CVD,src/features/market_structure.py,cvd.rolling(7).mean(),CVD 7 日均值,18,35,1.2,21,16,1.51
+sma_200,技术指标,简单移动平均(SMA),src/features/technical.py,close.rolling(200).mean(),过去 200 日收盘价简单算术平均，代表中长期趋势中枢,25,8,1.67,13,32,0.94
+ext_fgi_std_14,外部数据,FGI 恐惧贪婪,src/features/external.py,ext_fgi.rolling(14).std(),"FGI 14 日标准差, 情绪波动率, 高=市场分歧大",29,5,1.93,8,51,0.58
+atr_pct_21,技术指标,ATR 真实波动,src/features/technical.py,atr_21 / close,"ATR 占价格百分比, 跨币种/跨价位可比的波动指标",22,18,1.47,15,24,1.08
+return_21d,技术指标,收益率,src/features/technical.py,close.pct_change(21),过去 21 日累计收益率,13,52,0.87,24,12,1.73
+vol_volatility_20,量能,成交量波动,src/features/volume.py,volume.pct_change().rolling(20).std(),"20 日成交量波动率, 高 = 资金流动不稳定",20,27,1.33,16,22,1.15
+buy_pressure_ma_20,市场结构,买入压力,src/features/market_structure.py,buy_pressure.rolling(20).mean(),"买压 20 日均值, 平滑后看趋势性多/空",5,77,0.33,31,8,2.23
+cvd_change_7,市场结构,CVD,src/features/market_structure.py,cvd.pct_change(7),"CVD 7 日变化率, 衡量买卖力量切换速度",22,18,1.47,14,25,1.01
+vol_price_corr_10,量能,量价相关,src/features/volume.py,volume.rolling(10).corr(close),"10 日量价滚动相关系数, 正=共振上涨 / 负=背离",26,7,1.73,10,44,0.72
+high_14d_dist,技术指标,极值距离,src/features/technical.py,(close - high.rolling(14).max()) / close,"距 14 日最高价的百分比, 0=刚创新高 / 负=回撤",2,105,0.13,33,7,2.37
+cvd_change_14,市场结构,CVD,src/features/market_structure.py,cvd.pct_change(14),"CVD 14 日变化率, 衡量买卖力量切换速度",20,27,1.33,14,25,1.01
+ema_100,技术指标,指数移动平均(EMA),src/features/technical.py,close.ewm(span=100).mean(),过去 100 日指数加权均价，权重按 (1-α)^k 衰减，对近期价格更敏感,24,11,1.6,10,44,0.72
+volatility_5d,技术指标,波动率,src/features/technical.py,close.pct_change().rolling(5).std(),过去 5 日日收益率标准差,16,42,1.07,18,19,1.29
+trades_sma_20,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades.rolling(20).mean(),20 日均交易笔数 (反映参与者活跃度),22,18,1.47,12,36,0.86
+funding_rate_24,市场结构,模拟资金费率,src/features/market_structure.py,close.pct_change().rolling(24).mean() * 100,基于价格动量模拟的 24 日资金费率代理 (无外部 OI 数据时使用),22,18,1.47,12,36,0.86
+price_vs_vwap_20,量能,VWAP,src/features/volume.py,(close - vwap_20) / vwap_20,"价格偏离 20 日 VWAP 的百分比, 衡量大资金成本线偏离度",19,33,1.27,14,25,1.01
+ema_200,技术指标,指数移动平均(EMA),src/features/technical.py,close.ewm(span=200).mean(),过去 200 日指数加权均价，权重按 (1-α)^k 衰减，对近期价格更敏感,20,27,1.33,12,36,0.86
+atr_21,技术指标,ATR 真实波动,src/features/technical.py,"TR.rolling(21).mean(), TR=max(H-L, |H-C₋₁|, |L-C₋₁|)","21 日平均真实波动幅度, 绝对值, 用于止损宽度参考",15,45,1.0,17,20,1.22
+cvd_change_21,市场结构,CVD,src/features/market_structure.py,cvd.pct_change(21),"CVD 21 日变化率, 衡量买卖力量切换速度",25,8,1.67,6,59,0.43
+atr_14,技术指标,ATR 真实波动,src/features/technical.py,"TR.rolling(14).mean(), TR=max(H-L, |H-C₋₁|, |L-C₋₁|)","14 日平均真实波动幅度, 绝对值, 用于止损宽度参考",21,23,1.4,10,44,0.72
+buy_pressure_ma_10,市场结构,买入压力,src/features/market_structure.py,buy_pressure.rolling(10).mean(),"买压 10 日均值, 平滑后看趋势性多/空",17,37,1.13,14,25,1.01
+ext_fgi_price_divergence,外部数据,FGI 恐惧贪婪,src/features/external.py,ext_fgi.pct_change(7) - close.pct_change(7),"情绪与价格背离 (7d), 价格涨但情绪转空 → 潜在顶部",14,49,0.93,16,22,1.15
+volatility_10d,技术指标,波动率,src/features/technical.py,close.pct_change().rolling(10).std(),过去 10 日日收益率标准差,24,11,1.6,6,59,0.43
+low_21d_dist,技术指标,极值距离,src/features/technical.py,(close - low.rolling(21).min()) / close,"距 21 日最低价的百分比, 衡量反弹强度",17,37,1.13,13,32,0.94
+return_1d,技术指标,收益率,src/features/technical.py,close.pct_change(1),过去 1 日累计收益率,18,35,1.2,11,43,0.79
+flow_price_divergence_10,资金流,量价背离,src/features/flow.py,qv.pct_change(10) - close.pct_change(10),"10 日资金流变化 - 价格变化, 正=放量上涨/缩量下跌 (健康)",17,37,1.13,12,36,0.86
+qvol_sma_20,市场结构,USDT 成交额,src/features/market_structure.py + flow.py,quote_volume.rolling(20).mean(),20 日 USDT 计价成交额均线,23,14,1.53,6,59,0.43
+trades_sma_5,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades.rolling(5).mean(),5 日均交易笔数 (反映参与者活跃度),12,55,0.8,17,20,1.22
+bb_width_20,技术指标,布林带,src/features/technical.py,(bb_upper_20 - bb_lower_20) / sma_20,"布林带宽度, 反映波动率水平, 收窄→突破前夜",20,27,1.33,8,51,0.58
+stoch_k_14,技术指标,KD 随机,src/features/technical.py,100 * (close - low_14) / (high_14 - low_14),"14 日 K 值, [0,100], 超买/超卖振荡器",15,45,1.0,13,32,0.94
+macd_signal,技术指标,MACD,src/features/technical.py,macd.ewm(span=9).mean(),MACD 9 期 EMA 平滑信号线,13,52,0.87,14,25,1.01
+cvd_ma_21,市场结构,CVD,src/features/market_structure.py,cvd.rolling(21).mean(),CVD 21 日均值,21,23,1.4,6,59,0.43
+ext_fgi_ma30,外部数据,FGI 恐惧贪婪,src/features/external.py,ext_fgi.rolling(30).mean(),"FGI 30 日均值, 平滑情绪波动",5,77,0.33,22,15,1.58
+volume_density_sma_10,资金流,成交密度,src/features/flow.py,volume_density.rolling(10).mean(),成交密度 10 日均值 (flow 模块版),20,27,1.33,6,59,0.43
+qvol_sma_10,市场结构,USDT 成交额,src/features/market_structure.py + flow.py,quote_volume.rolling(10).mean(),10 日 USDT 计价成交额均线,25,8,1.67,1,103,0.07
+stablecoin_inflow_proxy,市场结构,稳定币流入代理,src/features/market_structure.py,-close.pct_change(7) * volume.rolling(7).mean(),价格下跌时放量 → 推测稳定币入场抄底 (无链上数据时的代理),5,77,0.33,19,17,1.37
+flow_momentum_10,资金流,资金流动量,src/features/flow.py,quote_volume.rolling(10).mean().pct_change(10),"10 日均资金流的环比变化, 衡量资金趋势加速/衰减",10,58,0.67,14,25,1.01
+price_vs_vwap_10,量能,VWAP,src/features/volume.py,(close - vwap_10) / vwap_10,"价格偏离 10 日 VWAP 的百分比, 衡量大资金成本线偏离度",19,33,1.27,5,71,0.36
+stoch_d_14,技术指标,KD 随机,src/features/technical.py,stoch_k.rolling(3).mean(),"K 值的 3 期均值平滑, 减少噪声",10,58,0.67,12,36,0.86
+flow_change_10d,资金流,资金流变化率,src/features/flow.py,quote_volume.pct_change(10),10 日成交额变化率 (USDT 计价资金流入/流出强度),20,27,1.33,2,90,0.14
+cvd_ma_14,市场结构,CVD,src/features/market_structure.py,cvd.rolling(14).mean(),CVD 14 日均值,17,37,1.13,4,74,0.29
+trades_sma_10,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades.rolling(10).mean(),10 日均交易笔数 (反映参与者活跃度),13,52,0.87,8,51,0.58
+macd_hist,技术指标,MACD,src/features/technical.py,macd - macd_signal,"MACD 柱状图 (动量加速度), 由负转正=底部信号",16,42,1.07,4,74,0.29
+cvd,市场结构,CVD,src/features/market_structure.py,(sign(close - open) * volume).cumsum(),"累积成交量差 (Cumulative Volume Delta), 净买卖压力",8,66,0.53,12,36,0.86
+flow_momentum_20,资金流,资金流动量,src/features/flow.py,quote_volume.rolling(20).mean().pct_change(20),"20 日均资金流的环比变化, 衡量资金趋势加速/衰减",15,45,1.0,5,71,0.36
+sma_cross_5_20,技术指标,均线交叉,src/features/technical.py,sma_5 - sma_20,短期 SMA5 与长期 SMA20 之差，>0 多头排列 / <0 空头排列,6,73,0.4,14,25,1.01
+avg_trade_size_ratio_5,资金流,单笔成交规模,src/features/flow.py + market_structure.py,avg_trade_size / avg_trade_size_sma_5,"当日单笔规模与 5 日均值之比, >1 大单进场",17,37,1.13,1,103,0.07
+return_5d,技术指标,收益率,src/features/technical.py,close.pct_change(5),过去 5 日累计收益率,10,58,0.67,8,51,0.58
+high_21d_dist,技术指标,极值距离,src/features/technical.py,(close - high.rolling(21).max()) / close,"距 21 日最高价的百分比, 0=刚创新高 / 负=回撤",5,77,0.33,13,32,0.94
+flow_price_divergence_20,资金流,量价背离,src/features/flow.py,qv.pct_change(20) - close.pct_change(20),"20 日资金流变化 - 价格变化, 正=放量上涨/缩量下跌 (健康)",15,45,1.0,3,82,0.22
+atr_pct_14,技术指标,ATR 真实波动,src/features/technical.py,atr_14 / close,"ATR 占价格百分比, 跨币种/跨价位可比的波动指标",9,62,0.6,9,48,0.65
+volume_density_sma_5,资金流,成交密度,src/features/flow.py,volume_density.rolling(5).mean(),成交密度 5 日均值 (flow 模块版),9,62,0.6,7,56,0.5
+qvol_sma_5,市场结构,USDT 成交额,src/features/market_structure.py + flow.py,quote_volume.rolling(5).mean(),5 日 USDT 计价成交额均线,14,49,0.93,2,90,0.14
+vol_price_corr_20,量能,量价相关,src/features/volume.py,volume.rolling(20).corr(close),"20 日量价滚动相关系数, 正=共振上涨 / 负=背离",7,69,0.47,8,51,0.58
+return_7d,技术指标,收益率,src/features/technical.py,close.pct_change(7),过去 7 日累计收益率,14,49,0.93,1,103,0.07
+vol_sma_50,量能,成交量均线,src/features/volume.py,volume.rolling(50).mean(),50 日成交量算术均值,10,58,0.67,4,74,0.29
+funding_rate_7,市场结构,模拟资金费率,src/features/market_structure.py,close.pct_change().rolling(7).mean() * 100,基于价格动量模拟的 7 日资金费率代理 (无外部 OI 数据时使用),2,105,0.13,12,36,0.86
+ext_fgi_change_7d,外部数据,FGI 恐惧贪婪,src/features/external.py,ext_fgi.pct_change(7),"FGI 7 日变化率, 衡量情绪转向速度",12,55,0.8,1,103,0.07
+low_14d_dist,技术指标,极值距离,src/features/technical.py,(close - low.rolling(14).min()) / close,"距 14 日最低价的百分比, 衡量反弹强度",4,89,0.27,9,48,0.65
+flow_momentum_5,资金流,资金流动量,src/features/flow.py,quote_volume.rolling(5).mean().pct_change(5),"5 日均资金流的环比变化, 衡量资金趋势加速/衰减",5,77,0.33,7,56,0.5
+vol_sma_20,量能,成交量均线,src/features/volume.py,volume.rolling(20).mean(),20 日成交量算术均值,2,105,0.13,10,44,0.72
+ext_fgi,外部数据,FGI 恐惧贪婪,src/features/external.py,alternative.me API → reindex(ffill),"Crypto Fear & Greed Index, [0,100], 0=极度恐惧 / 100=极度贪婪",6,73,0.4,6,59,0.43
+trades_change_5d,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades.pct_change(5),5 日交易笔数变化率,8,66,0.53,4,74,0.29
+sma_100,技术指标,简单移动平均(SMA),src/features/technical.py,close.rolling(100).mean(),过去 100 日收盘价简单算术平均，代表中长期趋势中枢,11,57,0.73,0,117,0.0
+avg_trade_size_ratio_10,资金流,单笔成交规模,src/features/flow.py + market_structure.py,avg_trade_size / avg_trade_size_sma_10,"当日单笔规模与 10 日均值之比, >1 大单进场",9,62,0.6,2,90,0.14
+vol_ratio_20,量能,成交量比率,src/features/volume.py,volume / vol_sma_20,"当日成交量与 20 日均量之比, >1 放量 / <1 缩量",8,66,0.53,3,82,0.22
+buy_pressure,市场结构,买入压力,src/features/market_structure.py,(close - low) / (high - low),K 线买入压力: 收盘越靠近最高价 → 多头掌控,9,62,0.6,2,90,0.14
+trades_ratio_5,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades / trades_sma_5,"当日笔数与 5 日均值之比, 突然放笔=情绪起伏",7,69,0.47,4,74,0.29
+vol_sma_5,量能,成交量均线,src/features/volume.py,volume.rolling(5).mean(),5 日成交量算术均值,7,69,0.47,4,74,0.29
+trades_ratio_20,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades / trades_sma_20,"当日笔数与 20 日均值之比, 突然放笔=情绪起伏",4,89,0.27,6,59,0.43
+avg_trade_size_sma_10,资金流,单笔成交规模,src/features/flow.py,(volume / trades).rolling(10).mean(),"10 日均单笔成交量 (flow 模块版, 与 _ma_ 重复)",3,95,0.2,7,56,0.5
+avg_trade_size_sma_5,资金流,单笔成交规模,src/features/flow.py,(volume / trades).rolling(5).mean(),"5 日均单笔成交量 (flow 模块版, 与 _ma_ 重复)",1,115,0.07,9,48,0.65
+sma_5,技术指标,简单移动平均(SMA),src/features/technical.py,close.rolling(5).mean(),过去 5 日收盘价简单算术平均，代表中长期趋势中枢,6,73,0.4,3,82,0.22
+ext_fgi_ma14,外部数据,FGI 恐惧贪婪,src/features/external.py,ext_fgi.rolling(14).mean(),"FGI 14 日均值, 平滑情绪波动",3,95,0.2,6,59,0.43
+vol_ratio_5,量能,成交量比率,src/features/volume.py,volume / vol_sma_5,"当日成交量与 5 日均量之比, >1 放量 / <1 缩量",3,95,0.2,6,59,0.43
+avg_trade_size_sma_20,资金流,单笔成交规模,src/features/flow.py,(volume / trades).rolling(20).mean(),"20 日均单笔成交量 (flow 模块版, 与 _ma_ 重复)",7,69,0.47,2,90,0.14
+avg_trade_size,市场结构,单笔成交规模,src/features/market_structure.py + flow.py,volume / trades,"单笔平均成交量, 高=大户主导 / 低=散户主导",6,73,0.4,3,82,0.22
+ext_fgi_ma7,外部数据,FGI 恐惧贪婪,src/features/external.py,ext_fgi.rolling(7).mean(),"FGI 7 日均值, 平滑情绪波动",3,95,0.2,6,59,0.43
+ext_fgi_change_14d,外部数据,FGI 恐惧贪婪,src/features/external.py,ext_fgi.pct_change(14),"FGI 14 日变化率, 衡量情绪转向速度",2,105,0.13,6,59,0.43
+ema_5,技术指标,指数移动平均(EMA),src/features/technical.py,close.ewm(span=5).mean(),过去 5 日指数加权均价，权重按 (1-α)^k 衰减，对近期价格更敏感,4,89,0.27,3,82,0.22
+vol_change_5d,量能,成交量变化,src/features/volume.py,volume.pct_change(5),过去 5 日成交量变化率,2,105,0.13,5,71,0.36
+trades_change_1d,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades.pct_change(1),1 日交易笔数变化率,5,77,0.33,2,90,0.14
+flow_change_1d,资金流,资金流变化率,src/features/flow.py,quote_volume.pct_change(1),1 日成交额变化率 (USDT 计价资金流入/流出强度),5,77,0.33,2,90,0.14
+avg_trade_size_ratio_20,资金流,单笔成交规模,src/features/flow.py + market_structure.py,avg_trade_size / avg_trade_size_sma_20,"当日单笔规模与 20 日均值之比, >1 大单进场",4,89,0.27,3,82,0.22
+flow_change_3d,资金流,资金流变化率,src/features/flow.py,quote_volume.pct_change(3),3 日成交额变化率 (USDT 计价资金流入/流出强度),4,89,0.27,2,90,0.14
+vol_sma_10,量能,成交量均线,src/features/volume.py,volume.rolling(10).mean(),10 日成交量算术均值,2,105,0.13,4,74,0.29
+vol_ratio_50,量能,成交量比率,src/features/volume.py,volume / vol_sma_50,"当日成交量与 50 日均量之比, >1 放量 / <1 缩量",5,77,0.33,1,103,0.07
+open_interest_14,市场结构,模拟持仓量,src/features/market_structure.py,volume.rolling(14).sum(),基于成交量累积模拟的 14 日 OI 代理,3,95,0.2,2,90,0.14
+qvol_ratio_20,市场结构,USDT 成交额,src/features/market_structure.py + flow.py,quote_volume / qvol_sma_20,当日 USDT 额与 20 日均值之比,5,77,0.33,0,117,0.0
+volume_density_ma_5,资金流,成交密度,src/features/market_structure.py,volume_density.rolling(5).mean(),"成交密度 5 日均值 (market_structure 模块版, 与 _sma_ 重复)",5,77,0.33,0,117,0.0
+trades_ratio_10,市场结构,交易笔数,src/features/market_structure.py + flow.py,trades / trades_sma_10,"当日笔数与 10 日均值之比, 突然放笔=情绪起伏",5,77,0.33,0,117,0.0
+volume_density,资金流,成交密度,src/features/flow.py + market_structure.py,volume / (high - low),"单位价格区间承接的成交量, 高=阻力强 / 低=易突破",4,89,0.27,1,103,0.07
+ema_50,技术指标,指数移动平均(EMA),src/features/technical.py,close.ewm(span=50).mean(),过去 50 日指数加权均价，权重按 (1-α)^k 衰减，对近期价格更敏感,3,95,0.2,2,90,0.14
+qvol_ratio_5,市场结构,USDT 成交额,src/features/market_structure.py + flow.py,quote_volume / qvol_sma_5,当日 USDT 额与 5 日均值之比,2,105,0.13,3,82,0.22
+open_interest_24,市场结构,模拟持仓量,src/features/market_structure.py,volume.rolling(24).sum(),基于成交量累积模拟的 24 日 OI 代理,3,95,0.2,2,90,0.14
+bb_upper_20,技术指标,布林带,src/features/technical.py,sma_20 + 2 * std_20,"布林带上轨, 价格触及通常视为短期阻力",3,95,0.2,2,90,0.14
+open_interest_7,市场结构,模拟持仓量,src/features/market_structure.py,volume.rolling(7).sum(),基于成交量累积模拟的 7 日 OI 代理,5,77,0.33,0,117,0.0
+vol_change_3d,量能,成交量变化,src/features/volume.py,volume.pct_change(3),过去 3 日成交量变化率,0,123,0.0,4,74,0.29
+vol_change_1d,量能,成交量变化,src/features/volume.py,volume.pct_change(1),过去 1 日成交量变化率,3,95,0.2,1,103,0.07
+bb_lower_20,技术指标,布林带,src/features/technical.py,sma_20 - 2 * std_20,"布林带下轨, 价格触及通常视为短期支撑",2,105,0.13,1,103,0.07
+avg_trade_size_ma_5,市场结构,单笔成交规模,src/features/market_structure.py,avg_trade_size.rolling(5).mean(),5 日均单笔成交量 (market_structure 版),1,115,0.07,2,90,0.14
+flow_change_5d,资金流,资金流变化率,src/features/flow.py,quote_volume.pct_change(5),5 日成交额变化率 (USDT 计价资金流入/流出强度),0,123,0.0,3,82,0.22
+vwap_10,量能,VWAP,src/features/volume.py,sum(typical_price * vol) / sum(vol) over 10 days,10 日成交量加权平均价 (typical=(H+L+C)/3),3,95,0.2,0,117,0.0
+sma_20,技术指标,简单移动平均(SMA),src/features/technical.py,close.rolling(20).mean(),过去 20 日收盘价简单算术平均，代表中长期趋势中枢,1,115,0.07,1,103,0.07
+ema_20,技术指标,指数移动平均(EMA),src/features/technical.py,close.ewm(span=20).mean(),过去 20 日指数加权均价，权重按 (1-α)^k 衰减，对近期价格更敏感,1,115,0.07,1,103,0.07
+sma_50,技术指标,简单移动平均(SMA),src/features/technical.py,close.rolling(50).mean(),过去 50 日收盘价简单算术平均，代表中长期趋势中枢,2,105,0.13,0,117,0.0
+sma_10,技术指标,简单移动平均(SMA),src/features/technical.py,close.rolling(10).mean(),过去 10 日收盘价简单算术平均，代表中长期趋势中枢,1,115,0.07,1,103,0.07
+vwap_20,量能,VWAP,src/features/volume.py,sum(typical_price * vol) / sum(vol) over 20 days,20 日成交量加权平均价 (typical=(H+L+C)/3),2,105,0.13,0,117,0.0
+avg_trade_size_ma_20,市场结构,单笔成交规模,src/features/market_structure.py,avg_trade_size.rolling(20).mean(),20 日均单笔成交量 (market_structure 版),1,115,0.07,1,103,0.07
+ema_10,技术指标,指数移动平均(EMA),src/features/technical.py,close.ewm(span=10).mean(),过去 10 日指数加权均价，权重按 (1-α)^k 衰减，对近期价格更敏感,0,123,0.0,1,103,0.07
+vol_ratio_10,量能,成交量比率,src/features/volume.py,volume / vol_sma_10,"当日成交量与 10 日均量之比, >1 放量 / <1 缩量",1,115,0.07,0,117,0.0
+volume_density_ma_10,资金流,成交密度,src/features/market_structure.py,volume_density.rolling(10).mean(),"成交密度 10 日均值 (market_structure 模块版, 与 _sma_ 重复)",1,115,0.07,0,117,0.0
+avg_trade_size_ma_10,市场结构,单笔成交规模,src/features/market_structure.py,avg_trade_size.rolling(10).mean(),10 日均单笔成交量 (market_structure 版),0,123,0.0,1,103,0.07
+qvol_ratio_10,市场结构,USDT 成交额,src/features/market_structure.py + flow.py,quote_volume / qvol_sma_10,当日 USDT 额与 10 日均值之比,0,123,0.0,0,117,0.0
+ext_fgi_extreme_fear,外部数据,FGI 恐惧贪婪,src/features/external.py,(ext_fgi < 25).astype(int),"极度恐惧标记 (0/1), 历史上 = 反弹机会窗口",0,123,0.0,0,117,0.0
+ext_fgi_extreme_greed,外部数据,FGI 恐惧贪婪,src/features/external.py,(ext_fgi > 75).astype(int),"极度贪婪标记 (0/1), 历史上 = 顶部风险信号",0,123,0.0,0,117,0.0
