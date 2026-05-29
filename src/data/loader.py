@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 # 必需列
 REQUIRED_COLUMNS = {"open", "high", "low", "close", "volume"}
 
+# TODO(Phase-X): load_csv 当前忽略 config 的 data.start/end (根因3, 见
+# docs/reviews/cr_0529 + baseline_snapshot/README)。修复需配合重生成 E1/E8 黄金
+# 基线 (会改变 Kappa), 故单列任务处理, 修后必须重跑 verify_reproducibility.py。
+
 
 def load_csv(path: str | Path) -> pd.DataFrame:
     """加载 CSV 数据文件并做基本校验.

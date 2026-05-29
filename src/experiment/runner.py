@@ -18,6 +18,7 @@ from src.labels.registry import get_label_strategy
 from src.evaluation.backtest import run_walk_forward
 from src.evaluation.metrics import compute_classification_report, compute_confusion_matrix
 from src.experiment.config import load_experiment_config, apply_overrides, save_config
+from src.experiment.validation import validate_experiment_config
 from src.experiment.tracker import (
     generate_experiment_id, create_experiment_dir,
     build_meta, save_meta, update_registry,
@@ -81,6 +82,9 @@ def run_experiment(
     config = load_experiment_config(config_path)
     if overrides:
         config = apply_overrides(config, overrides)
+
+    # 硬校验: Non-overlapping / purge / walk-forward / seed (机构手册 §2)
+    validate_experiment_config(config)
 
     experiment_id = generate_experiment_id(config, overwrite=overwrite)
     category = config.get("experiment", {}).get("category", "default")
