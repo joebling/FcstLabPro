@@ -10,42 +10,70 @@
 ## 0. 路线图总览
 
 ```
-本周    : Phase 1 (P0 清污)           — 0.5 天，纯重命名，0 PnL 风险
+本周    : Phase 1 (P0 清污)           — ~1 天，需重训+bootstrap+复现验证
 本月    : Phase 2 (启用真数据 + MVRV)  — 2-3 天，含训练验证
 本季度  : Phase 3 (剪枝去重)           — 0.5 天，需训练
 持续    : Phase 4 (长期演进)           — 按需推进
 ```
 
-| Phase | 目标 | 影响 | 工作量 |
-|---|---|---|---|
-| **🔴 P0 清污** | 消除 fake 特征命名误导 | 不改算法 | 0.5 天 |
-| **🟠 P1 启用真数据 + MVRV** | 引入真正独立信息维度 | 预期 Kappa ↑ | 2-3 天 |
-| **🟡 P2 剪枝去重** | 减少噪声特征 + DRY | 速度 +30%，可解释性 ↑ | 0.5 天 |
-| **🟢 P3 长期演进** | 季节性 / 真衍生品 / 跨资产 | 按月迭代 | 持续 |
+> ✅ **Phase 1 状态 (2026-05-29): 已实施并验证**。重命名完成, 新实验
+> `v0529_E1_rename` / `v0529_E8_rename` 与 production 基线 **bit-exact**
+> (predictions 逐行一致 + PnL diff=0)。详见
+> `experiments/weekly/v0529_E1_rename/PHASE1_RENAME_REVIEW.md`。
+> ⚠️ 实测推翻了原文 "0 PnL 风险/不需重训" 的说法 — 见下表与 §1。
+
+| Phase | 目标 | 影响 | 工作量 | 状态 |
+|---|---|---|---|---|
+| **🔴 P0 清污** | 消除 fake 特征命名误导 | 不改算法, 但**需重训** | ~1 天 | ✅ 完成 |
+| **🟠 P1 启用真数据 + MVRV** | 引入真正独立信息维度 | 预期 Kappa ↑ | 2-3 天 | 未开始 |
+| **🟡 P2 剪枝去重** | 减少噪声特征 + DRY | 速度 +30%，可解释性 ↑ | 0.5 天 | 未开始 |
+| **🟢 P3 长期演进** | 季节性 / 真衔生品 / 跨资产 | 按月迭代 | 持续 | 未开始 |
 
 > 💡 **核心建议**: 不要急着上 MVRV — **先做 Phase 1 清污**，避免 fake 数据继续误导决策；再做 Phase 2 启用已下载的真实数据（funding_rate / 宏观），跟 MVRV 一起作为新外部数据维度引入，对照实验隔离每一项的净贡献。
 
 ---
 
-## 1. Phase 1 — 🔴 P0 清污 (估时 0.5 天，不需重训)
+## 1. Phase 1 — 🔴 P0 清污 ✅ 已完成 (2026-05-29, 实耗 ~1 天)
 
-**目标**: 消除 [cr_0522_feature_engineering.md §2.P0-1/P0-2](../reviews/cr_0522_feature_engineering.md) 揭示的命名误导，避免未来开发者基于错误前提优化。
+**状态**: 已实施。实验 `v0529_E1_rename` / `v0529_E8_rename`, 与 production 基线 bit-exact。
+详见 `experiments/weekly/v0529_E1_rename/PHASE1_RENAME_REVIEW.md`。
 
-| # | 任务 | 文件 |
+> ⚠️ **原定义勘误 (已修正)**: 原文称本 Phase "纯重命名、0 PnL 风险、不需重训"。
+> 实测推翻: 重命名 = 改共享 feature builder, 会触发 `validate_feature_cols`
+> 守卫使 production live 推理 **当场 halt** (新名 vs joblib 旧名不匹配)。
+> 正确做法: **重训 + bootstrap feature_cols + 复现验证**, 非"零风险纯文字改动"。
+
+**实际执行记录** (遵循 `docs/ops/experiment_sop.md` Stage 0-7):
+
+| 任务 | 状态 | 说明 |
 |---|---|---|
-| P0-1 | **强制重命名**所有伪外部特征:<br>`funding_rate_*` → `price_mom_smooth_*`<br>`open_interest_*` → `volume_cumsum_*`<br>`stablecoin_inflow_proxy` → `down_volume_proxy` | `src/features/market_structure.py` |
-| P0-2 | 给 `onchain.py` + `sentiment.py` 加 module-level `DeprecationWarning`，告诫"代理特征，非真实链上数据" | `src/features/onchain.py` + `sentiment.py` |
-| P0-3 | 在 `data_pipeline.md` §2.3 加一行：「⚠️ `market_structure.funding_rate_*` 是价格代理，非真实 funding rate」 | `docs/specs/data_pipeline.md` |
-| P0-4 | 用 `bootstrap_feature_cols.py` 重新生成现有生产模型的 `feature_cols.json`，名字会跟着改 | 自动 |
+| Stage 0 复现守门 | ✅ | 改动前 E1/E8 bit-exact 绿 |
+| 重命名 market_structure.py | ✅ | 见下表映射 |
+| 新建 config v0529_E1/E8_rename | ✅ | 含 hypothesis 字段 |
+| 重训 E1/E8 | ✅ | metrics bit-exact |
+| 复现验证 + predictions 逐行 | ✅ | 3339 行全同, PnL diff=0 |
+| 识别 live halt 副作用 | ✅ | 守卫正确拦截 |
 
-**预期收益**:
-- 消除命名误导 (review 中 E8 15.3% 的"决策权基于假指标"问题在文字层面被解决)
-- 不动算法 → 0 PnL 风险
-- 为 Phase 2 引入真 MVRV / 真 funding 让出命名空间，避免真假同名共存
+**重命名映射** (已落地 `src/features/market_structure.py`):
 
-**风险与缓解**:
-- 重命名会让现有 `model.joblib` 的 `feature_names_in_` 与新 `feature_cols.json` 不匹配
-- 缓解: 重命名 + 同时跑 `bootstrap_feature_cols.py` 重新生成；live_signal 的 `validate_feature_cols` 会捕获不一致（这是 P0 守卫的设计目的）
+| 旧名 (误导) | 新名 (诚实) |
+|---|---|
+| `funding_rate_{7,14,24}` | `price_mom_smooth_{7,14,24}` |
+| `open_interest_{7,14,24}` | `volume_cumsum_{7,14,24}` |
+| `stablecoin_inflow_proxy` | `down_volume_proxy` |
+
+**收口决策 (待办)**: 当前 production 未刷新 → live 推理 halt 中。
+必须二选一: (1) 走 promotion SOP 用本实验刷新 production; 或
+(2) `git revert` 重命名 commit 让 live 恢复。不能停在中间态。
+
+### 原计划任务清单 (保留供追溯)
+
+| # | 任务 | 状态 |
+|---|---|---|
+| P0-1 | 重命名 market_structure.py 伪外部特征 | ✅ 完成 |
+| P0-2 | onchain.py + sentiment.py 加 DeprecationWarning | ⏳ 未做 (另算, 不在本次范围) |
+| P0-3 | data_pipeline.md 加说明 | ⏳ 未做 |
+| P0-4 | bootstrap feature_cols (随重训自动生成) | ✅ 新实验已生成 |
 
 ---
 
