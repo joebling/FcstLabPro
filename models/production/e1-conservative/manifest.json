@@ -134,5 +134,29 @@
     "pnl_backtested": true,
     "decontaminated": true,
     "python_version": "3.10"
+  },
+  "lifecycle": {
+    "role": "risk_control",
+    "role_desc": "风控优先 (MaxDD 更低)",
+    "status": "live",
+    "active_from": "2026-05-29",
+    "active_until": null
+  },
+  "fallback": {
+    "model_name": "e1-conservative",
+    "trigger": "feature_schema_mismatch or data_stale"
+  },
+  "validation_gates": {
+    "experiment_completed": true,
+    "non_overlapping_confirmed": true,
+    "walk_forward_confirmed": true,
+    "kappa_above_threshold": true,
+    "no_data_leakage_suspicion": true,
+    "pnl_backtested": true,
+    "decontaminated": true,
+    "execution_policy_present": true,
+    "data_manifest_present": true,
+    "reproducibility_verified": false,
+    "python_version": "3.10"
   }
 }

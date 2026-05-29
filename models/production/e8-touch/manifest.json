@@ -134,5 +134,29 @@
     "pnl_backtested": true,
     "decontaminated": true,
     "python_version": "3.10"
+  },
+  "lifecycle": {
+    "role": "return_enhancement",
+    "role_desc": "收益优先 (Return/Sharpe 更高, 回撤更大)",
+    "status": "paper",
+    "active_from": "2026-05-29",
+    "active_until": null
+  },
+  "fallback": {
+    "model_name": "e1-conservative",
+    "trigger": "feature_schema_mismatch or data_stale"
+  },
+  "validation_gates": {
+    "experiment_completed": true,
+    "non_overlapping_confirmed": true,
+    "walk_forward_confirmed": true,
+    "kappa_above_threshold": true,
+    "no_data_leakage_suspicion": false,
+    "pnl_backtested": true,
+    "decontaminated": true,
+    "execution_policy_present": true,
+    "data_manifest_present": true,
+    "reproducibility_verified": false,
+    "python_version": "3.10"
   }
 }

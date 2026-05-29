@@ -40,6 +40,14 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PRODUCTION_DIR = PROJECT_ROOT / "models" / "production"
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.serving.contracts import (  # noqa: E402
+    build_data_manifest,
+    build_execution_policy,
+    build_lifecycle,
+    build_validation_gates,
+)
 
 # =====================================================================
 # CLAUDE.md 部署前自检 (Section 5.1)
@@ -159,6 +167,8 @@ def promote(
     exp_dir: Path,
     name: str,
     variant: str = "conservative",
+    role: str = "risk_control",
+    status: str = "paper",
     gcs_path: str | None = None,
     dry_run: bool = False,
 ) -> bool:
@@ -232,10 +242,21 @@ def promote(
     meta = json.loads((exp_dir / "meta.json").read_text())
     config = __import__("yaml").safe_load((exp_dir / "config.yaml").read_text())
     model_hash = compute_model_hash(exp_dir / "model.joblib")
+    has_pnl = (exp_dir / "pnl_metrics.json").exists()
+    decontaminated = bool(config.get("features", {}).get("drop_features"))
+
+    # 特征数量从 feature_cols.json 动态读取 (不再硬编码 129)
+    feature_count = None
+    feature_cols_sha256 = None
+    if (target_dir / "feature_cols.json").exists():
+        fc = json.loads((target_dir / "feature_cols.json").read_text())
+        feature_count = fc.get("n_features")
+        feature_cols_sha256 = fc.get("sha256")
 
     manifest = {
         "name": name,
         "promoted_at": datetime.utcnow().isoformat() + "Z",
+        "lifecycle": build_lifecycle(status=status, role=role),
         "source_experiment": {
             "id": meta.get("experiment_id"),
             "path": str(exp_dir.relative_to(PROJECT_ROOT)),
@@ -256,43 +277,53 @@ def promote(
         "features": {
             "sets": config.get("features", {}).get("sets"),
             "drop_features": config.get("features", {}).get("drop_features"),
-            "count": "129 (after decontamination)",
-            # feature_cols.json 的 sha256 — 加载时可交叉验证是否被篡改
-            "feature_cols_sha256": (
-                json.loads((target_dir / "feature_cols.json").read_text()).get("sha256")
-                if (target_dir / "feature_cols.json").exists() else None
-            ),
+            "count": feature_count,
+            "feature_cols_sha256": feature_cols_sha256,
         },
         "metrics": {
             "classification": metrics,
             "pnl": json.loads((exp_dir / "pnl_metrics.json").read_text())
-                   if (exp_dir / "pnl_metrics.json").exists() else None,
+                   if has_pnl else None,
         },
         "deployment": {
             "variant": variant,
-            "cli_flags": {
-                "base": "",
-                "moderate": "--take-profit",
-                "conservative": "--take-profit --regime-switch",
-            }.get(variant, ""),
-            "docker_image": "fcstlabpro-v0305-e1",
+            "cli_flags": " ".join(
+                build_execution_policy(variant)["execution"]["cli_flags"]
+            ),
             "memory": "2Gi",
             "cpu": "2",
         },
-        "promotion_git": get_git_info(),
-        "checklist": {
-            "experiment_completed": True,
-            "kappa_above_threshold": metrics.get("cohen_kappa", 0) >= MIN_KAPPA,
-            "no_data_leakage_suspicion": metrics.get("cohen_kappa", 0) < 0.50,
-            "pnl_backtested": (exp_dir / "pnl_metrics.json").exists(),
-            "decontaminated": bool(config.get("features", {}).get("drop_features")),
-            "python_version": "3.10",
+        "fallback": {
+            "model_name": "e1-conservative",
+            "trigger": "feature_schema_mismatch or data_stale",
         },
+        "promotion_git": get_git_info(),
+        "validation_gates": build_validation_gates(metrics, has_pnl, decontaminated),
     }
 
     manifest_path = target_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
-    print(f"  ✅ manifest.json (含模型谱系、检查清单)")
+    print("  ✅ manifest.json (含 lifecycle / validation_gates / fallback)")
+
+    # --- Phase 3b: 生成 data_manifest.json + execution_policy.yaml ---
+    print("\n📝 Phase 3b: 生成数据谱系 + 执行层合同")
+    data_path = PROJECT_ROOT / config.get("data", {}).get("path", "")
+    if data_path.exists():
+        data_manifest = build_data_manifest(data_path)
+        (target_dir / "data_manifest.json").write_text(
+            json.dumps(data_manifest, indent=2, ensure_ascii=False)
+        )
+        print(f"  ✅ data_manifest.json (rows={data_manifest['raw_ohlcv']['rows']}, "
+              f"{data_manifest['raw_ohlcv']['start']}~{data_manifest['raw_ohlcv']['end']})")
+    else:
+        print(f"  ⚠️  data.path 不存在, 跳过 data_manifest: {data_path}")
+
+    exec_policy = build_execution_policy(variant)
+    import yaml as _yaml
+    (target_dir / "execution_policy.yaml").write_text(
+        _yaml.dump(exec_policy, default_flow_style=False, allow_unicode=True, sort_keys=False)
+    )
+    print("  ✅ execution_policy.yaml (成本/滑点/延迟/kill-switch — verified=false 待确认)")
 
     # --- Phase 4: GCS 上传 (可选) ---
     if gcs_path:
@@ -325,6 +356,12 @@ def main():
     parser.add_argument("--variant", default="conservative",
                         choices=["base", "moderate", "conservative"],
                         help="策略变体")
+    parser.add_argument("--role", default="risk_control",
+                        choices=["risk_control", "return_enhancement", "sota_candidate"],
+                        help="模型角色 (写入 manifest.lifecycle)")
+    parser.add_argument("--status", default="paper",
+                        choices=["live", "paper", "offline_only"],
+                        help="生命周期状态 (默认 paper, 需手动改 active.yaml 才 live)")
     parser.add_argument("--gcs", default=None, help="GCS 上传路径")
     parser.add_argument("--dry-run", action="store_true", help="只检查不复制")
     args = parser.parse_args()
@@ -341,6 +378,8 @@ def main():
         exp_dir=exp_dir,
         name=args.name,
         variant=args.variant,
+        role=args.role,
+        status=args.status,
         gcs_path=args.gcs,
         dry_run=args.dry_run,
     )

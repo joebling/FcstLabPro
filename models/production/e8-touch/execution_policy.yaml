@@ -1,0 +1,18 @@
+_note: 执行层合同 — 数值为默认假设, 上线前人工确认后将 verified 改 true
+verified: false
+execution:
+  signal_time: daily_close
+  execution_time: next_open
+  instrument: spot
+  fee_bps: 10
+  slippage_bps: 5
+  funding_included: false
+  max_position: 1.0
+  vol_target: null
+  variant: conservative
+  cli_flags:
+  - --take-profit
+  - --regime-switch
+kill_switch:
+  max_live_drawdown: 0.15
+  max_consecutive_losses: 5

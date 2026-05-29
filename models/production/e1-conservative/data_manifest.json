@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-05-29T02:07:52.388719+00:00",
+  "raw_ohlcv": {
+    "path": "data/raw/btc_binance_BTCUSDT_1d.csv",
+    "sha256": "e656054acd0303057799e2a76ed062cca09adf0ad23526afc67c286f2c073997",
+    "rows": 2340,
+    "start": "2020-01-01",
+    "end": "2026-05-28"
+  },
+  "external_sources": {
+    "fear_greed_index": {
+      "status": "embedded_in_pipeline",
+      "verified": false
+    }
+  },
+  "freshness_sla_days": 1
+}
