@@ -1,30 +1,30 @@
 {
-  "experiment_id": "weekly_bear_v0305_E8_touch_label",
-  "name": "weekly_bear_v0305_E8_touch_label",
-  "description": "v0305 E8: touch_filtered 标签 (路径依赖, 对标 E1 参数)",
+  "experiment_id": "v0529_E8_rename",
+  "name": "v0529_E8_rename",
+  "description": "v0529 E8: market_structure 伪外部特征重命名 (Phase1 清污, 纯重命名不改算法)",
   "tags": [
     "weekly",
     "bear",
-    "v0305",
-    "touch_label",
+    "v0529",
+    "phase1",
     "decontamination",
-    "label_alignment"
+    "rename"
   ],
   "category": "weekly",
-  "created_at": "2026-03-05T03:01:53.942532",
+  "created_at": "2026-05-29T07:01:59.202656",
   "git": {
-    "commit": "7e2c901",
-    "branch": "main",
+    "commit": "6731ab4",
+    "branch": "feat/model-governance-overhaul",
     "dirty": true
   },
   "seed": 42,
   "status": "completed",
-  "duration_seconds": 35.85,
+  "duration_seconds": 31.33,
   "aggregate_metrics": {
-    "accuracy": 0.9226190476190477,
-    "f1_binary": 0.7991169977924945,
-    "precision_binary": 0.7973568281938326,
-    "recall_binary": 0.8008849557522124,
-    "cohen_kappa": 0.7511973291422939
+    "accuracy": 0.9284216831386642,
+    "f1_binary": 0.8006672226855713,
+    "precision_binary": 0.8163265306122449,
+    "recall_binary": 0.7855973813420621,
+    "cohen_kappa": 0.7570656864311971
   }
 }
