@@ -7,15 +7,20 @@
 **生产级模型治理 / 切版 / 训推一致性 / 运行审计** 这套制度还没成型——欠的不是算法，是
 「让模型从实验变成可长期运营资产」的工程纪律。
 
-> ✅ **实施状态 (2026-05-29)**: 本评审已在分支 `feat/model-governance-overhaul` 落地 Phase 0-4。
+> ✅ **实施状态 (2026-05-29)**: 本评审主干已在分支 `feat/model-governance-overhaul` 落地 Phase 0-4。
 > 详见 `docs/reviews/cr_0529_implementation_summary.md`。
 > 全程守住 E1/E8 bit-exact 复现性 (新增 `scripts/verify_reproducibility.py` 守门员)。
+>
+> ⚠️ **当前状态**: active.yaml / config validation / feature contract / signal ledger / SOP 已完成；
+> external data lineage 与 train-score audit 仍待方案确认。
 
 ---
 
-## 总览：欠缺清单
+## 总览：原始欠缺清单
 
-| 领域 | FcstLabPro 当前状态 | 相比 RiskDetect 欠缺 |
+> 下面是 2026-05-29 原始评审结论；最新落地状态见后文「实施状态矩阵」。
+
+| 领域 | 评审时 FcstLabPro 状态 | 相比 RiskDetect 欠缺 |
 |---|---|---|
 | 活跃模型管理 | 靠 `MODEL_NAME` 环境变量 | 缺 `active.yaml` 单一真相源 |
 | 模型角色 | E1/E8 靠文档说明 | 缺机器可读 role/lifecycle |
@@ -28,6 +33,42 @@
 | 监控 | 文档建议 | 缺每日 drift/score/signal 产物 |
 | 审计材料 | manifest/report | 缺 train-score audit 标准件 |
 | 执行层 | PnL 有但假设不硬 | 缺 execution policy 合同 |
+
+---
+
+## 实施状态矩阵 (2026-05-29)
+
+| # | 领域 | 状态 | 当前实现 | 待完成 |
+|---|---|---|---|---|
+| 1 | active.yaml | ✅ 完成 | `active_config.py` | 持续维护 |
+| 2 | shadow/live/archive | ✅ 基础完成 | `signal_ledger.py` | 云端持久化待定 |
+| 3 | 训推一致性 | 🟡 部分 | `feature_contract.py` | audit 脚本待定 |
+| 4 | 配置校验 | ✅ 完成 | `validation.py` | 可补 hypothesis |
+| 5 | promotion gate | 🟡 部分 | 安全覆盖闸门 | IC/shadow gate 待定 |
+| 6 | 模型角色生命周期 | ✅ 基础完成 | `active.yaml` + manifest | 状态流转自动化待定 |
+| 7 | serving 层 | 🟡 部分 | serving 模块已起步 | `live_signal.py` 仍偏胖 |
+| 8 | 数据 lineage | 🟡 部分 | raw/effective OHLCV | 外部源 lineage 待定 |
+| 9 | monitoring/drift | 🟡 部分 | monitoring JSON | drift/weekly report 待定 |
+| 10 | execution policy | ✅ 基础完成 | `execution_policy.yaml` | verified gate 待定 |
+| 11 | 事故防护测试 | 🟡 部分 | 新增多组测试 | freshness/audit 待定 |
+
+### 已完成主干
+
+- `models/production/active.yaml` 成为生产模型真相源。
+- `src/serving/active_config.py` 绑定 model slot / role / variant。
+- `src/experiment/validation.py` 强制 Non-overlap 与 Walk-Forward。
+- `src/serving/feature_contract.py` 收编 serving feature 校验。
+- `src/serving/contracts.py` 生成 data / execution / lifecycle 合同。
+- `src/serving/signal_ledger.py` 提供 live / shadow / archive 账本。
+- `scripts/promote_model.py` 增加覆盖生产安全闸门。
+- `docs/ops/experiment_sop.md` 与 `model_promotion_sop.md` 已补齐。
+
+### 暂缓项
+
+以下两项需要进一步确认方案后再做，不在本次更新范围内：
+
+- **B. external data lineage**: FGI / funding / macro 的 hash、freshness、fallback。
+- **C. train-score audit**: 正式审计脚本与 promotion gate 接入。
 
 ---
 
