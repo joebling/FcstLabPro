@@ -1,29 +1,30 @@
 {
-  "experiment_id": "weekly_bear_v0305_E1_decontam",
-  "name": "weekly_bear_v0305_E1_decontam",
-  "description": "v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)",
+  "experiment_id": "v0529_E1_rename",
+  "name": "v0529_E1_rename",
+  "description": "v0529 E1: market_structure 伪外部特征重命名 (Phase1 清污, 纯重命名不改算法)",
   "tags": [
     "weekly",
     "bear",
-    "v0305",
+    "v0529",
+    "phase1",
     "decontamination",
-    "directional_filtered"
+    "rename"
   ],
   "category": "weekly",
-  "created_at": "2026-03-01T10:35:07.466035",
+  "created_at": "2026-05-29T07:01:15.615938",
   "git": {
-    "commit": "693b7b1",
-    "branch": "main",
+    "commit": "6731ab4",
+    "branch": "feat/model-governance-overhaul",
     "dirty": true
   },
   "seed": 42,
   "status": "completed",
-  "duration_seconds": 37.78,
+  "duration_seconds": 33.73,
   "aggregate_metrics": {
-    "accuracy": 0.8732993197278912,
-    "f1_binary": 0.41415465268676277,
-    "precision_binary": 0.39598997493734334,
-    "recall_binary": 0.4340659340659341,
-    "cohen_kappa": 0.3432908912830558
+    "accuracy": 0.8781072177298592,
+    "f1_binary": 0.41606886657101866,
+    "precision_binary": 0.4084507042253521,
+    "recall_binary": 0.4239766081871345,
+    "cohen_kappa": 0.3480464752792446
   }
 }

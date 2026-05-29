@@ -1,16 +1,23 @@
 {
   "name": "e1-conservative",
-  "promoted_at": "2026-03-01T13:45:14.513807Z",
+  "promoted_at": "2026-05-29T07:09:49.728223Z",
+  "lifecycle": {
+    "role": "risk_control",
+    "role_desc": "风控优先 (MaxDD 更低)",
+    "status": "live",
+    "active_from": "2026-05-29",
+    "active_until": null
+  },
   "source_experiment": {
-    "id": "weekly_bear_v0305_E1_decontam",
-    "path": "experiments/weekly/weekly_bear_v0305_E1_decontam",
-    "created_at": "2026-03-01T10:35:07.466035",
-    "git_commit": "693b7b1"
+    "id": "v0529_E1_rename",
+    "path": "experiments/weekly/v0529_E1_rename",
+    "created_at": "2026-05-29T07:01:15.615938",
+    "git_commit": "6731ab4"
   },
   "model": {
     "type": "lightgbm",
-    "sha256_prefix": "4ca65e75f1df1b72",
-    "size_bytes": 195348
+    "sha256_prefix": "98c85910852e59a6",
+    "size_bytes": 197370
   },
   "strategy": {
     "label": "directional_filtered",
@@ -32,85 +39,86 @@
       "sma_cross_10_50",
       "sma_cross_50_200"
     ],
-    "count": "129 (after decontamination)"
+    "count": 129,
+    "feature_cols_sha256": "9a4967ac2a06a1987506cf9649759891254613171857345837914fe19fa17dbc"
   },
   "metrics": {
     "classification": {
-      "accuracy": 0.8732993197278912,
-      "f1_binary": 0.41415465268676277,
-      "precision_binary": 0.39598997493734334,
-      "recall_binary": 0.4340659340659341,
-      "cohen_kappa": 0.3432908912830558
+      "accuracy": 0.8781072177298592,
+      "f1_binary": 0.41606886657101866,
+      "precision_binary": 0.4084507042253521,
+      "recall_binary": 0.4239766081871345,
+      "cohen_kappa": 0.3480464752792446
     },
     "pnl": {
       "策略(无开关)": {
-        "total_return": 1.0911748609218441,
-        "cagr": 0.24741765465565768,
-        "sharpe": 0.9313596769553146,
-        "sortino": 0.9162249112914342,
-        "max_drawdown": -0.2467824458503883,
-        "calmar": 1.002573962678263,
-        "win_rate": 0.5093945720250522,
-        "profit_factor": 1.254359485206913,
-        "num_trades": 11,
-        "num_days_held": 480,
-        "avg_trade_return": 0.0018338878460091238,
-        "exposure": 0.39408866995073893
+        "total_return": 0.7280166535972934,
+        "cagr": 0.18869177385316505,
+        "sharpe": 0.7537608680977185,
+        "sortino": 0.7325467663541712,
+        "max_drawdown": -0.2613676981261802,
+        "calmar": 0.7219399153221701,
+        "win_rate": 0.5089285714285714,
+        "profit_factor": 1.2012169710609992,
+        "num_trades": 9,
+        "num_days_held": 449,
+        "avg_trade_return": 0.0015209575233381405,
+        "exposure": 0.3887445887445887
       },
       "策略(+regime开关)": {
-        "total_return": 0.6155297878543984,
-        "cagr": 0.15458544641341487,
-        "sharpe": 0.7740876297625776,
-        "sortino": 0.6186235522682066,
+        "total_return": 0.5865197846878436,
+        "cagr": 0.157029005772493,
+        "sharpe": 0.758962059067357,
+        "sortino": 0.6257644955465114,
         "max_drawdown": -0.2155026717597167,
-        "calmar": 0.7173249647028789,
-        "win_rate": 0.5067567567567568,
-        "profit_factor": 1.2778125414651058,
-        "num_trades": 23,
-        "num_days_held": 297,
-        "avg_trade_return": 0.0019611043349078397,
-        "exposure": 0.2438423645320197
+        "calmar": 0.728663846671835,
+        "win_rate": 0.5129032258064516,
+        "profit_factor": 1.2540579121062339,
+        "num_trades": 21,
+        "num_days_held": 310,
+        "avg_trade_return": 0.0018140933181457057,
+        "exposure": 0.2683982683982684
       },
       "策略(+止盈)": {
-        "total_return": 0.6879361939736515,
-        "cagr": 0.16985528760923563,
-        "sharpe": 0.7664664085091204,
-        "sortino": 0.6197784563417541,
+        "total_return": 0.4924423156090787,
+        "cagr": 0.13489227103351564,
+        "sharpe": 0.6398934642135676,
+        "sortino": 0.5052498979949417,
         "max_drawdown": -0.24678244585038808,
-        "calmar": 0.6882794561174357,
-        "win_rate": 0.5030674846625767,
-        "profit_factor": 1.256442454497587,
-        "num_trades": 14,
-        "num_days_held": 327,
-        "avg_trade_return": 0.0019513658832110467,
-        "exposure": 0.2684729064039409
+        "calmar": 0.546603995955588,
+        "win_rate": 0.5,
+        "profit_factor": 1.2140028785547596,
+        "num_trades": 13,
+        "num_days_held": 299,
+        "avg_trade_return": 0.001703930711648864,
+        "exposure": 0.25887445887445887
       },
       "策略(止盈+regime)": {
-        "total_return": 0.3667041876758683,
-        "cagr": 0.09814022740950978,
-        "sharpe": 0.6332609304284765,
-        "sortino": 0.3875608772064011,
+        "total_return": 0.36389788374084464,
+        "cagr": 0.10304543147207745,
+        "sharpe": 0.6375080205029019,
+        "sortino": 0.4021657709285793,
         "max_drawdown": -0.12660070162990616,
-        "calmar": 0.7751949724291787,
-        "win_rate": 0.48484848484848486,
-        "profit_factor": 1.3183484389534155,
-        "num_trades": 23,
-        "num_days_held": 166,
-        "avg_trade_return": 0.002330985303795545,
-        "exposure": 0.13628899835796388
+        "calmar": 0.8139404453958857,
+        "win_rate": 0.4942528735632184,
+        "profit_factor": 1.29976352083596,
+        "num_trades": 24,
+        "num_days_held": 174,
+        "avg_trade_return": 0.002210023121395221,
+        "exposure": 0.15064935064935064
       },
       "买入持有": {
-        "total_return": 3.507549997867688,
-        "cagr": 0.5702449558726956,
-        "sharpe": 1.1998176978325146,
-        "sortino": 1.8185799075729874,
+        "total_return": 3.515852551147259,
+        "cagr": 0.610308552388247,
+        "sharpe": 1.2447174098045708,
+        "sortino": 1.8865540176729634,
         "max_drawdown": -0.32022515264497736,
-        "calmar": 1.7807625389905166,
-        "win_rate": 0.5028759244042728,
-        "profit_factor": 1.1999314580043436,
+        "calmar": 1.9058732499532138,
+        "win_rate": 0.5043327556325823,
+        "profit_factor": 1.208097431608166,
         "num_trades": 0,
-        "num_days_held": 1218,
-        "avg_trade_return": 0.001534876311110221,
+        "num_days_held": 1155,
+        "avg_trade_return": 0.0016111405130848767,
         "exposure": 1.0
       }
     }
@@ -118,33 +126,17 @@
   "deployment": {
     "variant": "conservative",
     "cli_flags": "--take-profit --regime-switch",
-    "docker_image": "fcstlabpro-v0305-e1",
     "memory": "2Gi",
     "cpu": "2"
-  },
-  "promotion_git": {
-    "commit": "daf1344",
-    "branch": "main",
-    "dirty": true
-  },
-  "checklist": {
-    "experiment_completed": true,
-    "kappa_above_threshold": true,
-    "no_data_leakage_suspicion": true,
-    "pnl_backtested": true,
-    "decontaminated": true,
-    "python_version": "3.10"
-  },
-  "lifecycle": {
-    "role": "risk_control",
-    "role_desc": "风控优先 (MaxDD 更低)",
-    "status": "live",
-    "active_from": "2026-05-29",
-    "active_until": null
   },
   "fallback": {
     "model_name": "e1-conservative",
     "trigger": "feature_schema_mismatch or data_stale"
+  },
+  "promotion_git": {
+    "commit": "b46cb6b",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
   },
   "validation_gates": {
     "experiment_completed": true,
