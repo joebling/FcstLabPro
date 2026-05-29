@@ -62,9 +62,10 @@
 | `open_interest_{7,14,24}` | `volume_cumsum_{7,14,24}` |
 | `stablecoin_inflow_proxy` | `down_volume_proxy` |
 
-**收口决策 (待办)**: 当前 production 未刷新 → live 推理 halt 中。
-必须二选一: (1) 走 promotion SOP 用本实验刷新 production; 或
-(2) `git revert` 重命名 commit 让 live 恢复。不能停在中间态。
+**收口决策 (✅ 已完成 2026-05-29)**: 已走 promotion SOP 用本实验刷新 production。
+e1-conservative (hash=98c85910) + e8-touch (hash=0c965223) 均已覆盖,
+feature_cols 现为新名 (price_mom_smooth_*), live 推理 halt 已解除
+(复现守门 bit-exact, 28 tests pass)。commit 7696769 / d07fe3d。
 
 ### 原计划任务清单 (保留供追溯)
 
@@ -72,8 +73,8 @@
 |---|---|---|
 | P0-1 | 重命名 market_structure.py 伪外部特征 | ✅ 完成 |
 | P0-2 | onchain.py + sentiment.py 加 DeprecationWarning | ⏳ 未做 (另算, 不在本次范围) |
-| P0-3 | data_pipeline.md 加说明 | ⏳ 未做 |
-| P0-4 | bootstrap feature_cols (随重训自动生成) | ✅ 新实验已生成 |
+| P0-3 | data_pipeline.md 加说明 | ✅ 已有 (§2.4 名称地雷; 例子用旧名, 可顺手更新) |
+| P0-4 | bootstrap feature_cols (随重训自动生成) | ✅ 新实验已生成 + production 已刷新 |
 
 ---
 
