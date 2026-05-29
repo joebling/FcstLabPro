@@ -40,6 +40,34 @@ data_freshness:
 
 ---
 
+## 2.5 数据保存路径 (单一来源)
+
+下载的数据落到项目内固定路径，**下载 / 特征 / 校验三方读的是同一份文件**：
+
+| 数据 | 保存路径 | 写入者 | 读取者 |
+|------|----------|--------|--------|
+| OHLCV | `data/raw/btc_binance_BTCUSDT_1d.csv` | downloader | features + freshness gate |
+| FGI | `data/external/fear_greed_index.csv` | `src/data/external.py` | `src/features/external.py` + freshness gate |
+
+FGI 路径在 `src/data/external.py` 写死 (按文件位置算 PROJECT_ROOT，与 cwd 无关)：
+
+```python
+CACHE_DIR = PROJECT_ROOT / "data" / "external"
+cache_path = CACHE_DIR / "fear_greed_index.csv"
+```
+
+pipeline 与 freshness gate 的常量都指向同一处，闭环对齐：
+
+```python
+# run_production_pipeline.py / src/serving/data_freshness.py
+FGI_PATH = PROJECT_ROOT / "data" / "external" / "fear_greed_index.csv"
+```
+
+> ⚠️ `download_fear_greed_index(cache=True)` 默认吃 12h 缓存; pipeline 的
+> download_fgi stage 传 `cache=False` 强制刷新, 不会被旧缓存骗过 freshness gate。
+
+---
+
 ## 3. 常用命令
 
 ```bash

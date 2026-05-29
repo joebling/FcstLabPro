@@ -81,10 +81,28 @@ except Exception as e:
 
 try:
     from src.data.external import download_fear_greed_index
-    fgi = download_fear_greed_index(cache=True)
+    # cache=False: 强制刷新, 不吃 12h 缓存 (防止用旧 FGI 蒙混过 freshness gate)
+    fgi = download_fear_greed_index(cache=False)
     print(f"✅ FGI: {len(fgi)} 行")
 except Exception as e:
-    print(f"⚠️  FGI: {e}（跳过）")
+    # 决策 A: FGI 不能静默跳过。下载彻底失败且无缓存 → 后续 freshness gate 会 fatal。
+    print(f"⚠️  FGI 下载异常: {e}（交由 Step 1.5 校验判定）")
+PYEOF
+
+# ── Step 1.5: 数据新鲜度强校验 (决策 A — 缺失/过期一律 fatal)─────────────
+echo ""
+echo "=== Step 1.5: 数据新鲜度校验 (决策 A) ==="
+"${VENV_PYTHON}" - << 'PYEOF'
+import os
+import sys
+sys.path.insert(0, os.environ["REPO_DIR"])
+from src.serving.data_freshness import check_all, DataFreshnessError
+try:
+    for r in check_all(require_fgi=True):
+        print(f"✅ {r.source}: stale={r.stale_days}d / SLA={r.sla_days}d ({r.end})")
+except DataFreshnessError as e:
+    print(f"❌ 数据校验失败 (决策 A, 拒绝出信号): {e}")
+    sys.exit(1)
 PYEOF
 
 signal_flags_for_variant() {
