@@ -16,19 +16,19 @@
 
 ## 🚨 Phase 0 最大发现：复现性基线本来就是坏的
 
-开工第一步重跑 E1，**Kappa 从 0.3433 漂到 0.3669**。挖出三个叠加根因：
+开工第一步重跑 E1 发现 Kappa 漂移。后续复核确认，**直接根因是数据窗口没有被正确锁住**：
 
 | # | 根因 | 状态 |
 |---|------|------|
-| 1 | 依赖无 lockfile (全 `>=` 下限锁), 环境从 Py3.10+LGBM4.3 漂到 Py3.9+LGBM4.6 | ✅ 已锁 |
-| 2 | `data/raw` CSV 被 git-tracked 且被 append 了未来数据 (2241→2341 行) | ✅ 已冻结快照 |
-| 3 | `src/data/loader.py` 忽略 config 的 `data.start/end`, 多余数据直接进训练 | ⏸️ 记 TODO (修复会改基线, 留单独任务) |
+| 1 | `data/raw` CSV 被 git-tracked 且被 append 了新数据 (2240→2340 行) | ✅ 已冻结快照 |
+| 2 | `src/data/loader.py` 曾忽略 config 的 `data.start/end`, 多余数据直接进训练 | ✅ 已修复 |
+| 3 | 依赖无 lockfile (全 `>=` 下限锁) 是复现治理风险，但固定数据窗口后 Py3.9+LGBM4.6 与 Py3.10+LGBM4.3 对 E1/E8 指标 bit-exact | ✅ 防御性锁定 |
 
-> 这印证了评审的核心论点：CLAUDE.md 吹的「bit-exact 已验证」在当时环境下**实际已失效**，
-> 只是没人重跑过。这正是 v0301 事故的温床。
+> 这印证了评审的核心论点：CLAUDE.md 吹的「bit-exact 已验证」在当时流程下**实际已失效**，
+> 只是没人重跑过。复核后不要甩锅给 LightGBM：本次直接元凶是 data boundary contract。
 
 **交付物**:
-- `requirements.lock.txt` — 锁定 Py3.10 + LightGBM 4.3.0 + numpy 1.26.4 + sklearn 1.4.1
+- `requirements.lock.txt` — 防御性锁定 Py3.10 + LightGBM 4.3.0 + numpy 1.26.4 + sklearn 1.4.1
 - `baseline_snapshot/` — 冻结基线数据 (sha256) + E1/E8 黄金 metrics
 - `scripts/verify_reproducibility.py` — 一键 bit-exact 对账守门员 (后续每个 Phase 都靠它)
 

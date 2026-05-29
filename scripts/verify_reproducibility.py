@@ -4,13 +4,17 @@
 这是 Phase 0 的核心守门员: 任何重构 / 代码修改后, 跑这个脚本确认
 生产模型数值未漂移 (bit-exact)。
 
-背景 (2026-05-29 发现的三重漂移根因):
-  1. 依赖未锁版本 — Py3.10→3.9, LightGBM→4.6 导致 Kappa 漂移
-  2. 数据文件被更新 — data/raw 的 CSV 含了基线之后的未来数据
-  3. loader 曾忽略 config 的 data.start/end — 已修复, 现在基线按 end=2025-12-31 截断
+背景 (2026-05-29 发现并复核的漂移根因):
+  1. 数据文件被更新 — data/raw 的 CSV 含了基线之后的新数据
+  2. loader 曾忽略 config 的 data.start/end — 已修复, 现在基线按 end=2025-12-31 截断
+
+环境复核结论:
+  * 固定数据窗口后, 当前 Py3.9+LightGBM 4.6 与锁定 Py3.10+LightGBM 4.3
+    对 E1/E8 指标 bit-exact；本次直接根因不是 LightGBM/Python 版本。
+  * requirements.lock.txt 仍用于防御性复现治理, 避免未来库行为变化。
 
 解决方案 (本脚本强制执行):
-  * 用 requirements.lock.txt 锁定的环境 (Py3.10 + LightGBM 4.3.0)
+  * 使用 requirements.lock.txt 推荐环境
   * 用 baseline_snapshot/ 里冻结的基线数据 + config 的 data.start/end 边界
   * 与 baseline_snapshot/{model}/metrics.json 逐 key 对账
 

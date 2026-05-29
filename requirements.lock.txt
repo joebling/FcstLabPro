@@ -3,10 +3,15 @@
 #
 # 用途: 锁定能 bit-exact 复现 E1/E8 生产基线的依赖版本。
 #
-# 背景 (2026-05-29): 发现 E1 Kappa 从 0.3433 漂到 0.3669, 根因是
-#   1) 依赖只有 >= 下限锁, 无 lockfile → 环境一升级就漂
-#   2) 跑成了 Py3.9 + LightGBM 4.6 (基线是 Py3.10 + LightGBM 4.3)
-# 用本文件锁定的版本 + baseline_snapshot/ 的冻结数据 = bit-exact 复现。
+# 背景 (2026-05-29): 曾发现 E1 Kappa 漂移；复核后确认直接根因是
+#   1) data/raw 活动 CSV 被 append 了新数据
+#   2) 旧 loader 未执行 config.data.start/end, 导致训练窗口扩大
+#
+# 依赖锁的定位: 防御性复现治理。已实测在固定数据窗口后，当前 Py3.9+
+# LightGBM 4.6 与本锁文件 Py3.10+LightGBM 4.3 对 E1/E8 指标 bit-exact。
+# 但生产/研究仍使用本锁文件，避免未来库行为变化引入隐性漂移。
+#
+# 用本文件锁定的版本 + baseline_snapshot/ 冻结数据 + config 数据边界 = bit-exact 复现。
 #
 # 安装:
 #   uv venv --python 3.10 .venv

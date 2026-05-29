@@ -5,16 +5,19 @@
 
 ## 为什么需要它
 
-2026-05-29 重构前做复现检查时发现 E1 Kappa 从 `0.3433` 漂到 `0.3669`。
-根因有三个叠加：
+2026-05-29 重构前做复现检查时发现 E1 Kappa 漂移。复核后确认，
+本次直接根因是 **数据窗口没有被正确锁住**：
 
-1. **依赖未锁版本** — `requirements.txt` 全是 `>=` 下限锁，环境一升级就漂。
-2. **数据被更新** — `data/raw/btc_binance_BTCUSDT_1d.csv` 是 git-tracked 的活动文件，
+1. **数据被更新** — `data/raw/btc_binance_BTCUSDT_1d.csv` 是 git-tracked 的活动文件，
    基线之后被 append 了未来数据（2240 行 → 2340 行）。
-3. **loader 曾忽略 config 的 `data.start/end`** — 已于 2026-05-29 修复：
+2. **loader 曾忽略 config 的 `data.start/end`** — 已于 2026-05-29 修复：
    `runner.py` / `pnl_backtest_v0305.py` 现在都会把 config 的 `data.start/end` 传给 `load_csv()`。
 
-所以「复现」必须同时冻结 **依赖版本** + **数据边界**，缺一不可。
+环境版本也需要治理，但不是本次漂移的直接元凶：固定数据窗口后，已实测
+Py3.9 + LightGBM 4.6 与锁定的 Py3.10 + LightGBM 4.3 对 E1/E8 指标 bit-exact。
+`requirements.lock.txt` 仍保留为防御性复现锁，避免未来库行为变化带来隐性漂移。
+
+所以「复现」必须同时冻结 **数据边界** + **推荐依赖版本**，缺一不可。
 
 ## 内容
 
@@ -30,8 +33,8 @@
 
 ## 复现条件 (三者缺一不可)
 
-1. **环境**: `requirements.lock.txt` (Py3.10 + LightGBM 4.3.0 + numpy 1.26.4 + sklearn 1.4.1)
-2. **数据**: 本目录的 `btc_baseline_693b7b1.csv` + config 的 `data.start/end` 过滤 (有效窗口截至 2025-12-31)
+1. **数据**: 本目录的 `btc_baseline_693b7b1.csv` + config 的 `data.start/end` 过滤 (有效窗口截至 2025-12-31)
+2. **环境**: 推荐使用 `requirements.lock.txt` (Py3.10 + LightGBM 4.3.0 + numpy 1.26.4 + sklearn 1.4.1)，作为防御性锁定
 3. **种子**: `seed=42` (config 内固定)
 
 ## 用法
