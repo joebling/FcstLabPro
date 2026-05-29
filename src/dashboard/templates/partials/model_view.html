@@ -1,0 +1,115 @@
+{# 模型视图 fragment — KPI + 批次表 + 趋势图. 整页和 HTMX 切换共用. #}
+
+{% set s = summary %}
+
+{# ── stale 警示 banner (诚实优于好看) ── #}
+{% if batches.stale %}
+<div class="mb-4 rounded-md border-l-4 px-4 py-2 text-sm"
+     style="background:#fef3c7; border-color:#995213; color:#995213;">
+  {% if batches.reason == 'no_data' %}
+    ⚠️ 该模型暂无 performance 数据 — 请运行 build_performance.py。
+  {% elif batches.reason == 'corrupt' %}
+    ⚠️ batches.json 损坏，无法解析。
+  {% else %}
+    ⚠️ 数据已 {{ batches.generated_age_hours }} 小时未更新（日更预期 ≤26h），可能 cron 未运行。
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── KPI 卡片行 ── #}
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+  {% macro kpi(label, value, sub, color="text-wmblue") %}
+  <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4 text-center">
+    <div class="text-2xl font-bold {{ color }}">{{ value if value is not none else '—' }}</div>
+    <div class="text-xs text-slate-500 mt-1 font-medium">{{ label }}</div>
+    {% if sub %}<div class="text-xs text-slate-400 mt-0.5">{{ sub }}</div>{% endif %}
+  </div>
+  {% endmacro %}
+
+  {{ kpi("总信号", s.get('n_total', '—'), (s.get('n_pending', 0)|string) ~ " 待定") }}
+  {{ kpi("已成熟", s.get('n_mature', '—'), "可评判对错") }}
+  {{ kpi("命中率",
+         (s.get('hit_rate')|string ~ "%") if s.get('hit_rate') is not none else "—",
+         (s.get('n_bets', 0)|string) ~ " 笔下注",
+         "text-wmgreen" if (s.get('hit_rate') or 0) >= 55
+         else ("text-wmwarn" if (s.get('hit_rate') or 0) >= 45 else "text-wmred")) }}
+  {{ kpi("平均实现收益",
+         (s.get('avg_realized_return')|string ~ "%") if s.get('avg_realized_return') is not none else "—",
+         "T 天持有",
+         "text-wmgreen" if (s.get('avg_realized_return') or 0) > 0 else "text-wmred") }}
+  {{ kpi("Rank IC",
+         s.get('rank_ic', '—'),
+         "≥0.02 有价值",
+         "text-wmgreen" if (s.get('rank_ic') or 0) >= 0.02
+         else ("text-slate-500" if (s.get('rank_ic') or 0) >= 0 else "text-wmred")) }}
+</div>
+
+{# ── Score Batch Detail 表 (对标 RiskDetect) ── #}
+{% set rows = batches.rows %}
+{% set _rets = rows | selectattr('avg_realized_return', 'ne', none)
+                    | map(attribute='avg_realized_return') | map('abs') | list %}
+{% set mx_ret = (_rets | max) if _rets else 0 %}
+
+<div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-sm font-semibold text-slate-700">Score Batch Detail (Last 30)</h3>
+    <span class="text-xs text-slate-400">{{ rows | length }} 批次</span>
+  </div>
+
+  <div class="overflow-x-auto" style="max-height:55vh">
+    <table class="w-full text-xs">
+      <thead>
+        <tr class="text-slate-600 border-b text-right bg-slate-50 sticky top-0">
+          <th class="py-2 px-2 text-left font-semibold">Score Date</th>
+          <th class="py-2 px-2 font-semibold">信号数</th>
+          <th class="py-2 px-2 font-semibold">BUY</th>
+          <th class="py-2 px-2 font-semibold">SILENT</th>
+          <th class="py-2 px-2 font-semibold text-wmgreen"
+              title="该批次 BUY 信号涨的比例 (成熟后)">命中率</th>
+          <th class="py-2 px-2 font-semibold"
+              title="T 天持有的平均实现收益; 条形∝绝对值">实现收益</th>
+          <th class="py-2 px-2 font-semibold text-left">Model Hash</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="border-b last:border-0 hover:bg-slate-50 text-right">
+          <td class="py-1.5 px-2 font-mono text-left">{{ r.score_date }}</td>
+          <td class="py-1.5 px-2">{{ r.n_signals }}</td>
+          <td class="py-1.5 px-2 font-semibold text-wmblue">{{ r.n_buy }}</td>
+          <td class="py-1.5 px-2 text-slate-400">{{ r.n_silent }}</td>
+
+          {# 命中率: 三态 ⏳/—/彩色 #}
+          {% if r.status == 'PENDING' %}
+          <td class="py-1.5 px-2 text-center text-slate-400"
+              title="标签未成熟 (信号距今 < T+1 天)">⏳</td>
+          {% elif r.hit_rate is none %}
+          <td class="py-1.5 px-2 text-center text-slate-400"
+              title="本批无 BUY 信号 (无下注)">—</td>
+          {% else %}
+          <td class="py-1.5 px-2 font-semibold
+              {{ 'text-wmgreen' if r.hit_rate >= 55 else ('text-wmwarn' if r.hit_rate >= 45 else 'text-wmred') }}">
+            {{ r.hit_rate }}%</td>
+          {% endif %}
+
+          {# 实现收益: data bar + 三态 #}
+          {% if r.status == 'PENDING' %}
+          <td class="py-1.5 px-2 text-center text-slate-400">⏳</td>
+          {% elif r.avg_realized_return is none %}
+          <td class="py-1.5 px-2 text-center text-slate-400">—</td>
+          {% else %}
+          <td class="py-1.5 px-2 rd-bar {{ 'text-wmgreen' if r.avg_realized_return > 0 else 'text-wmred' }}"
+              style="--bar:{{ ((r.avg_realized_return|abs / mx_ret * 100) | round(0,'floor')) if mx_ret else 0 }}%;
+                     --bar-color:{{ '#bbf7d0' if r.avg_realized_return > 0 else '#fecaca' }};">
+            {{ '%+.2f'|format(r.avg_realized_return) }}%</td>
+          {% endif %}
+
+          <td class="py-1.5 px-2 font-mono text-slate-400 text-left">{{ r.model_hash[:8] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="py-6 text-center text-slate-500">无数据</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

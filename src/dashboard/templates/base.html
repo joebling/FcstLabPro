@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}FcstLabPro Performance{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/app.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: {
+        wmblue: '#0053e2', wmspark: '#ffc220',
+        wmred: '#ea1100', wmgreen: '#2a8703', wmwarn: '#995213',
+      }}}
+    };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="text-lg font-bold text-wmblue">📊 FcstLabPro Performance</h1>
+      <span class="text-xs text-slate-400">信号实现结果追踪</span>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="max-w-6xl mx-auto px-4 py-6 text-xs text-slate-400 text-center">
+    数据来自 performance 层回填闭环 · 只读展示 · 执行假设 t+1 open / t+T close
+  </footer>
+</body>
+</html>

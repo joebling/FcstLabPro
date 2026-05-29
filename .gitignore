@@ -47,6 +47,7 @@ logs/
 signals/
 data/signals/
 data/live/monitoring/
+data/live/performance/
 
 # Environment / Secrets
 .env
