@@ -78,7 +78,7 @@ def client(monkeypatch):
 def test_index_renders(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert "Score Batch Detail" in r.text
+    assert "信号实现明细" in r.text
     assert "modelA" in r.text
     assert "⏳" in r.text          # PENDING 三态
 
@@ -86,5 +86,5 @@ def test_index_renders(client):
 def test_partial_model_switch(client):
     r = client.get("/partial/model?model=modelB")
     assert r.status_code == 200
-    assert "Score Batch Detail" in r.text
+    assert "信号实现明细" in r.text
     assert "<html" not in r.text   # partial 不含整页骨架
