@@ -12,23 +12,23 @@ logger = logging.getLogger(__name__)
 # 必需列
 REQUIRED_COLUMNS = {"open", "high", "low", "close", "volume"}
 
-# TODO(Phase-X): load_csv 当前忽略 config 的 data.start/end (根因3, 见
-# docs/reviews/cr_0529 + baseline_snapshot/README)。修复需配合重生成 E1/E8 黄金
-# 基线 (会改变 Kappa), 故单列任务处理, 修后必须重跑 verify_reproducibility.py。
 
-
-def load_csv(path: str | Path) -> pd.DataFrame:
+def load_csv(
+    path: str | Path,
+    *,
+    start: str | None = None,
+    end: str | None = None,
+) -> pd.DataFrame:
     """加载 CSV 数据文件并做基本校验.
 
     Parameters
     ----------
     path : str | Path
         CSV 文件路径
-
-    Returns
-    -------
-    pd.DataFrame
-        校验通过的 OHLCV 数据，index 为 DatetimeIndex
+    start : str | None
+        起始日期 (含, 如 '2018-01-01'); None 不过滤
+    end : str | None
+        结束日期 (含, 如 '2025-12-31'); None 不过滤
     """
     path = Path(path)
     if not path.exists():
@@ -55,6 +55,14 @@ def load_csv(path: str | Path) -> pd.DataFrame:
     if n_dup > 0:
         logger.warning(f"发现 {n_dup} 个重复日期，已去重")
         df = df[~df.index.duplicated(keep="last")]
+
+    # 日期过滤 (含边界) — 修复根因3: 之前 config 的 start/end 被忽略
+    if start is not None:
+        df = df[df.index >= pd.to_datetime(start)]
+    if end is not None:
+        df = df[df.index <= pd.to_datetime(end)]
+    if len(df) == 0:
+        raise ValueError(f"日期过滤后无数据: start={start}, end={end}")
 
     logger.info(f"数据加载完成: {path.name}, "
                 f"时间范围 {df.index[0].date()} ~ {df.index[-1].date()}, "

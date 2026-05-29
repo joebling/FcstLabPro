@@ -107,7 +107,7 @@ def run_experiment(
         data_path = data_cfg.get("path")
         if data_path is None:
             raise ValueError("请在配置中指定 data.path 或先下载数据")
-        df = load_csv(data_path)
+        df = load_csv(data_path, start=data_cfg.get("start"), end=data_cfg.get("end"))
 
         # ========== 3. 特征工程 ==========
         feat_cfg = config["features"]

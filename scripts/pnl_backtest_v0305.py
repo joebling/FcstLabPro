@@ -337,7 +337,7 @@ def main():
     import src.labels.dip_recovery_v1  # noqa
     import inspect
 
-    df = load_csv(args.data)
+    df = load_csv(args.data, start=config["data"].get("start"), end=config["data"].get("end"))
     df = build_features(
         df,
         feature_sets=config["features"]["sets"],

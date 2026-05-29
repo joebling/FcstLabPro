@@ -7,11 +7,11 @@
 背景 (2026-05-29 发现的三重漂移根因):
   1. 依赖未锁版本 — Py3.10→3.9, LightGBM→4.6 导致 Kappa 漂移
   2. 数据文件被更新 — data/raw 的 CSV 含了基线之后的未来数据
-  3. loader 忽略 config 的 data.start/end — 多出来的数据直接进训练
+  3. loader 曾忽略 config 的 data.start/end — 已修复, 现在基线按 end=2025-12-31 截断
 
 解决方案 (本脚本强制执行):
   * 用 requirements.lock.txt 锁定的环境 (Py3.10 + LightGBM 4.3.0)
-  * 用 baseline_snapshot/ 里冻结的基线数据, 而非 data/raw 的活动数据
+  * 用 baseline_snapshot/ 里冻结的基线数据 + config 的 data.start/end 边界
   * 与 baseline_snapshot/{model}/metrics.json 逐 key 对账
 
 Usage:

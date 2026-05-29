@@ -10,20 +10,20 @@
 
 1. **依赖未锁版本** — `requirements.txt` 全是 `>=` 下限锁，环境一升级就漂。
 2. **数据被更新** — `data/raw/btc_binance_BTCUSDT_1d.csv` 是 git-tracked 的活动文件，
-   基线之后被 append 了未来数据（2241 行 → 2341 行）。
-3. **loader 忽略 config 的 `data.start/end`** — `src/data/loader.py` 整个 CSV 照单全收，
-   多出来的未来数据直接进了训练 / walk-forward。
+   基线之后被 append 了未来数据（2240 行 → 2340 行）。
+3. **loader 曾忽略 config 的 `data.start/end`** — 已于 2026-05-29 修复：
+   `runner.py` / `pnl_backtest_v0305.py` 现在都会把 config 的 `data.start/end` 传给 `load_csv()`。
 
-所以「复现」必须同时冻结 **依赖版本** + **数据**，缺一不可。
+所以「复现」必须同时冻结 **依赖版本** + **数据边界**，缺一不可。
 
 ## 内容
 
 | 文件 | 说明 |
 |------|------|
-| `btc_baseline_693b7b1.csv` | 基线 commit `693b7b1` 时刻的 OHLCV 数据 (2241 行, 截至 2026-02-17) |
-| `e1-conservative/metrics.json` | E1 黄金分类指标 (Kappa=0.3432908912830558) |
+| `btc_baseline_693b7b1.csv` | 基线 commit `693b7b1` 时刻的 OHLCV 数据 (2240 行, 截至 2026-02-17；实际训练按 config.end 截至 2025-12-31, 2192 行) |
+| `e1-conservative/metrics.json` | E1 黄金分类指标 (Kappa=0.3480464752792446) |
 | `e1-conservative/fold_metrics.csv` | E1 各 fold 指标 |
-| `e8-touch/metrics.json` | E8 黄金分类指标 (Kappa=0.7511973291422939) |
+| `e8-touch/metrics.json` | E8 黄金分类指标 (Kappa=0.7570656864311971) |
 | `e8-touch/fold_metrics.csv` | E8 各 fold 指标 |
 
 数据文件 SHA256: `9fafdc8f115c5f73b659c242bb787c4c2df025321e0ebbe6705800e949ccf731`
@@ -31,7 +31,7 @@
 ## 复现条件 (三者缺一不可)
 
 1. **环境**: `requirements.lock.txt` (Py3.10 + LightGBM 4.3.0 + numpy 1.26.4 + sklearn 1.4.1)
-2. **数据**: 本目录的 `btc_baseline_693b7b1.csv` (而非 `data/raw/` 的活动数据)
+2. **数据**: 本目录的 `btc_baseline_693b7b1.csv` + config 的 `data.start/end` 过滤 (有效窗口截至 2025-12-31)
 3. **种子**: `seed=42` (config 内固定)
 
 ## 用法
