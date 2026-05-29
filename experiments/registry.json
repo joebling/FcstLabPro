@@ -1190,5 +1190,62 @@
       "cohen_kappa": 0.3432908912830558
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0529_E1_endfix",
+    "name": "v0529_E1_endfix",
+    "description": "v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "directional_filtered"
+    ],
+    "created_at": "2026-05-29T03:23:48.232198",
+    "status": "completed",
+    "duration_seconds": 31.67,
+    "git_commit": "7321a64",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8781072177298592,
+      "f1_binary": 0.41606886657101866,
+      "precision_binary": 0.4084507042253521,
+      "recall_binary": 0.4239766081871345,
+      "cohen_kappa": 0.3480464752792446
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0529_E8_endfix",
+    "name": "v0529_E8_endfix",
+    "description": "v0305 E8: touch_filtered 标签 (路径依赖, 对标 E1 参数)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "touch_label",
+      "decontamination",
+      "label_alignment"
+    ],
+    "created_at": "2026-05-29T03:24:22.484073",
+    "status": "completed",
+    "duration_seconds": 29.83,
+    "git_commit": "7321a64",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9284216831386642,
+      "f1_binary": 0.8006672226855713,
+      "precision_binary": 0.8163265306122449,
+      "recall_binary": 0.7855973813420621,
+      "cohen_kappa": 0.7570656864311971
+    },
+    "error": null
   }
 ]
