@@ -278,7 +278,14 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
     slots = [f"{s}={m.name}({m.status})" for s, m in models.items()]
 
     # LLM / 邮件: 凭据存在才启用 (跟 VPS .sh 的环境变量门控一致)
-    enable_llm = bool(os.environ.get("GEMINI_API_KEY"))
+    # LLM provider 可配: gemini 看 GEMINI_API_KEY; anthropic 看 LLM_API_KEY/ANTHROPIC_API_KEY
+    _llm_provider = os.environ.get("LLM_PROVIDER", "gemini").strip().lower()
+    if _llm_provider == "gemini":
+        enable_llm = bool(os.environ.get("GEMINI_API_KEY"))
+    else:
+        enable_llm = bool(
+            os.environ.get("LLM_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+        )
     enable_email = bool(os.environ.get("SMTP_USER") and os.environ.get("SMTP_PASS"))
 
     bar = "─" * 72

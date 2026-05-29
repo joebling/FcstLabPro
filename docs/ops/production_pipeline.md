@@ -197,3 +197,52 @@ cp /tmp/fgi_backup.csv data/external/fear_greed_index.csv   # 恢复
 
 迁移完成后可考虑废弃旧 `run_cron_signal.py`。
 
+
+---
+
+## 7. LLM 策略分析 (可选, 多 provider)
+
+stage 4 的 LLM 环节支持多 provider, 全部走环境变量, **零硬编码 key**。
+provider 实现在 `src/llm/analyst.py`, 用 urllib 无额外依赖。
+
+### provider=gemini (默认)
+
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=xxxxx
+# GEMINI_MODEL=gemini-2.0-flash   # 可选
+```
+
+### provider=anthropic (Anthropic Messages API 格式, 含腾讯 tokenhub 网关)
+
+例: DeepSeek via 腾讯 tokenhub
+
+```bash
+LLM_PROVIDER=anthropic
+LLM_API_KEY=sk-xxxxx                       # 不要提交到 git!
+LLM_BASE_URL=https://tokenhub.tencentmaas.com/
+LLM_MODEL=deepseek-v4-pro
+```
+
+请求打到 `${LLM_BASE_URL}/v1/messages`, 同时带 `x-api-key` 和
+`Authorization: Bearer` 两个头 (兼容不同网关)。
+
+### 启用判定
+
+pipeline preflight 按 provider 检测 key:
+- gemini → 看 `GEMINI_API_KEY`
+- 其他 → 看 `LLM_API_KEY` 或 `ANTHROPIC_API_KEY`
+
+缺 key → `enable_llm=False`, 自动跳过 (不阻断信号)。
+
+### 连通性自测
+
+```bash
+LLM_PROVIDER=anthropic LLM_API_KEY=sk-xxx \
+LLM_BASE_URL=https://tokenhub.tencentmaas.com/ LLM_MODEL=deepseek-v4-pro \
+python -c "from src.llm.analyst import _resolve_provider,_DISPATCH; \
+p,c=_resolve_provider(); print(_DISPATCH[p]('测试','说连接成功',c))"
+```
+
+> ⚠️ **安全**: key 只放 `.env` (已 gitignore)。切勿写进源码/文档/commit。
+> 若 key 不慎泄露, 立即去对应平台后台轮换。

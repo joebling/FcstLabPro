@@ -80,7 +80,15 @@ MAIL_TO=your_receive@example.com
 
 COINGECKO_API_KEY=
 COINGLASS_API_KEY=
+
+# LLM 策略分析 (可选): LLM_PROVIDER=gemini 或 anthropic
+LLM_PROVIDER=gemini
 GEMINI_API_KEY=
+# anthropic (如 DeepSeek via 腾讯 tokenhub):
+# LLM_PROVIDER=anthropic
+# LLM_API_KEY=
+# LLM_BASE_URL=https://tokenhub.tencentmaas.com/
+# LLM_MODEL=deepseek-v4-pro
 
 STATE_BUCKET=
 ENVEOF
