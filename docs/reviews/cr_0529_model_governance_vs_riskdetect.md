@@ -7,6 +7,10 @@
 **生产级模型治理 / 切版 / 训推一致性 / 运行审计** 这套制度还没成型——欠的不是算法，是
 「让模型从实验变成可长期运营资产」的工程纪律。
 
+> ✅ **实施状态 (2026-05-29)**: 本评审已在分支 `feat/model-governance-overhaul` 落地 Phase 0-4。
+> 详见 `docs/reviews/cr_0529_implementation_summary.md`。
+> 全程守住 E1/E8 bit-exact 复现性 (新增 `scripts/verify_reproducibility.py` 守门员)。
+
 ---
 
 ## 总览：欠缺清单
