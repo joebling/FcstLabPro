@@ -264,6 +264,9 @@ def main():
     parser.add_argument("--take-profit", action="store_true", help="启用止盈 (稳健版)")
     parser.add_argument("--regime-switch", action="store_true", help="启用 regime 开关 (保守版)")
     parser.add_argument("--dry-run", action="store_true", help="干跑模式，不更新状态")
+    parser.add_argument("--ledger-mode", default="live",
+                        choices=["live", "shadow", "dry-run"],
+                        help="信号账本写入模式 (live=写live+archive, shadow=只archive)")
     args = parser.parse_args()
 
     # 解析模型路径: 显式 --model 优先, 否则从 active.yaml
@@ -359,8 +362,52 @@ def main():
     else:
         logger.info("干跑模式，未保存状态")
 
+    # 信号账本 + 监控产物 (Phase 4 运行审计)
+    _record_to_ledger(
+        signal=signal, meta=meta, model_path=model_path,
+        df=df, feature_cols=feature_cols,
+        ledger_mode="dry-run" if args.dry_run else args.ledger_mode,
+    )
+
     # 返回信号以供外部集成
     return signal, meta
+
+
+def _record_to_ledger(signal, meta, model_path, df, feature_cols, ledger_mode):
+    """把信号写入 live/shadow/archive 账本 + 生成监控产物."""
+    from src.serving.signal_ledger import record_signal, write_monitoring
+
+    model_dir = model_path.parent
+    model_name = model_dir.name
+
+    # 模型谱系: hash 从 manifest, variant 从 active.yaml, fc_sha 从 feature_cols.json
+    model_hash = variant = fc_sha = None
+    manifest_p = model_dir / "manifest.json"
+    if manifest_p.exists():
+        mf = json.loads(manifest_p.read_text())
+        model_hash = mf.get("model", {}).get("sha256_prefix")
+        variant = mf.get("deployment", {}).get("variant")
+    fc_p = model_dir / "feature_cols.json"
+    if fc_p.exists():
+        fc_sha = json.loads(fc_p.read_text()).get("sha256")
+
+    data_last = meta.get("date", "")
+    try:
+        record_signal(
+            {"date": data_last, "price": meta.get("price"),
+             "signal": signal, "regime": meta.get("regime"),
+             "reason": meta.get("reason")},
+            model_name=model_name, model_hash=model_hash or "unknown",
+            variant=variant or "unknown", input_data_end=data_last,
+            mode=ledger_mode, feature_cols_sha256=fc_sha,
+        )
+        write_monitoring(
+            model_name=model_name, n_rows=len(df),
+            data_last_date=data_last, signal=signal,
+            probability=meta.get("probability"),
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"信号账本写入失败 (不阻断信号): {e}")
 
 
 if __name__ == "__main__":

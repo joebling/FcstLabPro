@@ -45,6 +45,8 @@ logs/
 
 # Signals (generated output)
 signals/
+data/signals/
+data/live/monitoring/
 
 # Environment / Secrets
 .env
