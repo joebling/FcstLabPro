@@ -44,6 +44,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 from dataclasses import dataclass
@@ -56,6 +57,12 @@ if str(PROJECT_ROOT) not in sys.path:
 
 OHLCV_PATH = PROJECT_ROOT / "data" / "raw" / "btc_binance_BTCUSDT_1d.csv"
 FGI_PATH = PROJECT_ROOT / "data" / "external" / "fear_greed_index.csv"
+
+# 输出根目录: 默认跟 VPS 部署一致 (/opt/fcstlabpro), 可用 FCST_DATA_DIR 覆盖。
+# 本地开发时设 FCST_DATA_DIR=/tmp/fcst 即可，不污染生产路径。
+DATA_DIR = Path(os.environ.get("FCST_DATA_DIR", "/opt/fcstlabpro"))
+STATE_DIR = DATA_DIR / "state"
+SIGNALS_DIR = DATA_DIR / "signals"
 
 STATUS_OK = "OK"
 STATUS_FAILED = "FAILED"
@@ -89,6 +96,8 @@ class PipelineCtx:
     dry_run: bool
     require_fgi: bool = True   # 由 preflight 根据模型 config 判定
     active_models: dict | None = None
+    enable_llm: bool = False   # GEMINI_API_KEY 存在时由 preflight 置 True
+    enable_email: bool = False  # SMTP_USER/PASS 存在时由 preflight 置 True
 
 
 @dataclass
@@ -139,29 +148,100 @@ def _stage_validate_data(ctx: PipelineCtx) -> str:
 
 
 def _stage_signals(ctx: PipelineCtx) -> str:
-    """对每个 active 模型 in-process 生成信号."""
-    from scripts.live_signal import run_for_model
+    """对每个 active 模型: 信号 → JSON → (LLM) → (邮件).
+
+    JSON/LLM/邮件 是输出侧 (required=False 语义): 单个环节失败不应让整条
+    pipeline halt (信号本身已生成)。但 run_for_model 本身 (拉数/特征/推理)
+    失败会抛出 → stage FAILED → halt。
+    """
     from src.serving import load_active_models
 
     models = ctx.active_models or load_active_models()
     allowed = {"live", "paper"} if ctx.include_paper else {"live"}
 
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    SIGNALS_DIR.mkdir(parents=True, exist_ok=True)
+
     ran: list[str] = []
     for model in models.values():
         if model.status not in allowed:
             continue
-        signal, _meta = run_for_model(
-            model,
-            state_path=Path(f"/tmp/signal_state_{model.name}.json"),
-            ledger_mode="dry-run" if ctx.dry_run else ctx.ledger_mode,
-        )
-        ran.append(f"{model.name}={signal}")
+        ran.append(_run_one_model(model, ctx))
 
     if not ran:
         raise RuntimeError(
             f"没有匹配 status∈{allowed} 的模型 — 检查 active.yaml 与 --include-paper"
         )
     return ", ".join(ran)
+
+
+def _run_one_model(model, ctx: PipelineCtx) -> str:
+    """单模型完整链路. 返回 'name=SIGNAL[+json][+llm][+mail]' 摘要."""
+    from scripts.live_signal import run_for_model
+
+    state_path = STATE_DIR / f"{model.name}_state.json"
+    out_dir = SIGNALS_DIR / model.name
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. 信号 (推理失败会抛 → stage FAILED → halt)
+    signal, _meta = run_for_model(
+        model, state_path=state_path,
+        ledger_mode="dry-run" if ctx.dry_run else ctx.ledger_mode,
+    )
+    tags = [signal]
+
+    # 2. JSON (输出侧, 失败不 halt)
+    signal_json = _try_build_json(model, state_path, out_dir, tags)
+
+    # 3. LLM (可选, 失败不 halt)
+    if signal_json and ctx.enable_llm:
+        _try_llm(signal_json, tags)
+
+    # 4. 邮件 (可选, 失败不 halt; dry-run 不发)
+    if signal_json and ctx.enable_email and not ctx.dry_run:
+        _try_email(signal_json, tags)
+
+    return f"{model.name}={'+'.join(tags)}"
+
+
+def _try_build_json(model, state_path: Path, out_dir: Path, tags: list[str]):
+    """生成信号 JSON. 返回 Path 或 None."""
+    try:
+        from scripts.build_signal_json import build_signal_json
+
+        p = build_signal_json(
+            model_dir=model.artifact_dir,
+            state_file=state_path,
+            variant=model.strategy_variant,
+            output_dir=out_dir,
+            data_path=OHLCV_PATH,
+        )
+        if p:
+            tags.append("json")
+        return p
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️  {model.name}: build_signal_json 失败 (不阻断): {e}")
+        return None
+
+
+def _try_llm(signal_json: Path, tags: list[str]) -> None:
+    try:
+        from scripts.enrich_llm_analysis import main as enrich_llm
+
+        enrich_llm(str(signal_json))
+        tags.append("llm")
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️  LLM 分析失败 (不阻断): {e}")
+
+
+def _try_email(signal_json: Path, tags: list[str]) -> None:
+    try:
+        from scripts.send_signal_email import send_email
+
+        if send_email(str(signal_json)):
+            tags.append("mail")
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️  邮件发送失败 (不阻断): {e}")
 
 
 STAGES: list[Stage] = [
@@ -196,11 +276,18 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
             require_fgi = True
 
     slots = [f"{s}={m.name}({m.status})" for s, m in models.items()]
+
+    # LLM / 邮件: 凭据存在才启用 (跟 VPS .sh 的环境变量门控一致)
+    enable_llm = bool(os.environ.get("GEMINI_API_KEY"))
+    enable_email = bool(os.environ.get("SMTP_USER") and os.environ.get("SMTP_PASS"))
+
     bar = "─" * 72
     print(bar)
     print(f"[preflight] active 模型槽位 : {slots}")
     print(f"[preflight] 跑哪些状态     : {sorted(allowed)}")
     print(f"[preflight] 依赖 FGI?      : {require_fgi}")
+    print(f"[preflight] LLM / 邮件     : llm={enable_llm}, email={enable_email}")
+    print(f"[preflight] 输出目录     : {DATA_DIR}")
     print(f"[preflight] ledger-mode    : {'dry-run' if args.dry_run else args.ledger_mode}")
     print(bar)
 
@@ -210,6 +297,8 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
         dry_run=args.dry_run,
         require_fgi=require_fgi,
         active_models=models,
+        enable_llm=enable_llm,
+        enable_email=enable_email,
     )
 
 

@@ -13,13 +13,19 @@
 
 | Stage | 作用 | required | 失败行为 |
 |-------|------|----------|----------|
-| 0. preflight | 解析 active.yaml + 模型产物校验 + 判定是否依赖 FGI | — | 缺产物 fail |
+| 0. preflight | 解析 active.yaml + 模型产物校验 + 判定是否依赖 FGI / LLM / 邮件 | — | 缺产物 fail |
 | 1. download_ohlcv | Binance 日线 → `data/raw/btc_binance_BTCUSDT_1d.csv` | yes | halt |
 | 2. download_fgi | FGI → `data/external/fear_greed_index.csv` (强制刷新) | yes | halt |
 | 3. validate_data | OHLCV + FGI freshness 强校验 (核心) | yes | halt |
-| 4. signals | 每个 active 模型 in-process 出信号 | yes | halt |
+| 4. signals | 每个 active 模型: 信号 → JSON → (LLM) → (邮件) | yes* | halt |
 
 **决策 A**：数据缺失 / 过期一律 FATAL，不再静默 ffill stale FGI。
+
+\* stage 4 内部：**推理失败 → halt**；但 JSON/LLM/邮件 是输出侧
+(required=False 语义)，单个失败不阻断 (信号本身已生成)。
+LLM 需 `GEMINI_API_KEY`，邮件需 `SMTP_USER`+`SMTP_PASS`，缺凭据自动跳过。
+
+信号摘要格式: `e1-conservative=SILENT+json+llm+mail` (后缀表示完成的输出环节)。
 
 ---
 
@@ -153,10 +159,41 @@ BINANCE_BASE_URL="https://data-api.binance.vision" python scripts/run_production
 ## 6. 与旧 run_cron_signal.py 的关系
 
 旧 `run_cron_signal.py` 只下载 Binance、对 FGI 静默 ffill，无 freshness gate。
-新 pipeline 是其超集 + 强校验。建议 cron 切到：
+新 pipeline 是其超集 + 强校验。
+
+### VPS 部署 (run_daily_nodock.sh 已成点火瓦壳)
+
+`deploy/vps/run_daily_nodock.sh` 已瘦身为点火瓦壳 (路 B)：
+只负责 `source .env` + 前置检查 + 线程设置，编排全部委托给 pipeline:
 
 ```bash
-python scripts/run_production_pipeline.py
+exec "${VENV_PYTHON}" scripts/run_production_pipeline.py --include-paper "$@"
 ```
 
-迁移完成后可考虑废弃旧 cron 脚本（待 VPS 验证通过后再删，避免一次动太多）。
+crontab 入口不变，仍指向 `run_daily_nodock.sh`。
+
+**语义变化** (路 B 后)：
+- 模型清单 / 变体从 `active.yaml` 读 (单一真相源)，
+  不再读 `MODEL_NAMES` / `STRATEGY_VARIANT` 环境变量。
+- 输出目录默认 `/opt/fcstlabpro`，由 `FCST_DATA_DIR` 控制
+  (本地开发设 `FCST_DATA_DIR=/tmp/fcst` 即可, 不污染生产)。
+- state → `${FCST_DATA_DIR}/state/{model}_state.json`
+- 信号 JSON → `${FCST_DATA_DIR}/signals/{model}/signal_{date}.json`
+
+### 故障注入测试 (验证闸门真的会拦)
+
+⚠️ 别先砸数据再跑整脚本 —— download stage 会把数据重新拉新，把你砸的旧数据覆盖掉。
+正确做法: 用 `--from-stage` 跳过下载，只测校验段：
+
+```bash
+cp data/external/fear_greed_index.csv /tmp/fgi_backup.csv
+head -n -90 /tmp/fgi_backup.csv > data/external/fear_greed_index.csv
+
+python scripts/run_production_pipeline.py --from-stage 3.validate_data
+# 期望: 3.validate_data FAILED, exit 1
+
+cp /tmp/fgi_backup.csv data/external/fear_greed_index.csv   # 恢复
+```
+
+迁移完成后可考虑废弃旧 `run_cron_signal.py`。
+
