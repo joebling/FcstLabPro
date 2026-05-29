@@ -35,6 +35,12 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# 训推共用的特征契约 (Phase 3): build + 列序校验逻辑收敛于此
+from src.serving.feature_contract import (  # noqa: E402
+    build_feature_frame,
+    validate_feature_cols,
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -110,84 +116,6 @@ def fetch_latest_data(config: dict) -> pd.DataFrame:
     except Exception as e:
         logger.error(f"数据拉取失败: {e}")
         raise
-
-
-def prepare_features(df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[str]]:
-    """构建特征，返回 (df, feature_cols)."""
-    from src.features.builder import build_features, get_feature_columns
-
-    feat_cfg = config["features"]
-    df = build_features(
-        df,
-        feature_sets=feat_cfg["sets"],
-        drop_na_method=feat_cfg.get("drop_na_method", "ffill_then_drop"),
-        drop_features=feat_cfg.get("drop_features"),
-    )
-    feature_cols = get_feature_columns(df)
-    return df, feature_cols
-
-
-def validate_feature_cols(
-    feature_cols: list[str],
-    model_path: Path,
-) -> None:
-    """校验推理时的 feature_cols 与训练时保存的 feature_cols.json 逐位一致.
-
-    背景：model.joblib (LightGBM) 内部只记 `Column_0..N` 占位符，不会在
-    推理时按名重排。如果 train↔serve 之间列序静默变动，推理会拿错输入
-    不报错。这里是唯一的可靠闸门。
-
-    Parameters
-    ----------
-    feature_cols : list[str]
-        本次推理的列顺序 (来自 `get_feature_columns(df)`)
-    model_path : Path
-        model.joblib 路径，同目录下期望有 feature_cols.json
-
-    Raises
-    ------
-    ValueError
-        feature_cols.json 存在但与本次推理不一致时抛出。
-    """
-    fc_path = model_path.parent / "feature_cols.json"
-    if not fc_path.exists():
-        logger.warning(
-            "⚠️  %s 不存在 — 跳过列序校验。老模型未随带此文件，"
-            "推理与训练的列对齐仅靠「`build_features` 输出顺序未变」的默契。"
-            "请在下次 promote 时生成该文件。详见 docs/specs/data_pipeline.md §10。",
-            fc_path,
-        )
-        return
-
-    with open(fc_path) as f:
-        doc = json.load(f)
-    expected = doc.get("feature_cols", [])
-
-    if len(feature_cols) != len(expected):
-        raise ValueError(
-            f"特征数量不匹配: 训练时 {len(expected)} 列, 推理时 {len(feature_cols)} 列. "
-            f"有人改了 src/features/* 但未重新 promote? 参考 {fc_path}"
-        )
-
-    if list(feature_cols) != list(expected):
-        # 找到首个不一致位置, 方便排障
-        diffs = [
-            (i, e, a) for i, (e, a) in enumerate(zip(expected, feature_cols))
-            if e != a
-        ]
-        preview = "; ".join(
-            f"index {i}: expected={e!r}, actual={a!r}" for i, e, a in diffs[:3]
-        )
-        raise ValueError(
-            f"特征顺序不匹配 (共 {len(diffs)} 处不同). "
-            f"前 3 处: {preview}. "
-            f"训练时快照: {fc_path}"
-        )
-
-    logger.info(
-        "✅ 特征列序校验通过 (%d 列, sha256=%s)",
-        len(feature_cols), doc.get("sha256", "")[:12],
-    )
 
 
 # =====================================================================
@@ -369,7 +297,7 @@ def main():
     df = fetch_latest_data(config)
 
     # 构建特征
-    df, feature_cols = prepare_features(df, config)
+    df, feature_cols = build_feature_frame(df, config)
     logger.info(f"特征构建完成: {len(feature_cols)} 个特征")
 
     # 校验特征列序与训练时一致 (P0 安全门) — 见 docs/specs/data_pipeline.md §10

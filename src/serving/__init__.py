@@ -12,5 +12,15 @@ from src.serving.active_config import (
     load_active_models,
     resolve_model,
 )
+from src.serving.feature_contract import (
+    build_feature_frame,
+    validate_feature_cols,
+)
 
-__all__ = ["ActiveModel", "load_active_models", "resolve_model"]
+__all__ = [
+    "ActiveModel",
+    "load_active_models",
+    "resolve_model",
+    "build_feature_frame",
+    "validate_feature_cols",
+]
