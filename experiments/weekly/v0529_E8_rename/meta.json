@@ -1,0 +1,30 @@
+{
+  "experiment_id": "v0529_E8_rename",
+  "name": "v0529_E8_rename",
+  "description": "v0529 E8: market_structure 伪外部特征重命名 (Phase1 清污, 纯重命名不改算法)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0529",
+    "phase1",
+    "decontamination",
+    "rename"
+  ],
+  "category": "weekly",
+  "created_at": "2026-05-29T07:01:59.202656",
+  "git": {
+    "commit": "6731ab4",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 31.33,
+  "aggregate_metrics": {
+    "accuracy": 0.9284216831386642,
+    "f1_binary": 0.8006672226855713,
+    "precision_binary": 0.8163265306122449,
+    "recall_binary": 0.7855973813420621,
+    "cohen_kappa": 0.7570656864311971
+  }
+}

@@ -1,0 +1,72 @@
+experiment:
+  name: v0529_E1_rename
+  description: 'v0529 E1: market_structure 伪外部特征重命名 (Phase1 清污, 纯重命名不改算法)'
+  tags:
+  - weekly
+  - bear
+  - v0529
+  - phase1
+  - decontamination
+  - rename
+  category: weekly
+  hypothesis: 将 funding_rate_*/open_interest_*/stablecoin_inflow_proxy 重命名为 price_mom_smooth_*/volume_cumsum_*/down_volume_proxy
+    后, 分类指标应与 production E1 (v0305_E1_decontam) 保持一致 (理想 bit-exact), 因为只改列名不改数值。若漂移则说明列序对
+    LightGBM tie-break 有影响。
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  rsi_window: 14
+  rsi_threshold: 45.0
+  ma_window: 50
+  require_below_ma: true
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42
