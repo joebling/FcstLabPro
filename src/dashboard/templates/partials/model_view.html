@@ -2,16 +2,14 @@
 
 {% set s = summary %}
 
-{# ── stale 警示 banner (诚实优于好看) ── #}
+{# ── 警示 banner (诚实优于好看) ── #}
 {% if batches.stale %}
 <div class="mb-4 rounded-md border-l-4 px-4 py-2 text-sm"
      style="background:#fef3c7; border-color:#995213; color:#995213;">
   {% if batches.reason == 'no_data' %}
-    ⚠️ 该模型暂无 performance 数据 — 请运行 build_performance.py。
-  {% elif batches.reason == 'corrupt' %}
-    ⚠️ batches.json 损坏，无法解析。
-  {% else %}
-    ⚠️ 数据已 {{ batches.generated_age_hours }} 小时未更新（日更预期 ≤26h），可能 cron 未运行。
+    ⚠️ 该模型暂无信号记录 — data/signals/archive/ 下没有该模型的数据。
+  {% elif batches.reason == 'error' %}
+    ⚠️ performance 计算出错：{{ batches.error }}
   {% endif %}
 </div>
 {% endif %}

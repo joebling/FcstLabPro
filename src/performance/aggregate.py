@@ -1,20 +1,15 @@
-"""批次聚合 + 滚动指标 → batches.json / summary.json.
+"""批次聚合 + 滚动指标.
 
 对标 RiskDetect sellers.py 的 batches() + auc_live(): 把回填明细聚合到
-score_date 批次级别, 算命中率/实现收益/滚动 IC, 写成 dashboard 直接吃的 JSON。
+score_date 批次级别, 算命中率/实现收益/滚动 IC。dashboard 经 service 层
+实时调用 (无中间文件产物)。
 """
 from __future__ import annotations
 
-import json
-import os
 import statistics
 from datetime import datetime, timezone
-from pathlib import Path
 
-from src.performance.backfill import backfill_outcomes, load_ohlcv
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-PERF_DIR = Path(os.environ.get("FCST_DATA_DIR", str(PROJECT_ROOT / "data" / "live"))) / "performance"
+from src.performance.backfill import backfill_outcomes
 
 
 def _spearman(xs: list[float], ys: list[float]) -> float | None:
@@ -104,19 +99,4 @@ def build_summary(model_name: str, *, label_T: int, ohlcv=None, today=None) -> d
     }
 
 
-def write_performance(model_name: str, *, label_T: int, ohlcv=None,
-                      today=None, out_dir: Path | None = None) -> dict[str, Path]:
-    """生成并落盘 batches.json + summary.json. 返回写入路径."""
-    if ohlcv is None:
-        ohlcv = load_ohlcv()
-    base = (out_dir or PERF_DIR) / model_name
-    base.mkdir(parents=True, exist_ok=True)
 
-    batches = build_batches(model_name, label_T=label_T, ohlcv=ohlcv, today=today)
-    summary = build_summary(model_name, label_T=label_T, ohlcv=ohlcv, today=today)
-
-    bp = base / "batches.json"
-    sp = base / "summary.json"
-    bp.write_text(json.dumps(batches, indent=2, ensure_ascii=False))
-    sp.write_text(json.dumps(summary, indent=2, ensure_ascii=False))
-    return {"batches": bp, "summary": sp}

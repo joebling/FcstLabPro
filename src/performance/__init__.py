@@ -6,7 +6,11 @@
 模块:
   maturity   — 标签成熟度门控 (从 config.label.T 推导, 防漂移)
   backfill   — 单条信号回填实现结果
-  aggregate  — 批次聚合 + 滚动指标 → batches.json / summary.json
+  aggregate  — 批次聚合 + 滚动指标 (命中率/实现收益/Rank IC)
+  cache      — 进程内 TTL 缓存 (对齐 RiskDetect)
+  service    — dashboard 入口: 实时算 + 缓存 (无中间 JSON 产物)
 
+真相源单一 = data/signals/archive/ (类比 RiskDetect 的 Postgres)。
+dashboard 请求时实时回填聚合, 不预生成文件。
 详见 docs/design/performance_tracking.md。
 """

@@ -1,7 +1,7 @@
 # Performance Dashboard — VPS 部署指南
 
-> 纯展示层 web 服务，只读 performance 层产物 (`batches.json` / `summary.json`)。
-> 与信号 cron 解耦：cron 写文件，dashboard 读文件，互不影响。
+> 纯展示层 web 服务。请求时实时回填+聚合 (信号量极小, 毫秒级) + TTL 内存缓存。
+> 真相源单一 = `data/signals/archive/` (信号 cron 写的), dashboard 只读不写。
 
 ---
 
@@ -9,11 +9,14 @@
 
 ```
 信号 cron (run_daily_nodock.sh)
-   └─ scripts/build_performance.py  →  /opt/fcstlabpro/performance/{model}/*.json
-                                            │ 读 (only)
-   systemd: fcstlab-dashboard  ───────────┘
-       └─ uvicorn 127.0.0.1:8000  →  浏览器
+   └─ 写 data/signals/archive/{model}/{date}.json   ← 真相源
+                                  │ 读 (only)
+   systemd: fcstlab-dashboard  ───┘
+       └─ uvicorn 127.0.0.1:8000  →  实时回填聚合 + TTL缓存  →  浏览器
 ```
+
+无中间 JSON 产物, 无「谁来刷新」的协调问题 — 信号 cron 写完 archive,
+刷新页面即见最新 (缓存过期后)。
 
 ---
 
@@ -29,12 +32,10 @@ uv pip install --python .venv/bin/python fastapi jinja2 uvicorn \
   --allow-insecure-host pypi.ci.artifacts.walmart.com
 ```
 
-## 二、先生成一次数据
+## 二、数据怎么来 (无需生成步骤)
 
-```bash
-.venv/bin/python scripts/build_performance.py
-# → /opt/fcstlabpro/performance/{e1-conservative,e8-touch}/batches.json
-```
+dashboard 请求时实时读 `data/signals/archive/` 回填计算, **不需要预生成**。
+只要信号 cron 在跑 (archive 有数据), dashboard 就能展示。
 
 > ⚠️ 早期信号都是 PENDING (距今 < T+1=22 天)，表里显示 ⏳ 是正常的。
 > 等信号满 22 天后回填才会出命中率/实现收益。
@@ -83,15 +84,13 @@ server {
 
 ---
 
-## 五、让 cron 每日刷新 performance 数据
+## 五、数据新鲜度 (无需 cron 刷新)
 
-在 `deploy/vps/run_daily_nodock.sh` 信号生成后追加一行 (信号 archive 写完才有数据可回填)：
+dashboard 请求时实时算, 所以不需要任何「刷新」 cron。信号 cron 每日写完
+new archive, 下次请求 (缓存过期后) 自动反映。
 
-```bash
-.venv/bin/python scripts/build_performance.py --out-dir /opt/fcstlabpro/performance
-```
-
-dashboard 无需重启——它每次请求都读最新文件。**cron 写 → 刷新页面即见最新**。
+缓存 TTL 默认 30 分钟 (`DEFAULT_TTL_SECONDS`)。如果刚跑完信号想立即看到,
+等最多 30 分钟, 或重启服务 (`systemctl restart fcstlab-dashboard`) 清缓存。
 
 ---
 
@@ -101,8 +100,6 @@ dashboard 无需重启——它每次请求都读最新文件。**cron 写 → �
 |---|---|---|
 | `DASHBOARD_HOST` | 127.0.0.1 | 绑定地址 (慎改 0.0.0.0) |
 | `DASHBOARD_PORT` | 8000 | 端口 (避让 8080) |
-| `FCST_DATA_DIR` | /opt/fcstlabpro | performance 数据根目录 |
-| `DASHBOARD_STALE_HOURS` | 26 | 超此小时未更新 → 页面警示 stale |
 
 ---
 
@@ -122,8 +119,8 @@ curl -s localhost:8000 | grep "Score Batch Detail"   # 健康检查
 | 现象 | 排查 |
 |---|---|
 | 502 / 连不上 | `systemctl status` 看是否 running；`journalctl` 看报错 |
-| 页面提示无数据 | 跑过 `build_performance.py` 吗？`/opt/fcstlabpro/performance/` 有 json 吗 |
-| 页面提示 stale | cron 没跑 → + 信号日志 |
+| 页面提示无数据 | `data/signals/archive/{model}/` 有信号吗？信号 cron 跑过吗 |
+| 页面提示计算出错 | `journalctl` 看堆栈；OHLCV 数据/active.yaml 是否完整 |
 | 表全是 ⏳ | 正常 — 信号还没满 T+1 天，标签未成熟 |
 | CDN 加载慢 | VPS 外网慢；可把 tailwind/chart.js 下到 static/ 改本地引用 |
 

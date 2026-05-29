@@ -6,12 +6,28 @@
 > **部署目标**: VPS (Ubuntu, 无 Docker, 与信号 cron 同机)
 > **技术栈**: FastAPI + Jinja2 + HTMX + Tailwind (CDN) + Chart.js (CDN)
 
+> ⚠️ **架构修订 (2026-05-29, 实施时)**: 初版设计为「performance 层预生成
+> JSON 文件 → dashboard 只读文件」。实施时对齐 RiskDetect 后改为
+> **「dashboard 请求时实时算 + TTL 内存缓存」**, 取消中间 JSON 产物和
+> `build_performance.py`。
+>
+> 原因: RiskDetect 并无预生成 JSON 这一步 — 它请求时实时查 DB + 24h 缓存。
+> FcstLabPro 信号量极小 (每天每模型 1 条), 回填聚合是毫秒级, 没必要多一层
+> 文件产物 + 「谁来刷新」的协调问题。真相源单一 = `data/signals/archive/`
+> (类比 RiskDetect 的 Postgres)。
+>
+> **下文凡提到 batches.json / cron 写文件 / D-0 产出 JSON / stale(文件 mtime)
+> 的部分均为初版设计, 已被实时算取代。实际实现见**:
+> - `src/performance/service.py` — 实时算入口 (resolve label.T + 缓存)
+> - `src/performance/cache.py` — TTL 缓存 (抄 RiskDetect cached())
+> - `src/dashboard/data_access.py` — 调 service, 不读文件
+
 ---
 
 ## 0. 一句话定位
 
-Dashboard 是 **纯展示层**：只读 performance 层预生成的 JSON，
-不做任何计算、不碰模型、不影响信号生成。挂了重启即可，无状态。
+Dashboard 是 **纯展示层**：请求时实时调 performance 服务 (回填+聚合) 并
+用 TTL 缓存挡重复请求，不碰模型、不影响信号生成。挂了重启即可，无状态。
 
 ---
 
