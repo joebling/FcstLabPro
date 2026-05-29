@@ -42,9 +42,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("live_signal")
 
-# ----- 默认路径 -----
-DEFAULT_MODEL = PROJECT_ROOT / "models/production/e1-conservative/model.joblib"
-DEFAULT_CONFIG = PROJECT_ROOT / "models/production/e1-conservative/config.yaml"
+# ----- 默认路径 (从 active.yaml 解析, 不再硬编码模型名) -----
+# 历史上这里写死 e1-conservative；现在统一走 src/serving/active_config。
+# 仍保留 --model/--config 显式覆盖 (docker_entrypoint 在用)。
 DEFAULT_STATE = PROJECT_ROOT / "data/live/signal_state.json"
 
 
@@ -325,21 +325,38 @@ def print_signal(signal: str, meta: dict, state: PositionState) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="E1 策略线上信号")
-    parser.add_argument("--model", default=str(DEFAULT_MODEL), help="模型文件")
-    parser.add_argument("--config", default=str(DEFAULT_CONFIG), help="实验配置")
+    parser.add_argument("--model", default=None,
+                        help="模型文件 (不传则从 active.yaml 解析)")
+    parser.add_argument("--config", default=None,
+                        help="实验配置 (不传则从 active.yaml 解析)")
+    parser.add_argument("--model-slot", default=None,
+                        help="active.yaml 槽位名或模型名 (primary/challenger/e1-conservative)，"
+                             "默认 primary。仅在未显式传 --model 时生效")
     parser.add_argument("--state", default=str(DEFAULT_STATE), help="状态文件")
     parser.add_argument("--take-profit", action="store_true", help="启用止盈 (稳健版)")
     parser.add_argument("--regime-switch", action="store_true", help="启用 regime 开关 (保守版)")
     parser.add_argument("--dry-run", action="store_true", help="干跑模式，不更新状态")
     args = parser.parse_args()
 
+    # 解析模型路径: 显式 --model 优先, 否则从 active.yaml
+    if args.model and args.config:
+        model_path = Path(args.model)
+        config_path = Path(args.config)
+    else:
+        from src.serving import resolve_model
+        active = resolve_model(args.model_slot)
+        model_path = Path(args.model) if args.model else active.model_path
+        config_path = Path(args.config) if args.config else active.config_path
+        logger.info(f"从 active.yaml 解析模型: {active.slot}={active.name} "
+                    f"(variant={active.strategy_variant}, status={active.status})")
+
     # 加载配置
-    with open(args.config) as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
 
     # 加载模型
-    logger.info(f"加载模型: {args.model}")
-    model = joblib.load(args.model)
+    logger.info(f"加载模型: {model_path}")
+    model = joblib.load(model_path)
 
     # 加载状态
     state_path = Path(args.state)
@@ -356,7 +373,7 @@ def main():
     logger.info(f"特征构建完成: {len(feature_cols)} 个特征")
 
     # 校验特征列序与训练时一致 (P0 安全门) — 见 docs/specs/data_pipeline.md §10
-    validate_feature_cols(feature_cols, Path(args.model))
+    validate_feature_cols(feature_cols, model_path)
 
     # 生成信号
     variant = "基础"
