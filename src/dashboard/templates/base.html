@@ -3,32 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}FcstLabPro Performance{% endblock %}</title>
+  <title>{% block title %}FcstLabPro{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="/static/app.css">
   <script>
-    tailwind.config = {
-      theme: { extend: { colors: {
-        wmblue: '#0053e2', wmspark: '#ffc220',
-        wmred: '#ea1100', wmgreen: '#2a8703', wmwarn: '#995213',
-      }}}
-    };
+    tailwind.config = { theme: { extend: { colors: {
+      indigo600: '#4f46e5', violet500: '#8b5cf6',
+      emerald: '#10b981', rose: '#f43f5e', amber: '#f59e0b',
+    }}}};
   </script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
-  <header class="bg-white border-b border-slate-200 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <h1 class="text-lg font-bold text-wmblue">📊 FcstLabPro Performance</h1>
-      <span class="text-xs text-slate-400">信号实现结果追踪</span>
+<div class="flex min-h-screen">
+
+  <!-- 侧边栏 -->
+  <aside class="w-56 bg-white border-r border-slate-200 flex flex-col shrink-0">
+    <div class="px-5 py-4 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">⚡</span>
+        <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+          FcstLabPro</span>
+      </div>
+      <div class="text-[10px] text-slate-400 mt-0.5 tracking-wide">BTC 信号预测系统</div>
     </div>
-  </header>
-  <main class="max-w-6xl mx-auto px-4 py-6">
-    {% block content %}{% endblock %}
-  </main>
-  <footer class="max-w-6xl mx-auto px-4 py-6 text-xs text-slate-400 text-center">
-    数据来自 performance 层回填闭环 · 只读展示 · 执行假设 t+1 open / t+T close
-  </footer>
+
+    <nav class="flex-1 py-3">
+      {% set nav = [
+        ('/', '📊', '总览', 'overview'),
+        ('/signals', '📡', '信号', 'signals'),
+        ('/market', '📈', '市场', 'market'),
+        ('/models', '🤖', '模型', 'models'),
+      ] %}
+      {% for href, icon, label, key in nav %}
+      <a href="{{ href }}"
+         class="flex items-center gap-3 px-5 py-2.5 text-sm transition
+                {% if active_page == key %}
+                  text-indigo-600 font-semibold bg-indigo-50 border-l-[3px] border-indigo-600
+                {% else %}
+                  text-slate-600 hover:bg-slate-50 border-l-[3px] border-transparent
+                {% endif %}">
+        <span>{{ icon }}</span><span>{{ label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+
+    {% if models %}
+    <div class="px-5 py-4 border-t border-slate-100">
+      <label class="text-[10px] text-slate-400 uppercase tracking-wide">当前模型</label>
+      <select name="model" onchange="location.search='?model='+this.value"
+              class="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs bg-white
+                     focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        {% for m in models %}
+        <option value="{{ m }}" {{ 'selected' if m == active_model else '' }}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="px-5 py-3 text-[10px] text-slate-300 border-t border-slate-100">
+      © 2026 FcstLabPro · 只读展示
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <div class="flex-1 flex flex-col min-w-0">
+header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+      <h1 class="text-base font-semibold text-slate-700">{% block page_title %}FcstLabPro{% endblock %}</h1>
+      <span class="text-xs text-slate-400">{% block page_sub %}{% endblock %}</span>
+    </header>
+    <main class="flex-1 p-6 overflow-x-hidden">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+</div>
 </body>
 </html>

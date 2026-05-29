@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% import "macros.html" as ui %}
+{% block title %}市场 · FcstLabPro{% endblock %}
+{% block page_title %}📈 市场{% endblock %}
+{% block page_sub %}BTC 市场环境{% endblock %}
+
+{% block content %}
+
+<!-- FGI 情绪 KPI -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+  {{ ui.kpi("恐惧贪婪指数", fgi.latest_value, fgi.latest_class or "",
+       "text-rose-500" if (fgi.latest_value or 50) < 40
+       else ("text-emerald-600" if (fgi.latest_value or 50) > 60 else "text-amber-600"), "😱") }}
+  {{ ui.kpi("最新资金费率",
+       ("%.4f%%"|format((funding.series[-1] or 0) * 100)) if funding.series else "—",
+       "正=多头付费", "text-slate-700", "💸") }}
+  {{ ui.kpi("最新多空比",
+       ("%.2f"|format(long_short.series[-1])) if long_short.series else "—",
+       ">1 多头占优", "text-slate-700", "⚖️") }}
+  {{ ui.kpi("BTC 价格",
+       ("$" ~ "{:,.0f}".format(price.close[-1])) if price.close else "—",
+       "近 180 天", "text-indigo-600", "₿") }}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  {% call ui.card("BTC 价格 (近 180 天)", "📈") %}
+  <div style="height:240px"><canvas id="mktPrice"></canvas></div>
+  {% endcall %}
+  {% call ui.card("恐惧贪婪指数", "😱") %}
+  <div style="height:240px"><canvas id="mktFgi"></canvas></div>
+  {% endcall %}
+  {% call ui.card("资金费率", "💸") %}
+  <div style="height:240px"><canvas id="mktFunding"></canvas></div>
+  {% endcall %}
+  {% call ui.card("多空比", "⚖️") %}
+  <div style="height:240px"><canvas id="mktLs"></canvas></div>
+  {% endcall %}
+  {% call ui.card("持仓量 (USD)", "📊") %}
+  <div style="height:240px"><canvas id="mktOi"></canvas></div>
+  {% endcall %}
+  {% call ui.card("宏观因子 (DXY / VIX / Gold)", "🌍") %}
+  <div style="height:240px"><canvas id="mktMacro"></canvas></div>
+  {% endcall %}
+</div>
+
+<script id="mkt-data" type="application/json">
+{{ {"price": price, "fgi": fgi, "funding": funding, "long_short": long_short,
+    "open_interest": open_interest, "macro": macro} | tojson }}
+</script>
+<script src="/static/charts.js"></script>
+<script>FcstCharts.renderMarket();</script>
+
+{% endblock %}

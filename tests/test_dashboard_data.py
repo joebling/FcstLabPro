@@ -56,13 +56,13 @@ def test_market_series_structure():
     p = market.price_series(days=30)
     assert set(p) >= {"dates", "close", "volume"}
     f = market.fgi_series(days=30)
-    assert set(f) >= {"dates", "values", "latest_class", "latest_value"}
+    assert set(f) >= {"dates", "series", "latest_class", "latest_value"}
     assert isinstance(market.macro_series(), dict)
 
 
 def test_market_missing_file(monkeypatch, tmp_path):
     monkeypatch.setattr(market, "EXTERNAL_DIR", tmp_path)
-    assert market.funding_series() == {"dates": [], "values": []}
+    assert market.funding_series() == {"dates": [], "series": []}
 
 
 # ---------- models ----------

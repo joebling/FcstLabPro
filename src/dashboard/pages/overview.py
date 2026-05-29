@@ -1,0 +1,71 @@
+"""总览页 — 一眼看全貌.
+
+KPI 行 + 信号日历 + 价格信号叠加图 + 信号分布环形图。
+"""
+from __future__ import annotations
+
+import calendar as _cal
+from datetime import date
+
+from src.dashboard.data import signals, market
+from src.performance import service
+
+
+def _calendar_grid(year: int, month: int) -> list:
+    """返回月历网格 (周一起头), 空格为 None, 否则 {day, date}."""
+    grid = []
+    first_wd, days_in_month = _cal.monthrange(year, month)  # first_wd: 0=Mon
+    for _ in range(first_wd):
+        grid.append(None)
+    for d in range(1, days_in_month + 1):
+        grid.append({"day": d, "date": f"{year:04d}-{month:02d}-{d:02d}"})
+    return grid
+
+
+def build(model_name: str | None) -> dict:
+    if not model_name:
+        return {"has_data": False}
+
+    latest = signals.latest_signal(model_name) or {}
+    price = market.price_series(days=120)
+    dist = signals.signal_distribution(model_name)
+
+    # 今日涨跌 (最后两根收盘价)
+    closes = price.get("close", [])
+    chg_pct = None
+    if len(closes) >= 2 and closes[-2]:
+        chg_pct = round((closes[-1] / closes[-2] - 1) * 100, 2)
+
+    # performance 汇总 (命中率/IC)
+    try:
+        summary, _ = service.get_summary(model_name)
+    except Exception:
+        summary = {}
+
+    # 当月信号日历
+    today = date.today()
+    calendar = signals.signal_calendar(model_name, today.year, today.month)
+
+    # 价格图上标 BUY 点
+    hist = signals.signal_history(model_name, limit=400)
+    buy_dates = {s["date"] for s in hist if s.get("signal") == "BUY"}
+    buy_points = [
+        {"x": d, "y": c}
+        for d, c in zip(price.get("dates", []), closes)
+        if d in buy_dates
+    ]
+
+    return {
+        "has_data": True,
+        "latest": latest,
+        "price": price,
+        "current_price": closes[-1] if closes else None,
+        "chg_pct": chg_pct,
+        "summary": summary,
+        "distribution": dist,
+        "calendar": calendar,
+        "calendar_grid": _calendar_grid(today.year, today.month),
+        "cal_year": today.year,
+        "cal_month": today.month,
+        "buy_points": buy_points,
+    }

@@ -14,9 +14,8 @@ def create_app() -> FastAPI:
     app = FastAPI(title="FcstLabPro Performance Dashboard", docs_url=None, redoc_url=None)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-    from src.dashboard.routes import pages, partials
+    from src.dashboard.routes import pages
     app.include_router(pages.router)
-    app.include_router(partials.router)
     return app
 
 

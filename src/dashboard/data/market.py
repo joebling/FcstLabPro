@@ -26,13 +26,16 @@ def _load_csv(name: str) -> pd.DataFrame | None:
 
 
 def _series(df: pd.DataFrame | None, col: str, days: int) -> dict:
-    """取某列最近 N 天 → {dates, values} (给 Chart.js)."""
+    """取某列最近 N 天 → {dates, series} (给 Chart.js).
+
+    注意 key 用 'series' 不用 'values' — Jinja2 里 dict.values 会撞内置方法。
+    """
     if df is None or col not in df.columns:
-        return {"dates": [], "values": []}
+        return {"dates": [], "series": []}
     tail = df[col].dropna().tail(days)
     return {
         "dates": [d.strftime("%Y-%m-%d") for d in tail.index],
-        "values": [round(float(v), 6) for v in tail.values],
+        "series": [round(float(v), 6) for v in tail.values],
     }
 
 

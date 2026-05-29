@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% import "macros.html" as ui %}
+{% block title %}总览 · FcstLabPro{% endblock %}
+{% block page_title %}📊 总览{% endblock %}
+{% block page_sub %}{{ active_model }}{% endblock %}
+
+{% block content %}
+{% if not has_data %}
+  <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
+    暂无模型数据。
+  </div>
+{% else %}
+
+{% set sig = latest.get('signal') %}
+{% set is_buy = sig == 'BUY' %}
+
+<!-- KPI 行 -->
+<div class="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-5">
+  {{ ui.kpi_hero("最新信号",
+       ('🟢 BUY' if is_buy else '⚪ ' ~ (sig or '—')),
+       latest.get('date', ''), "📡") }}
+  {{ ui.kpi("当前价格",
+       ("$" ~ "{:,.0f}".format(current_price)) if current_price else "—",
+       (("▲ " if (chg_pct or 0) >= 0 else "▼ ") ~ (chg_pct|string) ~ "%") if chg_pct is not none else "",
+       "text-emerald-600" if (chg_pct or 0) >= 0 else "text-rose-500", "💰") }}
+  {{ ui.kpi("命中率",
+       (summary.get('hit_rate')|string ~ "%") if summary.get('hit_rate') is not none else "—",
+       (summary.get('n_bets', 0)|string) ~ " 笔下注",
+       "text-emerald-600" if (summary.get('hit_rate') or 0) >= 55 else "text-slate-700", "🎯") }}
+  {{ ui.kpi("Rank IC", summary.get('rank_ic', '—'), "≥0.02 有价值",
+       "text-emerald-600" if (summary.get('rank_ic') or 0) >= 0.02 else "text-slate-700", "📐") }}
+  {{ ui.kpi("当前 regime", latest.get('regime', '—'), "", "text-violet-600", "🌐") }}
+  {{ ui.kpi("成熟/待定",
+       (summary.get('n_mature', 0)|string) ~ "/" ~ (summary.get('n_pending', 0)|string),
+       "信号样本", "text-slate-700", "⏳") }}
+</div>
+
+<!-- 图表网格 -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+  <div class="lg:col-span-2">
+    {% call ui.card("价格 + BUY 信号 (近 120 天)", "📈") %}
+    <div style="height:300px"><canvas id="priceChart"></canvas></div>
+    {% endcall %}
+  </div>
+  <div>
+    {% call ui.card("信号分布", "🍩") %}
+    <div style="height:300px"><canvas id="distChart"></canvas></div>
+    {% endcall %}
+  </div>
+</div>
+
+<!-- 信号日历 -->
+{% call ui.card("信号日历 (" ~ cal_year ~ "-" ~ "%02d"|format(cal_month) ~ ")", "📅") %}
+<div class="grid grid-cols-7 gap-1 text-center text-xs">
+  {% for wd in ['一','二','三','四','五','六','日'] %}
+  <div class="text-slate-400 font-medium py-1">{{ wd }}</div>
+  {% endfor %}
+  {% for cell in calendar_grid %}
+    {% if cell is none %}
+    <div></div>
+    {% else %}
+      {% set day = cell.day %}
+      {% set info = calendar.get(cell.date) %}
+      <div class="rounded-md py-2 border
+           {% if info and info.signal == 'BUY' %}bg-emerald-50 border-emerald-200
+           {% elif info %}bg-slate-50 border-slate-200
+           {% else %}border-transparent text-slate-300{% endif %}"
+           title="{{ cell.date }}{% if info %} · {{ info.signal }}{% endif %}">
+        <div class="font-medium {{ 'text-emerald-700' if info and info.signal == 'BUY' else 'text-slate-600' }}">{{ day }}</div>
+        {% if info %}<div class="text-[9px]">{{ '🟢' if info.signal == 'BUY' else '⚪' }}</div>{% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endcall %}
+
+<script id="ov-data" type="application/json">
+{{ {"dates": price.dates, "close": price.close, "buy": buy_points,
+    "dist": distribution} | tojson }}
+</script>
+<script src="/static/charts.js"></script>
+<script>FcstCharts.renderOverview();</script>
+
+{% endif %}
+{% endblock %}
