@@ -98,6 +98,7 @@ class PipelineCtx:
     active_models: dict | None = None
     enable_llm: bool = False   # GEMINI_API_KEY 存在时由 preflight 置 True
     enable_email: bool = False  # SMTP_USER/PASS 存在时由 preflight 置 True
+    ohlcv_start: str = "2018-01-01"  # 从 active model config 的 data.start 读取 (取最早)
 
 
 @dataclass
@@ -117,10 +118,10 @@ def _stage_download_ohlcv(ctx: PipelineCtx) -> str:
     from src.data.downloader import download_binance_klines
 
     df = download_binance_klines(
-        symbol="BTCUSDT", interval="1d", start="2020-01-01",
+        symbol="BTCUSDT", interval="1d", start=ctx.ohlcv_start,
         output_path=OHLCV_PATH,
     )
-    return f"{len(df)} 行 → {OHLCV_PATH.name} (end={df.index[-1].date()})"
+    return f"{len(df)} 行 → {OHLCV_PATH.name} (start={ctx.ohlcv_start}, end={df.index[-1].date()})"
 
 
 def _stage_download_fgi(ctx: PipelineCtx) -> str:
@@ -267,6 +268,7 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
 
     allowed = {"live", "paper"} if args.include_paper else {"live"}
     require_fgi = False
+    starts: list[str] = []
     for m in models.values():
         if m.status not in allowed:
             continue
@@ -274,6 +276,12 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
         sets = (cfg.get("features", {}) or {}).get("sets", []) or []
         if "external_fgi" in sets or "external" in sets:
             require_fgi = True
+        start = (cfg.get("data", {}) or {}).get("start")
+        if start:
+            starts.append(str(start))
+
+    # 取最早 start, 保证下载窗口覆盖所有 active 模型的需求; 缺失则用默认。
+    ohlcv_start = min(starts) if starts else "2018-01-01"
 
     slots = [f"{s}={m.name}({m.status})" for s, m in models.items()]
 
@@ -293,6 +301,7 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
     print(f"[preflight] active 模型槽位 : {slots}")
     print(f"[preflight] 跑哪些状态     : {sorted(allowed)}")
     print(f"[preflight] 依赖 FGI?      : {require_fgi}")
+    print(f"[preflight] OHLCV 下载起点 : {ohlcv_start} (读自 active config)")
     print(f"[preflight] LLM / 邮件     : llm={enable_llm}, email={enable_email}")
     print(f"[preflight] 输出目录     : {DATA_DIR}")
     print(f"[preflight] ledger-mode    : {'dry-run' if args.dry_run else args.ledger_mode}")
@@ -306,6 +315,7 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
         active_models=models,
         enable_llm=enable_llm,
         enable_email=enable_email,
+        ohlcv_start=ohlcv_start,
     )
 
 
