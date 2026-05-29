@@ -72,7 +72,7 @@ feature_cols 现为新名 (price_mom_smooth_*), live 推理 halt 已解除
 | # | 任务 | 状态 |
 |---|---|---|
 | P0-1 | 重命名 market_structure.py 伪外部特征 | ✅ 完成 |
-| P0-2 | onchain.py + sentiment.py 加 DeprecationWarning | ⏳ 未做 (另算, 不在本次范围) |
+| P0-2 | onchain.py + sentiment.py 加 DeprecationWarning | ✅ 完成 (module-level warn, import 不报错) |
 | P0-3 | data_pipeline.md 加说明 | ✅ 已有 (§2.4 名称地雷; 例子用旧名, 可顺手更新) |
 | P0-4 | bootstrap feature_cols (随重训自动生成) | ✅ 新实验已生成 + production 已刷新 |
 

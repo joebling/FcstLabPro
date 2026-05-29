@@ -1,15 +1,27 @@
 """情绪与宏观特征集 — 基于价格/成交量行为模拟情绪指标.
 
-在没有外部 API 时，使用价格动量和波动率
-模拟 FGI、Google Trend、流动性等指标的代理特征。
+⚠️ 废弃警告: 本模块的 fgi / gtrend_proxy / vix_proxy / liquidity_proxy 等
+   均为 OHLCV 衡生的**代理**，非真实情绪/宏观数据。尤其 fgi 名字与
+   external.py 里的**真实** Fear&Greed Index (ext_fgi_*) 同名易混淆。
+   生产模型 (E1/E8) 用的是 external_fgi (真数据), 不是本模块。
+   详见 docs/plans/feature_engineering_roadmap.md。
 """
 
 from __future__ import annotations
+
+import warnings
 
 import numpy as np
 import pandas as pd
 
 from src.features.registry import register_feature_set
+
+warnings.warn(
+    "src.features.sentiment 的特征均为 OHLCV 代理 (fgi/vix/liquidity 等名不副实),"
+    " 非真实情绪/宏观数据。真 Fear&Greed 请用 external_fgi (ext_fgi_*)。",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @register_feature_set("sentiment")
