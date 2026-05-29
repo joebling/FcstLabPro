@@ -18,6 +18,14 @@
 # Updated: 2026-05-29 | Maintainer: Qiu
 # ─────────────────────────────────────────────────────────────────────────
 
+# 【数据新鲜度门】生产 pipeline (run_production_pipeline.py) 强制校验。
+# 单位 = 天。stale = 该数据源 last_date 落后 OHLCV last_date 的天数。
+# 决策 A: 文件缺失 / 超 SLA 一律 FATAL (不再 ffill 蒙混)。
+# research / backtest 不读这里 — gate 只作用于 live pipeline。
+data_freshness:
+  ohlcv_max_stale_days: 2   # OHLCV 自身相对 "今天(UTC)" 的最大滞后
+  fgi_max_stale_days: 2     # FGI last_date 相对 OHLCV last_date 的最大滞后
+
 # 【primary】生产主跑模型 — 风控优先 (MaxDD 更低)
 primary:
   artifact_dir: models/production/e1-conservative

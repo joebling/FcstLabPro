@@ -248,6 +248,127 @@ def print_signal(signal: str, meta: dict, state: PositionState) -> None:
 
 
 # =====================================================================
+# Reusable core (pipeline + CLI 共用, 消除 main 里的过程式重复)
+# =====================================================================
+
+def run_signal(
+    model_path: Path,
+    config_path: Path,
+    *,
+    state_path: Path,
+    use_tp: bool,
+    use_regime: bool,
+    dry_run: bool = False,
+    ledger_mode: str = "live",
+) -> tuple[str, dict]:
+    """完整跑一次信号: 加载→拉数→特征→校验→信号→落状态→账本.
+
+    pipeline (run_production_pipeline) 与 CLI main() 都走这里, 保证行为一致。
+    """
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+
+    logger.info(f"加载模型: {model_path}")
+    model = joblib.load(model_path)
+
+    state = PositionState.load(state_path)
+    if state.in_position:
+        logger.info(f"当前持仓: 买入于 {state.entry_date} @ ${state.entry_price:,.2f}, "
+                    f"已持有 {state.days_held} 天")
+
+    df = fetch_latest_data(config)
+    df, feature_cols = build_feature_frame(df, config)
+    logger.info(f"特征构建完成: {len(feature_cols)} 个特征")
+    validate_feature_cols(feature_cols, model_path)
+
+    variant = "基础"
+    if use_tp and use_regime:
+        variant = "止盈+regime"
+    elif use_tp:
+        variant = "+止盈"
+    elif use_regime:
+        variant = "+regime"
+    logger.info(f"策略变体: {variant}")
+
+    signal, meta = generate_signal(
+        model=model, df=df, feature_cols=feature_cols, state=state,
+        config=config, use_tp=use_tp, use_regime=use_regime,
+    )
+
+    _apply_signal_to_state(state, signal, meta)
+    print_signal(signal, meta, state)
+
+    if not dry_run:
+        state.save(state_path)
+        logger.info(f"状态已保存: {state_path}")
+    else:
+        logger.info("干跑模式，未保存状态")
+
+    _record_to_ledger(
+        signal=signal, meta=meta, model_path=model_path,
+        df=df, feature_cols=feature_cols,
+        ledger_mode="dry-run" if dry_run else ledger_mode,
+    )
+    return signal, meta
+
+
+def run_for_model(
+    model,
+    *,
+    state_path: Path,
+    ledger_mode: str = "live",
+    dry_run: bool = False,
+) -> tuple[str, dict]:
+    """按 ActiveModel (active.yaml 槽位) 跑信号. variant flags 从 model 解析.
+
+    pipeline 的 4.signals stage 用这个: 模型路径/配置/variant 全部来自 active.yaml,
+    无需手工拼 CLI flags。
+    """
+    flags = set(model.cli_flags)
+    return run_signal(
+        model.model_path, model.config_path,
+        state_path=state_path,
+        use_tp="--take-profit" in flags,
+        use_regime="--regime-switch" in flags,
+        dry_run=dry_run,
+        ledger_mode=ledger_mode,
+    )
+
+
+def _apply_signal_to_state(state: PositionState, signal: str, meta: dict) -> None:
+    """根据信号更新持仓状态 (BUY 建仓 / SELL 平仓 / HOLD 计天)."""
+    today_str = meta["date"]
+    if signal == "BUY" and not state.in_position:
+        state.in_position = True
+        state.entry_date = today_str
+        state.entry_price = meta["price"]
+        state.days_held = 0
+    elif signal == "SELL" and state.in_position:
+        pnl = (meta["price"] - state.entry_price) / state.entry_price
+        state.history.append({
+            "entry_date": state.entry_date,
+            "exit_date": today_str,
+            "entry_price": state.entry_price,
+            "exit_price": meta["price"],
+            "pnl": round(pnl, 4),
+            "days_held": state.days_held + 1,
+            "reason": meta["reason"],
+        })
+        state.in_position = False
+        state.entry_date = None
+        state.entry_price = None
+        state.days_held = 0
+    elif signal == "HOLD":
+        state.days_held += 1
+
+    state.last_signal_date = today_str
+    state.last_signal = signal
+    state.last_reason = meta.get("reason", "")
+    state.last_regime = meta.get("regime", "未知")
+    state.last_regime_detail = meta.get("regime_detail", "")
+
+
+# =====================================================================
 # Main
 # =====================================================================
 
@@ -281,95 +402,15 @@ def main():
         logger.info(f"从 active.yaml 解析模型: {active.slot}={active.name} "
                     f"(variant={active.strategy_variant}, status={active.status})")
 
-    # 加载配置
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-
-    # 加载模型
-    logger.info(f"加载模型: {model_path}")
-    model = joblib.load(model_path)
-
-    # 加载状态
-    state_path = Path(args.state)
-    state = PositionState.load(state_path)
-    if state.in_position:
-        logger.info(f"当前持仓: 买入于 {state.entry_date} @ ${state.entry_price:,.2f}, "
-                    f"已持有 {state.days_held} 天")
-
-    # 拉取数据
-    df = fetch_latest_data(config)
-
-    # 构建特征
-    df, feature_cols = build_feature_frame(df, config)
-    logger.info(f"特征构建完成: {len(feature_cols)} 个特征")
-
-    # 校验特征列序与训练时一致 (P0 安全门) — 见 docs/specs/data_pipeline.md §10
-    validate_feature_cols(feature_cols, model_path)
-
-    # 生成信号
-    variant = "基础"
-    if args.take_profit and args.regime_switch:
-        variant = "止盈+regime"
-    elif args.take_profit:
-        variant = "+止盈"
-    elif args.regime_switch:
-        variant = "+regime"
-    logger.info(f"策略变体: {variant}")
-
-    signal, meta = generate_signal(
-        model=model, df=df, feature_cols=feature_cols, state=state,
-        config=config, use_tp=args.take_profit, use_regime=args.regime_switch,
+    # 全部过程收敛到 run_signal (pipeline 与 CLI 共用, 消除 DRY 违规)
+    signal, meta = run_signal(
+        model_path, config_path,
+        state_path=Path(args.state),
+        use_tp=args.take_profit,
+        use_regime=args.regime_switch,
+        dry_run=args.dry_run,
+        ledger_mode=args.ledger_mode,
     )
-
-    # 更新状态
-    today_str = meta["date"]
-    if signal == "BUY" and not state.in_position:
-        state.in_position = True
-        state.entry_date = today_str
-        state.entry_price = meta["price"]
-        state.days_held = 0
-    elif signal == "SELL" and state.in_position:
-        pnl = (meta["price"] - state.entry_price) / state.entry_price
-        state.history.append({
-            "entry_date": state.entry_date,
-            "exit_date": today_str,
-            "entry_price": state.entry_price,
-            "exit_price": meta["price"],
-            "pnl": round(pnl, 4),
-            "days_held": state.days_held + 1,
-            "reason": meta["reason"],
-        })
-        state.in_position = False
-        state.entry_date = None
-        state.entry_price = None
-        state.days_held = 0
-    elif signal == "HOLD":
-        state.days_held += 1
-
-    state.last_signal_date = today_str
-    state.last_signal = signal
-    state.last_reason = meta.get("reason", "")
-    state.last_regime = meta.get("regime", "未知")
-    state.last_regime_detail = meta.get("regime_detail", "")
-
-    # 输出
-    print_signal(signal, meta, state)
-
-    # 保存状态
-    if not args.dry_run:
-        state.save(state_path)
-        logger.info(f"状态已保存: {state_path}")
-    else:
-        logger.info("干跑模式，未保存状态")
-
-    # 信号账本 + 监控产物 (Phase 4 运行审计)
-    _record_to_ledger(
-        signal=signal, meta=meta, model_path=model_path,
-        df=df, feature_cols=feature_cols,
-        ledger_mode="dry-run" if args.dry_run else args.ledger_mode,
-    )
-
-    # 返回信号以供外部集成
     return signal, meta
 
 
