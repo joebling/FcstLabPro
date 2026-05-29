@@ -80,11 +80,13 @@ FcstLabPro/
 │
 ├── experiments/                      # 🧪 实验产物
 │   ├── registry.json                 #   实验注册表
-│   ├── weekly/                       #   实验目录 + SUMMARY.md (实验总览/SOTA)
+│   ├── weekly/                       #   活跃实验 + SUMMARY.md
 │   │   ├── consensus_E1_E8/          #     E1×E8 共识实验
-│   │   ├── weekly_bear_v0305_E*/     #     v0305 系列 (E1-E14)
-│   │   └── weekly_bear_v0308_E*/     #     v0308 SG 平滑系列 (E15, E16a/b/c)
-│   └── archive/                      #   历史实验归档 (tar.gz)
+│   │   ├── v0529_E*_endfix/          #     生产模型复现验证
+│   │   ├── weekly_bear_v0305_E1*/    #     E1 生产源实验
+│   │   ├── weekly_bear_v0305_E8*/    #     E8 challenger 源实验
+│   │   └── weekly_bear_v0308_E16b*/  #     SOTA 候选实验
+│   └── archive/                      #   历史实验归档
 │
 ├── data/                             # 📊 数据
 │   ├── raw/                          #   BTC/USDT 日线 OHLCV
