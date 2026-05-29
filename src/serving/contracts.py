@@ -37,23 +37,51 @@ def _sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def build_data_manifest(data_path: Path) -> dict:
-    """从训练数据 CSV 生成数据谱系 (hash / 区间 / 行数 / freshness)."""
-    df = pd.read_csv(data_path, parse_dates=[0], index_col=0)
-    start = df.index.min()
-    end = df.index.max()
+def build_data_manifest(
+    data_path: Path,
+    *,
+    start: str | None = None,
+    end: str | None = None,
+) -> dict:
+    """从训练数据 CSV 生成数据谱系 (raw + effective filtered range).
+
+    raw_ohlcv 记录原始文件全量；effective_ohlcv 记录训练实际使用的
+    start/end 过滤后范围。根因3修复后, 这个区分很关键——否则 manifest
+    看起来像吃了未来数据, 实际 runner 已按 config 截断。
+    """
+    raw_df = pd.read_csv(data_path, parse_dates=[0], index_col=0).sort_index()
+    eff_df = raw_df.copy()
+    if start is not None:
+        eff_df = eff_df[eff_df.index >= pd.to_datetime(start)]
+    if end is not None:
+        eff_df = eff_df[eff_df.index <= pd.to_datetime(end)]
+    if len(eff_df) == 0:
+        raise ValueError(f"data_manifest effective range is empty: start={start}, end={end}")
+
+    raw_start = raw_df.index.min()
+    raw_end = raw_df.index.max()
+    eff_start = eff_df.index.min()
+    eff_end = eff_df.index.max()
+    rel_path = str(data_path.relative_to(PROJECT_ROOT)) if data_path.is_relative_to(PROJECT_ROOT) else str(data_path)
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "raw_ohlcv": {
-            "path": str(data_path.relative_to(PROJECT_ROOT))
-            if data_path.is_relative_to(PROJECT_ROOT) else str(data_path),
+            "path": rel_path,
             "sha256": _sha256_file(data_path),
-            "rows": int(len(df)),
-            "start": str(start.date()),
-            "end": str(end.date()),
+            "rows": int(len(raw_df)),
+            "start": str(raw_start.date()),
+            "end": str(raw_end.date()),
+        },
+        "effective_ohlcv": {
+            "path": rel_path,
+            "rows": int(len(eff_df)),
+            "start": str(eff_start.date()),
+            "end": str(eff_end.date()),
+            "filter_start": start,
+            "filter_end": end,
         },
         # 外部源 (FGI / funding / macro) — 当前由 feature pipeline 内部处理,
-        # 暂以占位记录, 待 Phase 3 serving 重构时接入真实 lineage。
+        # 暂以占位记录, 待 serving 深度重构时接入真实 lineage。
         "external_sources": {
             "fear_greed_index": {"status": "embedded_in_pipeline", "verified": False},
         },

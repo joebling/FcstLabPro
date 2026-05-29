@@ -171,6 +171,8 @@ def promote(
     status: str = "paper",
     gcs_path: str | None = None,
     dry_run: bool = False,
+    overwrite_production: bool = False,
+    confirm_name: str | None = None,
 ) -> bool:
     """Promote experiment model to production."""
     print("=" * 60)
@@ -220,6 +222,19 @@ def promote(
     # --- Phase 2: 复制到生产目录 ---
     print(f"\n📦 Phase 2: 复制到 models/production/{name}/")
     target_dir = PRODUCTION_DIR / name
+
+    # promote 是生产模型资产变更。禁止默认覆盖已有 production 目录。
+    # 需要显式双确认，避免手滑把线上模型覆盖掉。
+    if target_dir.exists() and any(target_dir.iterdir()):
+        if not overwrite_production or confirm_name != name:
+            print("\n❌ 安全闸门: 目标 production 目录已存在，默认拒绝覆盖")
+            print(f"   target: {target_dir.relative_to(PROJECT_ROOT)}")
+            print("   如确认要覆盖，请先完成 dry-run + diff review，然后显式传:")
+            print("   --overwrite-production --confirm-name {name}".format(name=name))
+            print("   详见 docs/ops/model_promotion_sop.md")
+            return False
+        print("  ⚠️  已显式确认覆盖 production 目录")
+
     target_dir.mkdir(parents=True, exist_ok=True)
 
     # 复制核心文件
@@ -309,12 +324,17 @@ def promote(
     print("\n📝 Phase 3b: 生成数据谱系 + 执行层合同")
     data_path = PROJECT_ROOT / config.get("data", {}).get("path", "")
     if data_path.exists():
-        data_manifest = build_data_manifest(data_path)
+        data_manifest = build_data_manifest(
+            data_path,
+            start=config.get("data", {}).get("start"),
+            end=config.get("data", {}).get("end"),
+        )
         (target_dir / "data_manifest.json").write_text(
             json.dumps(data_manifest, indent=2, ensure_ascii=False)
         )
-        print(f"  ✅ data_manifest.json (rows={data_manifest['raw_ohlcv']['rows']}, "
-              f"{data_manifest['raw_ohlcv']['start']}~{data_manifest['raw_ohlcv']['end']})")
+        print(f"  ✅ data_manifest.json (raw_rows={data_manifest['raw_ohlcv']['rows']}, "
+              f"effective_rows={data_manifest['effective_ohlcv']['rows']}, "
+              f"{data_manifest['effective_ohlcv']['start']}~{data_manifest['effective_ohlcv']['end']})")
     else:
         print(f"  ⚠️  data.path 不存在, 跳过 data_manifest: {data_path}")
 
@@ -364,6 +384,10 @@ def main():
                         help="生命周期状态 (默认 paper, 需手动改 active.yaml 才 live)")
     parser.add_argument("--gcs", default=None, help="GCS 上传路径")
     parser.add_argument("--dry-run", action="store_true", help="只检查不复制")
+    parser.add_argument("--overwrite-production", action="store_true",
+                        help="允许覆盖已存在的 models/production/{name} (危险操作)")
+    parser.add_argument("--confirm-name", default=None,
+                        help="覆盖 production 时必须等于 --name, 双确认防手滑")
     args = parser.parse_args()
 
     exp_dir = Path(args.experiment)
@@ -382,6 +406,8 @@ def main():
         status=args.status,
         gcs_path=args.gcs,
         dry_run=args.dry_run,
+        overwrite_production=args.overwrite_production,
+        confirm_name=args.confirm_name,
     )
     sys.exit(0 if success else 1)
 
