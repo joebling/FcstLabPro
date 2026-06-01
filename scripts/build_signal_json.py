@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -22,6 +23,14 @@ from pathlib import Path
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _extract_version(exp_id: str) -> str:
+    """从实验 ID 提取版本号, 兼容 v0601_xxx 与 xxx_v0601_xxx."""
+    match = re.search(r"(?:^|_)v(\d{4})(?:_|$)", exp_id or "")
+    if match:
+        return f"v{match.group(1)}"
+    return "v0305"
 
 
 def _parse_model_info(manifest: dict, variant: str) -> dict:
@@ -44,9 +53,7 @@ def _parse_model_info(manifest: dict, variant: str) -> dict:
 
     # 版本: 从实验名提取
     exp_id = manifest.get("source_experiment", {}).get("id", "")
-    version = "v0305"  # default
-    if "_v" in exp_id:
-        version = "v" + exp_id.split("_v")[-1][:4]
+    version = _extract_version(exp_id)
 
     # 特征数: "129 (after decontamination)" → 129
     feat_count_raw = str(manifest.get("features", {}).get("count", "129"))

@@ -15,7 +15,7 @@
 #   - strategy_variant 必须与该模型 manifest.json 的 deployment.variant 一致
 #     (启动时由 src/serving/active_config.py 强校验，不一致直接 fail)
 #
-# Updated: 2026-05-29 | Maintainer: Qiu
+# Updated: 2026-06-01 | Maintainer: Qiu
 # ─────────────────────────────────────────────────────────────────────────
 
 # 【数据新鲜度门】生产 pipeline (run_production_pipeline.py) 强制校验。
@@ -26,15 +26,16 @@ data_freshness:
   ohlcv_max_stale_days: 2   # OHLCV 自身相对 "今天(UTC)" 的最大滞后
   fgi_max_stale_days: 2     # FGI last_date 相对 OHLCV last_date 的最大滞后
 
-# 【primary】生产主跑模型 — 风控优先 (MaxDD 更低)
+# 【primary】生产主跑模型 — E20c directional 剪枝升级版
 primary:
-  artifact_dir: models/production/e1-conservative
+  artifact_dir: models/production/e20c-conservative-prune
   role: risk_control
   strategy_variant: conservative
   status: live
   note: >-
-    E1 directional_filtered (终点判定)。生产主跑，止盈+regime 变体。
-    选它的理由: MaxDD 更低 (-12.7%)，更贴风控预算。详见 models/production/SUMMARY.md。
+    E20c directional_filtered (终点判定)，28 特征剪枝版。作为 E1 的同标签升级模型晋升生产：
+    Kappa 0.4448 > E1 0.3480，止盈+regime CAGR 18.8% > E1 10.3%，MaxDD 持平 -12.7%。
+    使用边界: 牛市/震荡择时更稳，熊市 recall 低、几乎闭嘴；E1 保留在 models/production/e1-conservative 供 git revert 回滚。
 
 # 【challenger】挑战者模型 — 收益优先 (Return/Sharpe 更高，回撤更大)
 challenger:

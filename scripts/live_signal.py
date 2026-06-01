@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""E1 策略线上推理脚本.
+"""FcstLabPro 生产模型线上推理脚本.
 
 每日运行一次，输出买入/持有/平仓/静默信号。
 
@@ -232,11 +232,12 @@ SIGNAL_EMOJI = {
 }
 
 
-def print_signal(signal: str, meta: dict, state: PositionState) -> None:
+def print_signal(signal: str, meta: dict, state: PositionState, model_name: str) -> None:
     """Pretty-print the signal."""
     emoji = SIGNAL_EMOJI.get(signal, "❓")
+    display_name = model_name.replace("-", " ").title()
     print("\n" + "=" * 60)
-    print(f"  {emoji}  E1 策略信号: {signal}")
+    print(f"  {emoji}  {display_name} 策略信号: {signal}")
     print("=" * 60)
     print(f"  日期:     {meta['date']}")
     print(f"  价格:     ${meta['price']:,.2f}")
@@ -299,7 +300,7 @@ def run_signal(
     )
 
     _apply_signal_to_state(state, signal, meta)
-    print_signal(signal, meta, state)
+    print_signal(signal, meta, state, model_path.parent.name)
 
     if not dry_run:
         state.save(state_path)
@@ -376,7 +377,7 @@ def _apply_signal_to_state(state: PositionState, signal: str, meta: dict) -> Non
 # =====================================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="E1 策略线上信号")
+    parser = argparse.ArgumentParser(description="FcstLabPro 线上信号")
     parser.add_argument("--model", default=None,
                         help="模型文件 (不传则从 active.yaml 解析)")
     parser.add_argument("--config", default=None,

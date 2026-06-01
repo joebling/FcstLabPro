@@ -37,7 +37,7 @@ MODEL_USAGE_NOTES: dict[str, dict[str, str]] = {
         "regime": "E21b 同标签研究显示: touch 类模型多 regime 更稳定, 但执行规则仍要单独验证。",
     },
     "e20c-conservative-prune": {
-        "status": "Candidate/Production · E20c prune",
+        "status": "Production · E20c prune",
         "usage": "28 特征 directional 剪枝模型。牛市/震荡保守择时; 熊市建议降低权重或关闭。",
         "regime": "OOS: bull kappa 0.42; bear 0.13; sideways 0.52。熊市几乎闭嘴 (recall 10%)。",
     },
