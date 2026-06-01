@@ -27,6 +27,17 @@ from email.mime.text import MIMEText
 
 from dotenv import load_dotenv
 
+try:
+    from scripts.email_model_semantics import (
+        build_model_semantics_html,
+        model_semantics_text,
+    )
+except ImportError:  # 兼容 `python scripts/send_signal_email.py ...`
+    from email_model_semantics import (  # type: ignore
+        build_model_semantics_html,
+        model_semantics_text,
+    )
+
 load_dotenv()
 
 # =====================================================================
@@ -312,6 +323,9 @@ def build_html(data: dict) -> str:
             <!-- 模型信息 -->
             {_build_model_info(data)}
 
+            <!-- 模型语义 -->
+            {build_model_semantics_html(data)}
+
             <!-- 免责声明 -->
             {_build_disclaimer(data)}
         </div>
@@ -380,6 +394,9 @@ def build_plain_text(data: dict) -> str:
         f"模型: {m.get('name', 'N/A')} {m.get('version', '')}",
         f"  {m.get('type', 'N/A')} | {m.get('features', 'N/A')}特征 | Kappa={m.get('kappa', 'N/A')}",
         f"  CAGR={bt.get('cagr', 'N/A')} | MaxDD={bt.get('max_dd', 'N/A')} | PF={bt.get('pf', 'N/A')}",
+    ]
+    lines += model_semantics_text(data)
+    lines += [
         "═" * 40,
         "⚠️ 不构成投资建议",
     ]

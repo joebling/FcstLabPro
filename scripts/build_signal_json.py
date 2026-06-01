@@ -58,6 +58,7 @@ def _parse_model_info(manifest: dict, variant: str) -> dict:
 
     return {
         "name": display_name,
+        "raw_name": raw_name,
         "version": version,
         "type": model_type,
         "label": strategy.get("label", "N/A"),

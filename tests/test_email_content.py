@@ -158,7 +158,10 @@ def test_model_info():
     assert "LightGBM" in html, "应显示模型类型"
     assert "Kappa=0.19" in html or "0.19" in html, "应显示 Kappa"
     assert "9.8%" in html, "应显示 CAGR"
-    print("  ✅ 模型名/类型/Kappa/CAGR 均正确")
+    assert "模型语义" in html, "应显示模型语义说明"
+    assert "Directional / 终点确认" in html, "应显示 directional 标签含义"
+    assert "close[t+21] / close[t]" in html, "应显示 directional 触发条件"
+    print("  ✅ 模型名/类型/Kappa/CAGR/语义均正确")
     print("✅ 模型信息测试通过\n")
 
 
@@ -186,6 +189,9 @@ def test_different_models():
     assert "E8 Touch" in html_e8, "应显示 E8 模型名"
     assert "touch_filtered" in html_e8, "应显示 touch 标签"
     assert "16.0%" in html_e8, "应显示 E8 CAGR"
+    assert "Touch / 窗口触达" in html_e8, "应显示 touch 标签含义"
+    assert "max(high[t+1:t+22])" in html_e8, "应显示 touch 触发条件"
+    assert "Production · E8 touch" in html_e8, "应显示 E8 production 口径"
     print("  ✅ E8 模型渲染正确")
     print("✅ 多模型兼容测试通过\n")
 
@@ -197,7 +203,9 @@ def test_plain_text():
     assert "$85,432.10" in text, "应包含价格"
     assert "E1 Conservative" in text, "应包含模型名"
     assert "Kappa=0.19" in text, "应包含 Kappa"
-    print("  ✅ 纯文本包含关键信息")
+    assert "模型语义 / 怎么读这个信号" in text, "应包含模型语义说明"
+    assert "Directional / 终点确认" in text, "应包含 directional 标签含义"
+    print("  ✅ 纯文本包含关键信息和模型语义")
     print("✅ 纯文本测试通过\n")
 
 
