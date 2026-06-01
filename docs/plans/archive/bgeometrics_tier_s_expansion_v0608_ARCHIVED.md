@@ -1,3 +1,21 @@
+# ⚠️ ARCHIVED — BGeometrics Tier S 链上指标扩展计划 (Phase 2.6)
+
+> **归档日**: 2026-06-01
+> **归档原因**: 该文档定位为 "Phase 2.5 完成后的增量扩展" (Phase 2.6), 但实际上:
+>   1. **BGeo 才是主场**: BGeo 437 个 JSON 远超 CMD 29 个, 是 Phase 2.5 主体而非扩展
+>   2. **Tier S 只列了 8 个**: 但 BGeo 实际有 50+ 个值得试的长历史指标
+>   3. **启动条件依赖 CMD 路线胜出**: 但 CMD 本身数据范围不足, 该启动条件不合理
+>
+> **接替文档**: `docs/plans/phase2.5_feature_landscape_v0601.md`
+>
+> **保留价值**:
+>   - §3 BGeo Tier S 具体指标说明 (sopr_data, nvts 等) 仍有参考价值
+>   - §10 启动检查清单 (含 2026-06-01 新增的数据基准校验) 已上移到新文档
+>
+> **参考**: `docs/lessons/lesson_0601_data_governance_regime_shift.md`
+
+---
+
 # BGeometrics Tier S 链上指标扩展计划 (Phase 2.6)
 
 > **生成时间**: 2026-06-01

@@ -369,13 +369,16 @@ configs/experiments/weekly/
 
 ### 7.3 后续路线
 
-按 plan 决策树 (experiment_matrix_v0601.md §4):
+按 plan 决策树 (新主文档 `phase2.5_feature_landscape_v0601.md` §4.3):
 
 - ⛔ **E18b/E18c 暂停** (在 LTH/STH base 上加交互/extras 不可能挤上去)
-- ⛔ **Phase 2.6 (Tier S) 启动条件未满足** (需首个路线显著)
-- ✅ **转 Wave 2: E19 (crypto-market-data 12 个 Tier 1 衡量)** —
-  衡量品质独立 (Glassnode/CryptoQuant 口径), 含 funding/OI 真实数据,
-  应优于 LTH/STH 慢变量
+- ⛔ **废弃 "CMD Tier 1 12 个一锅烖"** 路线 (CMD 全部 2022-12 起, 法都公平)
+- ✅ **转 E19 5 sub-experiments** (主面 BGeo 437 个, 其中 239 个 2012+):
+  - E19-PUELL (优先, 30 min) — Charles Edwards 经典周期 indicator
+  - E19-MINER (45 min) — 矿工供给端
+  - E19-MVRV-EXT (45 min) — MVRV 家族扩展
+  - E19-STABLE (45 min) — 稳定币购买力
+  - E19-DERIV-SHORT (1.5h, 需 NaN-aware 改造) — 衰生品高频
 
 ### 7.4 LTH/STH 未被育拓的窗状 (备查)
 
@@ -395,7 +398,7 @@ configs/experiments/weekly/
 - ✅ `data/external/onchain/*.csv` — 11 个指标 + healthcheck.json (已 commit)
 - ✅ `src/features/external.py` 新增 `_load_onchain_csv` / `_load_onchain_series` helper
 - ✅ `build_lth_sth_core_features` / `build_lth_sth_interactions` builders
-- ✅ `docs/plans/bgeometrics_tier_s_expansion_v0608.md` (Phase 2.6 待启动)
+- ✅ `docs/plans/bgeometrics_tier_s_expansion_v0608.md` 已整合到 `phase2.5_feature_landscape_v0601.md` §4
 
 → Tier S 实验 (E22+) 可在未来其它任务 (monthly/bull) 中复用.
 
@@ -403,3 +406,4 @@ configs/experiments/weekly/
 
 *维护: 本计划随 E18 实验进展更新；归档触发条件 = 实验完成 + CONCLUSION.md 写完。*
 *2026-06-01: §7 阶段结论新增, 标记 E18 路线在 weekly bear 任务终止.*
+*2026-06-01 update: §7.3 指向新主文档 `phase2.5_feature_landscape_v0601.md` (取代 `experiment_matrix_v0601.md` + `bgeometrics_tier_s_expansion_v0608.md`).*

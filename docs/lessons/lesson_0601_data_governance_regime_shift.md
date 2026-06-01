@@ -156,9 +156,9 @@ Walk-forward expanding window 默认假设 **stationary**, 但 crypto 显然不�
 ### 4.1 立即生效 (本 commit 含)
 
 - [x] **锁定 2020-01-01** 为所有 weekly bear 实验的统一基准
-- [x] 在 `docs/plans/experiment_matrix_v0601.md` §0 加 "基准锁定" 声明
+- [x] 在 `docs/plans/experiment_matrix_v0601.md` §0 加 "基准锁定" 声明 → 后升级为 `docs/plans/phase2.5_feature_landscape_v0601.md` §0.2
 - [x] 在 `docs/plans/onchain_lth_sth_feature_plan.md` §7 加 E18a 阶段结论
-- [x] 在 `docs/plans/bgeometrics_tier_s_expansion_v0608.md` §10 加 "基准 = 2020-01-01" 检查项
+- [x] 在 `docs/plans/bgeometrics_tier_s_expansion_v0608.md` §10 加 "基准 = 2020-01-01" 检查项 → 后与主文档合并为 `phase2.5_feature_landscape_v0601.md` §5.2
 - [x] 本 lesson 文档归档全部诊断证据
 
 ### 4.2 短期 (本周内)

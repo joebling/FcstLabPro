@@ -24,10 +24,16 @@
 
 | Phase | 目标 | 影响 | 工作量 | 状态 |
 |---|---|---|---|---|
-| **🔴 P0 清污** | 消除 fake 特征命名误导 | 不改算法, 但**需重训** | ~1 天 | ✅ 完成 |
-| **🟠 P1 启用真数据 + MVRV** | 引入真正独立信息维度 | 预期 Kappa ↑ | 2-3 天 | 未开始 |
+| **🔴 P0 清污** | 消除 fake 特征命名误导 | 不改算法, 但**需重训** | ~1 天 | ✅ 完成 (2026-05-29) |
+| **🟠 P1 启用真数据 + MVRV** | 引入真正独立信息维度 | 预期 Kappa ↑ | 2-3 天 | ⏳ 进行中 (Phase 2.5) |
 | **🟡 P2 剪枝去重** | 减少噪声特征 + DRY | 速度 +30%，可解释性 ↑ | 0.5 天 | 未开始 |
-| **🟢 P3 长期演进** | 季节性 / 真衔生品 / 跨资产 | 按月迭代 | 持续 | 未开始 |
+| **🟢 P3 长期演进** | 季节性 / 真衍生品 / 跨资产 | 按月迭代 | 持续 | 未开始 |
+
+> 🔥 **Phase 2.5 状态 (2026-06-01)**: 外部数据集成主体中. 详见 [`phase2.5_feature_landscape_v0601.md`](./phase2.5_feature_landscape_v0601.md).
+> - ✅ FGI/Macro/Funding/MVRV 六大外部数据集成
+> - ✅ E18a (LTH/STH 36 衰生) 实验完成 — 判定为 noise (`onchain_lth_sth_feature_plan.md` §7)
+> - ⏳ E19 5 sub-experiments (PUELL/MINER/MVRV-EXT/STABLE/DERIV-SHORT) 待启动
+> - ⚠️ 数据治理锁定: `data.start: '2020-01-01'` + sha256 校验 (`docs/lessons/lesson_0601_*`)
 
 > 💡 **核心建议**: 不要急着上 MVRV — **先做 Phase 1 清污**，避免 fake 数据继续误导决策；再做 Phase 2 启用已下载的真实数据（funding_rate / 宏观），跟 MVRV 一起作为新外部数据维度引入，对照实验隔离每一项的净贡献。
 
