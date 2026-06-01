@@ -34,10 +34,46 @@ from pathlib import Path
 
 import pandas as pd
 
-# ====== 候选指标清单 (与 phase2.5_feature_landscape_v0601.md §4.2 5 个 sub 对应) ======
+# ====== 候选指标清单 (与 phase2.5_feature_landscape_v0601.md §5 sub 对应) ======
 CANDIDATES: dict[str, list[str]] = {
     "E19-PUELL": [
         "puell_multiple_data",
+    ],
+    "E19-SOPR-NEW": [
+        "sopr_data",
+        "lth_sopr",
+        "sth_sopr",
+        "cdd",
+        "cdd_terminal_ajusted",
+    ],
+    "E19-MVRV-EXT": [
+        "mvrv_data",
+        "mvrv_365dma",
+        "mvrv_diff",
+        "mvrv_zscore_data",
+        "mvrv_btc_price",
+        # 已知停更变体, 保留在 audit 中作为反例.
+        "mvrv_zscore_adapt_data",
+    ],
+    "E19-ADDRESS": [
+        "address_01_1",
+        "address_10_100",
+        "address_100_1000",
+        "addresses_active",
+        "realized_cap",
+    ],
+    "E19-STABLE": [
+        "stablecoin_usdt",
+        "stablecoin_dai",
+        "stablecoin_pax",
+        "stablecoin_usdc",
+        "stablecoin_busd",
+        # 已知停更/低覆盖变体, 保留在 audit 中作为反例.
+        "stablecoin_supply",
+        "stablecoin_others",
+    ],
+    "E19-AVIV": [
+        "aviv",
     ],
     "E19-MINER": [
         "miner_balance",
@@ -45,21 +81,17 @@ CANDIDATES: dict[str, list[str]] = {
         "miner_reserves",
         "miner_sell_presure",
     ],
-    "E19-MVRV-EXT": [
-        "mvrv_data",
-        "mvrv_365dma",
-        "mvrv_diff",
-        "mvrv_zscore_data",
-        "mvrv_zscore_adapt_data",
-    ],
-    "E19-STABLE": [
-        "stablecoin_supply",
-        "stablecoin_usdt",
-        "stablecoin_dai",
-        "stablecoin_pax",
-        "stablecoin_others",
+    "E19-DERIV-BGEO": [
+        "funding_rate",
+        "open_interest_futures_btc_price",
     ],
 }
+
+STALE_DAYS_MAX = 90
+L1_COVERAGE_MIN = 0.95
+L2_COVERAGE_MIN = 0.70
+ALIGN_NAN_MAX = 30
+
 
 # ====== 基准日历 (锁定, lesson_0601) ======
 BASELINE_START = "2020-01-01"
@@ -117,19 +149,27 @@ def count_leading_nulls(s: pd.Series, after: date | None = None) -> int:
     return len(s)
 
 
-def classify_level(coverage: float, leading_after: int, data_start: date) -> str:
-    """按 phase2.5 §2.2 规则自动分级.
+def classify_level(coverage: float, leading_after: int, nan_count: int) -> str:
+    """按 phase2.5 §2.2 / §4 #7 规则自动分级.
 
-    L0: 覆盖率 100% 且 2020 后无前导 NaN
-    L1: 覆盖率 ≥ 70%
-    L2: 覆盖率 < 70%
-    L3: 数据已停 (last_data < 2025)
+    L0: align 后严格 0 NaN + 2020 后无前导 NaN
+    L1: coverage >= 95%, stale <= 90d, align_NaN < 30, 2020 后无前导 NaN
+    L2: coverage 70%-95%, stale <= 90d
+    L3: stale > 90d 或 coverage < 70%
+
+    stale 由调用方先处理; 这里只处理覆盖率/NaN 维度.
     """
-    if coverage == 1.0 and leading_after == 0:
+    if coverage == 1.0 and leading_after == 0 and nan_count == 0:
         return "L0"
-    if coverage >= 0.70:
+    if (
+        coverage >= L1_COVERAGE_MIN
+        and leading_after == 0
+        and nan_count < ALIGN_NAN_MAX
+    ):
         return "L1"
-    return "L2"
+    if coverage >= L2_COVERAGE_MIN:
+        return "L2"
+    return "L3"
 
 
 def audit_indicator(name: str, bgeo_dir: Path, baseline_index: pd.DatetimeIndex) -> dict:
@@ -160,10 +200,10 @@ def audit_indicator(name: str, bgeo_dir: Path, baseline_index: pd.DatetimeIndex)
 
     # L3: 数据停更
     days_stale = (date.today() - data_end).days
-    if days_stale > 90:
+    if days_stale > STALE_DAYS_MAX:
         level = "L3"
     else:
-        level = classify_level(coverage, leading_after, data_start)
+        level = classify_level(coverage, leading_after, nan_count)
 
     return {
         "name": name,

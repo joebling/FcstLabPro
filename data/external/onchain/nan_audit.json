@@ -21,62 +21,76 @@
         "level": "L1"
       }
     ],
-    "E19-MINER": [
+    "E19-SOPR-NEW": [
       {
-        "name": "miner_balance",
-        "data_start": "2012-05-09",
-        "data_end": "2025-10-27",
-        "days_stale": 217,
-        "raw_rows": 4910,
-        "rows_in_baseline": 2117,
+        "name": "sopr_data",
+        "data_start": "2012-01-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5254,
+        "rows_in_baseline": 2182,
         "rows_total_baseline": 2192,
-        "coverage_pct": 96.58,
-        "nan_count_aligned": 75,
+        "coverage_pct": 99.54,
+        "nan_count_aligned": 10,
         "leading_nulls_raw": 0,
         "leading_nulls_after_2020": 0,
-        "level": "L3"
+        "level": "L1"
       },
       {
-        "name": "miner_out_flows",
-        "data_start": "2013-08-02",
-        "data_end": "2025-08-14",
-        "days_stale": 291,
-        "raw_rows": 4386,
-        "rows_in_baseline": 2043,
+        "name": "lth_sopr",
+        "data_start": "2012-01-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5254,
+        "rows_in_baseline": 2177,
         "rows_total_baseline": 2192,
-        "coverage_pct": 93.2,
-        "nan_count_aligned": 149,
+        "coverage_pct": 99.32,
+        "nan_count_aligned": 15,
         "leading_nulls_raw": 0,
         "leading_nulls_after_2020": 0,
-        "level": "L3"
+        "level": "L1"
       },
       {
-        "name": "miner_reserves",
-        "data_start": "2013-08-02",
-        "data_end": "2025-08-14",
-        "days_stale": 291,
-        "raw_rows": 4386,
-        "rows_in_baseline": 2043,
+        "name": "sth_sopr",
+        "data_start": "2012-01-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5254,
+        "rows_in_baseline": 2177,
         "rows_total_baseline": 2192,
-        "coverage_pct": 93.2,
-        "nan_count_aligned": 149,
+        "coverage_pct": 99.32,
+        "nan_count_aligned": 15,
         "leading_nulls_raw": 0,
         "leading_nulls_after_2020": 0,
-        "level": "L3"
+        "level": "L1"
       },
       {
-        "name": "miner_sell_presure",
-        "data_start": "2013-08-02",
-        "data_end": "2025-08-14",
-        "days_stale": 291,
-        "raw_rows": 4386,
-        "rows_in_baseline": 2043,
+        "name": "cdd",
+        "data_start": "2012-01-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5254,
+        "rows_in_baseline": 2179,
         "rows_total_baseline": 2192,
-        "coverage_pct": 93.2,
-        "nan_count_aligned": 149,
+        "coverage_pct": 99.41,
+        "nan_count_aligned": 13,
         "leading_nulls_raw": 0,
         "leading_nulls_after_2020": 0,
-        "level": "L3"
+        "level": "L1"
+      },
+      {
+        "name": "cdd_terminal_ajusted",
+        "data_start": "2012-01-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5254,
+        "rows_in_baseline": 2182,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.54,
+        "nan_count_aligned": 10,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
       }
     ],
     "E19-MVRV-EXT": [
@@ -137,6 +151,20 @@
         "level": "L1"
       },
       {
+        "name": "mvrv_btc_price",
+        "data_start": "2012-01-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5253,
+        "rows_in_baseline": 2182,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.54,
+        "nan_count_aligned": 10,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      },
+      {
         "name": "mvrv_zscore_adapt_data",
         "data_start": "2013-05-01",
         "data_end": "2025-10-10",
@@ -151,21 +179,79 @@
         "level": "L3"
       }
     ],
-    "E19-STABLE": [
+    "E19-ADDRESS": [
       {
-        "name": "stablecoin_supply",
-        "data_start": "2018-01-01",
-        "data_end": "2023-11-19",
-        "days_stale": 925,
-        "raw_rows": 2139,
-        "rows_in_baseline": 1409,
+        "name": "address_01_1",
+        "data_start": "2012-01-01",
+        "data_end": "2026-04-26",
+        "days_stale": 36,
+        "raw_rows": 5209,
+        "rows_in_baseline": 2174,
         "rows_total_baseline": 2192,
-        "coverage_pct": 64.28,
-        "nan_count_aligned": 783,
+        "coverage_pct": 99.18,
+        "nan_count_aligned": 18,
         "leading_nulls_raw": 0,
         "leading_nulls_after_2020": 0,
-        "level": "L3"
+        "level": "L1"
       },
+      {
+        "name": "address_10_100",
+        "data_start": "2012-01-01",
+        "data_end": "2026-04-26",
+        "days_stale": 36,
+        "raw_rows": 5209,
+        "rows_in_baseline": 2174,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.18,
+        "nan_count_aligned": 18,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      },
+      {
+        "name": "address_100_1000",
+        "data_start": "2012-01-01",
+        "data_end": "2026-04-26",
+        "days_stale": 36,
+        "raw_rows": 5209,
+        "rows_in_baseline": 2172,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.09,
+        "nan_count_aligned": 20,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      },
+      {
+        "name": "addresses_active",
+        "data_start": "2010-10-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5711,
+        "rows_in_baseline": 2182,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.54,
+        "nan_count_aligned": 10,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      },
+      {
+        "name": "realized_cap",
+        "data_start": "2011-01-01",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 5618,
+        "rows_in_baseline": 2182,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.54,
+        "nan_count_aligned": 10,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      }
+    ],
+    "E19-STABLE": [
       {
         "name": "stablecoin_usdt",
         "data_start": "2017-11-28",
@@ -209,6 +295,48 @@
         "level": "L1"
       },
       {
+        "name": "stablecoin_usdc",
+        "data_start": "2017-11-28",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 3094,
+        "rows_in_baseline": 2180,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.45,
+        "nan_count_aligned": 12,
+        "leading_nulls_raw": 304,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      },
+      {
+        "name": "stablecoin_busd",
+        "data_start": "2017-11-28",
+        "data_end": "2026-05-30",
+        "days_stale": 2,
+        "raw_rows": 3094,
+        "rows_in_baseline": 2180,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.45,
+        "nan_count_aligned": 12,
+        "leading_nulls_raw": 661,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      },
+      {
+        "name": "stablecoin_supply",
+        "data_start": "2018-01-01",
+        "data_end": "2023-11-19",
+        "days_stale": 925,
+        "raw_rows": 2139,
+        "rows_in_baseline": 1409,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 64.28,
+        "nan_count_aligned": 783,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L3"
+      },
+      {
         "name": "stablecoin_others",
         "data_start": "2018-01-01",
         "data_end": "2023-12-20",
@@ -221,6 +349,110 @@
         "leading_nulls_raw": 0,
         "leading_nulls_after_2020": 0,
         "level": "L3"
+      }
+    ],
+    "E19-AVIV": [
+      {
+        "name": "aviv",
+        "data_start": "2010-07-19",
+        "data_end": "2026-05-31",
+        "days_stale": 1,
+        "raw_rows": 5789,
+        "rows_in_baseline": 2185,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 99.68,
+        "nan_count_aligned": 7,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L1"
+      }
+    ],
+    "E19-MINER": [
+      {
+        "name": "miner_balance",
+        "data_start": "2012-05-09",
+        "data_end": "2025-10-27",
+        "days_stale": 217,
+        "raw_rows": 4910,
+        "rows_in_baseline": 2117,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 96.58,
+        "nan_count_aligned": 75,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L3"
+      },
+      {
+        "name": "miner_out_flows",
+        "data_start": "2013-08-02",
+        "data_end": "2025-08-14",
+        "days_stale": 291,
+        "raw_rows": 4386,
+        "rows_in_baseline": 2043,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 93.2,
+        "nan_count_aligned": 149,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L3"
+      },
+      {
+        "name": "miner_reserves",
+        "data_start": "2013-08-02",
+        "data_end": "2025-08-14",
+        "days_stale": 291,
+        "raw_rows": 4386,
+        "rows_in_baseline": 2043,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 93.2,
+        "nan_count_aligned": 149,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L3"
+      },
+      {
+        "name": "miner_sell_presure",
+        "data_start": "2013-08-02",
+        "data_end": "2025-08-14",
+        "days_stale": 291,
+        "raw_rows": 4386,
+        "rows_in_baseline": 2043,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 93.2,
+        "nan_count_aligned": 149,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 0,
+        "level": "L3"
+      }
+    ],
+    "E19-DERIV-BGEO": [
+      {
+        "name": "funding_rate",
+        "data_start": "2023-07-09",
+        "data_end": "2026-05-31",
+        "days_stale": 1,
+        "raw_rows": 2177,
+        "rows_in_baseline": 0,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 0.0,
+        "nan_count_aligned": 2192,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 2192,
+        "level": "L3"
+      },
+      {
+        "name": "open_interest_futures_btc_price",
+        "data_start": "2020-08-01",
+        "data_end": "2026-05-29",
+        "days_stale": 3,
+        "raw_rows": 2105,
+        "rows_in_baseline": 1956,
+        "rows_total_baseline": 2192,
+        "coverage_pct": 89.23,
+        "nan_count_aligned": 236,
+        "leading_nulls_raw": 0,
+        "leading_nulls_after_2020": 213,
+        "level": "L2"
       }
     ]
   }

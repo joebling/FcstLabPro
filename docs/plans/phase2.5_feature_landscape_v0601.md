@@ -69,8 +69,8 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 | **SOPR 家族** | `sopr_data`, `lth_sopr`, `sth_sopr`, `cdd`, `cdd_terminal_ajusted` (全 2012+) | — |
 | **Address (HODL Waves)** | `address_*` 12 档 (2012+), `addresses_active` (2010), `realized_cap` (2011) | — |
 | **Stablecoin** | `stablecoin_usdt/dai/pax/usdc/busd` (2017+) | CMD `stablecoin_exchange_netflow` (2022+) |
-| **Funding Rate** | BGeo `funding_rate.json` (2023-07+) ❌ 短 | CMD `btc_funding_rates` (2022-12+) |
-| **Open Interest** | BGeo `open_interest_futures_btc_price.json` (2020-08+) | CMD `btc_open_interest` (2022-12+) |
+| **Funding Rate** | BGeo `funding_rate.json` (2023-07+) ❌ 短, 且 schema 不兼容 daily reindex (audit coverage 0%) | CMD `btc_funding_rates` (2022-12+) |
+| **Open Interest** | (BGeo `open_interest_futures_btc_price` 是 BTC 价格副轴, ❌ 禁用; 见 §3 铁律) | CMD `btc_open_interest` (2022-12+) |
 | **Taker Buy/Sell** | — | CMD `btc_taker_buy_sell_ratio` (2022+) |
 | **Liquidations** | — | CMD `btc_long/short_liquidations` (2022+) ⚠️ **唯一源** |
 | **Coinbase Premium** | — | CMD `btc_coinbase_premium_index` (2022+) |
@@ -83,7 +83,7 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 | 等级 | 定义 | 实验策略 |
 |---|---|---|
 | **L0: 严格 0 NaN** | align 后 0 NaN + 0 前导 null + stale ≤ 90d | (理论等级, BGeo 实测 0 个) |
-| **L1: 高覆盖** | align cov ≥ 95% 且 stale ≤ 90d | 加入特征集, ffill_then_drop 不丢行 |
+| **L1: 高覆盖** | align cov ≥ 95% 且 stale ≤ 90d | 加入特征集, ffill_then_drop 不因偶发缺口大量丢行 (但 rolling 派生仍按窗口自然丢前置: `zscore_90` 丢 89 行, `slope_30` 丢 29 行) |
 | **L2: 中覆盖** | align cov 70-95% 且 stale ≤ 90d | NaN-aware (改 builder) 或截断, CMD 全部 |
 | **L3: 不可靠** | stale > 90d 或 cov < 70% | 不用 |
 
@@ -123,6 +123,8 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 | 基准 `data.end` | `'2025-12-31'` 锁定 | lesson_0601 §3 (避免泄漏未来) |
 | BTC csv sha256 | `004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858` (必填 `expected_sha256`) | runner.py §B 校验 |
 | BTC csv expected_rows | 必填 `expected_effective_rows: 2192` | 同上 |
+| **Onchain features availability lag** | 默认 `shift(1)` (t 日决策不可使用 t 日链上数据) | Layer 0 未来函数防护 |
+| **BGeo `*_btc_price.json` 全系列禁止作特征** | 实测 68 个该后缀文件全部 = BTC close (ratio ≈ 0.998), 是绘图副轴数据 | 数据泄漏 + 与 OHLCV 共线 |
 | Builder 改动 | 必须先跑 E1 bit-exact 复现, diff > 1e-12 立即回滚 | OPS_MANUAL §5.3 |
 
 ---
@@ -180,8 +182,8 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 | 字段 | 值 |
 |---|---|
 | 假设 | MVRV Z-Score 多种 representation 在不同周期阶段强弱不同 |
-| 数据源 | BGeo 5 个 (§2.3 筛选): `mvrv_data`, `mvrv_365dma`, `mvrv_diff`, `mvrv_zscore_data`, `mvrv_btc_price` (全 L1: cov 99.5%, stale 2d) |
-| 新增特征 | 5 × 5 = 25, **不含 raw**. **例外**: `mvrv_zscore_data` 保留 raw level 作 regime 标记 (config 明示) |
+| 数据源 | BGeo 4 个 (§2.3 筛选): `mvrv_data`, `mvrv_365dma`, `mvrv_diff`, `mvrv_zscore_data` (全 L1: cov 99.5%, stale 2d). ⚠️ `mvrv_btc_price` 实测 = BTC close (ratio 0.998), 不可用 (§3 铁律) |
+| 新增特征 | 4 × 5 = 20, **不含 raw**. **例外**: `mvrv_zscore_data` 保留 raw level 作 regime 标记 (config 明示) |
 | 时间预算 | 45 min |
 | 关联 | E18a 用过 LTH/STH MVRV 但没用过总体 MVRV variants |
 
@@ -224,7 +226,8 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 | 前置 | 改 `src/features/builder.py` 加 `keep_nan_features` 选项 (LightGBM 原生支持 NaN) — §7 ⛔ 硬阻塞 |
 | 新增特征 | 6 × 5 = 30, **不含 raw** (衍生品本身已高频, 但 `funding/OI` 的 `ma_7/zscore_90` 比 raw 更稳) |
 | 时间预算 | 1.5h (含改 builder + bit-exact 测试 + 跑) |
-| 风险 | 2020-2022 全 NaN, 模型可能学到 "NaN 通道" 而非真信号 |
+| 风险 | 2020-2022 全 NaN (占基准 48.7%), 模型可能学到 "NaN = 早 regime / 非 NaN = 晚 regime" 而非真信号 |
+| **基准修订** | ⚠️ **必须用 2022-12-03 起同窗 E1 baseline 对比**, 不可直接对比 2020-2025 E1 (否则上述 regime proxy 风险无法控制). 具体: 重跑 `exp_v0305_E1_decontam` 但锁 `data.start: '2022-12-03'`, 命名 `e1-baseline-2022q4`, 用此作 DERIV-SHORT 的对照组 |
 
 ---
 
