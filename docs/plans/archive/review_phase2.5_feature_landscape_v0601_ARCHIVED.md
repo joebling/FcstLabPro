@@ -1,3 +1,19 @@
+# ⚠️ ARCHIVED — Review 已全量采纳, 使命完成
+
+> **归档时间**: 2026-06-01
+> **归档原因**: 本 review 提出的 4 个改进项已在 commit `aa639e9` (v1.1) 全部采纳,
+>             3 个盲点已在 commit `38eb3ac` (audit 脚本) + `a1df4d5` (v1.2 重写 §4.2)
+>             通过实测验证 + 修订.
+> **阳本位置**: `docs/plans/phase2.5_feature_landscape_v0601.md` (v1.2, 续维护)
+> **保留价值**:
+>   - 审计证据链 (v1.1/v1.2 修订的方法论源头)
+>   - "逐条事实声明 cross-check" 的高质量审查范本
+>   - 8/8 fact-check 全对 × 3/3 盲点 100% 命中 的高准确率记录
+>
+> **如需引用后续 work**: 请以 `phase2.5_feature_landscape_v0601.md` 为准, 本文仅作历史证据.
+
+---
+
 # Review: `phase2.5_feature_landscape_v0601.md`
 
 > **生成时间**: 2026-06-01
