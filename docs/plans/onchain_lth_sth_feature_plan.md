@@ -348,4 +348,58 @@ configs/experiments/weekly/
 
 ---
 
+## 7. 阶段结论 (2026-06-01 更新)
+
+### 7.1 E18a 实验结果 (公平基准 2020-2025)
+
+| 实验 | features | kappa | f1 | precision | recall |
+|---|---|---|---|---|---|
+| E1 baseline (复现 ✅ bit-exact) | 129 | **0.3480** | 0.4161 | 0.4085 | 0.4240 |
+| E18a (+36 LTH/STH 衰 生) | 165 | 0.3244 | 0.3929 | 0.3970 | 0.3889 |
+| **差额** | +36 | **-6.8%** | -5.6% | -2.8% | -8.3% |
+
+**门槛**: Kappa ≥ E1 × 1.05 = 0.3654 → **未达标**.
+
+### 7.2 判定: LTH/STH 路线 在 weekly bear 任务上 ⚠️ 无显著 alpha
+
+- LightGBM feature importance: 36 个特征 0 个废, top-50 占 10/50 (按比例分布)
+- `ext_lth_sopr_ma_30` 排 #8 (top-10), 但整体 precision/recall 轻微下降
+- **推测原因**: LTH/STH 是周期级慢变量 (>180 天), 跟 weekly bear (T=21) 锁定错配.
+  经 ma_30 / slope_30 衰生后更慢, 在持续 bear 期发出大量假信号。
+
+### 7.3 后续路线
+
+按 plan 决策树 (experiment_matrix_v0601.md §4):
+
+- ⛔ **E18b/E18c 暂停** (在 LTH/STH base 上加交互/extras 不可能挤上去)
+- ⛔ **Phase 2.6 (Tier S) 启动条件未满足** (需首个路线显著)
+- ✅ **转 Wave 2: E19 (crypto-market-data 12 个 Tier 1 衡量)** —
+  衡量品质独立 (Glassnode/CryptoQuant 口径), 含 funding/OI 真实数据,
+  应优于 LTH/STH 慢变量
+
+### 7.4 LTH/STH 未被育拓的窗状 (备查)
+
+并未证明 LTH/STH 本身不灵, 仅表明在现有 (T=21, X=4%) 任务 + 现有 LightGBM 决策阶下不灵.
+值得后续探索的场景:
+
+- **Monthly bear** (T=63 或更长) — 时间尺度匹配慢变量
+- **Bull market filter** — 仅用 LTH NUPL 提供 regime 输入, 不作为分类特征
+- **Regime-conditional model** — 跟 200d MA 配合, 在 bull regime 启用 LTH/STH
+- **As probability calibration input** — 不参与训练, 作为后置过滤
+
+### 7.5 数据基础设施 (Phase 2.5 遗产)
+
+虽然 E18a 失败, 但本阶段建立的基础设施仍然有效:
+
+- ✅ `scripts/download_onchain_bgeo.py` — 11 个 BGeo 指标拉取脚本
+- ✅ `data/external/onchain/*.csv` — 11 个指标 + healthcheck.json (已 commit)
+- ✅ `src/features/external.py` 新增 `_load_onchain_csv` / `_load_onchain_series` helper
+- ✅ `build_lth_sth_core_features` / `build_lth_sth_interactions` builders
+- ✅ `docs/plans/bgeometrics_tier_s_expansion_v0608.md` (Phase 2.6 待启动)
+
+→ Tier S 实验 (E22+) 可在未来其它任务 (monthly/bull) 中复用.
+
+---
+
 *维护: 本计划随 E18 实验进展更新；归档触发条件 = 实验完成 + CONCLUSION.md 写完。*
+*2026-06-01: §7 阶段结论新增, 标记 E18 路线在 weekly bear 任务终止.*

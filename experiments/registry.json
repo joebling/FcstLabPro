@@ -1247,5 +1247,120 @@
       "cohen_kappa": 0.7570656864311971
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0601_E18a_bgeo_core",
+    "name": "v0601_E18a_bgeo_core",
+    "description": "Phase 2.5 Wave 1: E1 + BGeometrics LTH/STH 6 核心指标 (36 衍生特征)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_1",
+      "external_lth_sth",
+      "bgeometrics"
+    ],
+    "created_at": "2026-06-01T06:29:55.485779",
+    "status": "completed",
+    "duration_seconds": 75.57,
+    "git_commit": "c4e21ef",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8522727272727273,
+      "f1_binary": 0.30886075949367087,
+      "precision_binary": 0.27769347496206376,
+      "recall_binary": 0.34790874524714827,
+      "cohen_kappa": 0.2273232531909144
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0305_E1_decontam",
+    "name": "v0305_E1_decontam",
+    "description": "v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0305",
+      "decontamination",
+      "directional_filtered"
+    ],
+    "created_at": "2026-06-01T06:36:11.710437",
+    "status": "completed",
+    "duration_seconds": 57.12,
+    "git_commit": "c4e21ef",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8497474747474747,
+      "f1_binary": 0.3233143785540211,
+      "precision_binary": 0.2822695035460993,
+      "recall_binary": 0.37832699619771865,
+      "cohen_kappa": 0.24081062580264612
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0601_E1_repro_2020start",
+    "name": "v0601_E1_repro_2020start",
+    "description": "复现性验证: 用 2020-01-01 起始 (匹配 production E1 effective range) 看能否复现 kappa=0.348",
+    "category": "weekly",
+    "tags": [
+      "reproducibility",
+      "data_governance",
+      "v0601"
+    ],
+    "created_at": "2026-06-01T06:43:05.915807",
+    "status": "completed",
+    "duration_seconds": 32.64,
+    "git_commit": "c4e21ef",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8781072177298592,
+      "f1_binary": 0.41606886657101866,
+      "precision_binary": 0.4084507042253521,
+      "recall_binary": 0.4239766081871345,
+      "cohen_kappa": 0.3480464752792446
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0601_E18a_bgeo_core_2020start",
+    "name": "v0601_E18a_bgeo_core_2020start",
+    "description": "Phase 2.5 E18a 公平版: 2020-01-01 起始, 跟 production E1 同基准对比 LTH/STH 是否真有 alpha",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_1",
+      "external_lth_sth",
+      "bgeometrics",
+      "fair_comparison"
+    ],
+    "created_at": "2026-06-01T06:44:10.063135",
+    "status": "completed",
+    "duration_seconds": 43.33,
+    "git_commit": "c4e21ef",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8769092542677448,
+      "f1_binary": 0.3929098966026588,
+      "precision_binary": 0.3970149253731343,
+      "recall_binary": 0.3888888888888889,
+      "cohen_kappa": 0.32442945943191837
+    },
+    "error": null
   }
 ]

@@ -7,11 +7,43 @@
 >   - [`feature_engineering_roadmap.md`](./feature_engineering_roadmap.md) — Phase 1-4 全局
 > **关联文档**:
 >   - `docs/ops/OPS_MANUAL.md` §2-§3 — 实验规范
+>   - **`docs/lessons/lesson_0601_data_governance_regime_shift.md`** — 本计划基准锁定的根据 ⚠️ 必读
 > **状态**: 待审核 → 待执行
 
 ---
 
-## 0. TL;DR
+## 0. ⚠️ 重要: 基准锁定声明 (2026-06-01 新增)
+
+**全部 v0601+ 实验必须使用**:
+
+```yaml
+data:
+  start: '2020-01-01'    # 锁定, 不准改为 2018-01-01
+  end:   '2025-12-31'    # 不准扩到 2026+
+```
+
+**为什么?** 今天 (2026-06-01) 发现:
+
+1. **数据治理事故**: production E1 训练时 BTC csv 只有 2020+, 后被默默回填了 2018-2019,
+   导致 production E1 metrics 不可复现 (Kappa 0.348 → 0.241, -30%).
+2. **Regime Shift Negative Transfer**: 即使 OOS 窗口完全相同 (末 53 折),
+   加入 2018-2019 训练也让同一批 OOS 样本的 kappa 降 19% (0.218 vs 0.269).
+   → 早期 BTC 大熔市 (19k→3k) 跳 2020+ (减半+ETF) 是不同 regime,
+   expanding walk-forward 会让过时模式永久污染模型.
+
+**完整诊断证据**: `docs/lessons/lesson_0601_data_governance_regime_shift.md` §3.
+
+**例外**: 如果是在复现 v0305 以前的实验, 允许使用 `start: '2018-01-01'`
+(但需在 config description 中明示“复现历史实验需要”).
+
+**未来控制手段** (Phase 3 前):
+- [ ] runner.py 启动时打印 csv 实际 sha256 + effective range
+- [ ] config.data 加 expected_sha256 字段校验
+- [ ] BTC csv 考虑 git LFS 冻结版本
+
+---
+
+## 0́. TL;DR
 
 **问题**: 一次性加 6 个 LTH/STH + 12 个 crypto-market-data 指标 → 不知道谁贡献了 alpha → 重蹈 E17 反面教材覆辙。
 

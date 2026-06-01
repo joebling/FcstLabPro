@@ -1,0 +1,27 @@
+{
+  "experiment_id": "v0601_E1_repro_2020start",
+  "name": "v0601_E1_repro_2020start",
+  "description": "复现性验证: 用 2020-01-01 起始 (匹配 production E1 effective range) 看能否复现 kappa=0.348",
+  "tags": [
+    "reproducibility",
+    "data_governance",
+    "v0601"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T06:43:05.915807",
+  "git": {
+    "commit": "c4e21ef",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 32.64,
+  "aggregate_metrics": {
+    "accuracy": 0.8781072177298592,
+    "f1_binary": 0.41606886657101866,
+    "precision_binary": 0.4084507042253521,
+    "recall_binary": 0.4239766081871345,
+    "cohen_kappa": 0.3480464752792446
+  }
+}

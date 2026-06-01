@@ -36,6 +36,31 @@ def _load_external_csv(filename: str) -> pd.DataFrame | None:
     return df
 
 
+def _load_onchain_csv(name: str) -> pd.DataFrame | None:
+    """加载 BGeometrics 链上指标 CSV.
+
+    Source: scripts/download_onchain_bgeo.py 从 charts.bgeometrics.com
+    Schema: date,value
+    Path: data/external/onchain/{name}.csv
+    """
+    path = EXTERNAL_DATA_DIR / "onchain" / f"{name}.csv"
+    if not path.exists():
+        logger.warning(f"链上数据不存在: {path}, 跳过")
+        return None
+    return pd.read_csv(path, parse_dates=["date"], index_col="date")
+
+
+def _load_onchain_series(name: str, target_index: pd.Index) -> pd.Series | None:
+    """加载链上指标并对齐到主数据日期索引 (ffill).
+
+    返回 None 则表示文件缺失, 调用方需处理.
+    """
+    data = _load_onchain_csv(name)
+    if data is None or "value" not in data.columns:
+        return None
+    return data["value"].reindex(target_index, method="ffill")
+
+
 @register_feature_set("external")
 def build_external_features(df: pd.DataFrame) -> pd.DataFrame:
     """构建基于真实外部数据的特征.
@@ -368,4 +393,128 @@ def build_external_mvrv_features(df: pd.DataFrame) -> pd.DataFrame:
         logger.info("  ✅ MVRV 子特征集构建完成 (12 特征)")
     else:
         logger.warning("  ⚠️ MVRV 数据不可用 (运行 scripts/download_mvrv.py 后回传 CSV)")
+    return df
+
+
+# ============================================================
+# BGeometrics LTH/STH 链上指标 (Phase 2.5)
+# ------------------------------------------------------------
+# 数据源: charts.bgeometrics.com/files/{indicator}.json
+# 落地: data/external/onchain/{indicator}.csv
+# 下载: scripts/download_onchain_bgeo.py
+# 参考: docs/plans/onchain_lth_sth_feature_plan.md
+# ============================================================
+
+# 6 个核心 LTH/STH 指标 (持币 ≥/< 155 天的行为分化)
+LTH_STH_INDICATORS = [
+    "lth_mvrv", "sth_mvrv",     # 长/短期持有者 MVRV
+    "lth_nupl", "sth_nupl",     # LTH/STH NUPL (净未实现盈亏)
+    "lth_sopr", "sth_sopr",     # LTH/STH SOPR (实际抛压)
+]
+
+
+def _add_indicator_features(
+    df: pd.DataFrame, name: str, series: pd.Series,
+) -> int:
+    """为单个指标添加 6 个标准衍生特征 (raw + ma_7/30 + change_7/30 + slope_30).
+
+    返回新增列数 (固定 6).
+    """
+    df[f"ext_{name}"] = series
+    df[f"ext_{name}_ma_7"] = series.rolling(7).mean()
+    df[f"ext_{name}_ma_30"] = series.rolling(30).mean()
+    df[f"ext_{name}_change_7"] = series.pct_change(7)
+    df[f"ext_{name}_change_30"] = series.pct_change(30)
+    df[f"ext_{name}_slope_30"] = series.rolling(30).apply(
+        lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True
+    )
+    return 6
+
+
+@register_feature_set("external_lth_sth_core")
+def build_lth_sth_core_features(df: pd.DataFrame) -> pd.DataFrame:
+    """6 个 LTH/STH 链上原生指标 × 6 个衍生 = 36 特征.
+
+    包含: lth/sth × mvrv/nupl/sopr.
+    每个指标的衍生: raw, ma_7, ma_30, change_7, change_30, slope_30.
+
+    用途: E18a 实验. 详见 docs/plans/experiment_matrix_v0601.md §5.1.
+    """
+    df = df.copy()
+    n_added = 0
+    n_missing = 0
+
+    for name in LTH_STH_INDICATORS:
+        s = _load_onchain_series(name, df.index)
+        if s is None:
+            n_missing += 1
+            continue
+        n_added += _add_indicator_features(df, name, s)
+
+    if n_added == 0:
+        logger.warning(
+            "  ⚠️ LTH/STH 链上数据全部缺失, 请运行: "
+            "python scripts/download_onchain_bgeo.py --core-only"
+        )
+    else:
+        logger.info(
+            f"  ✅ LTH/STH core 特征: {n_added} 个 "
+            f"({len(LTH_STH_INDICATORS) - n_missing}/{len(LTH_STH_INDICATORS)} 指标可用)"
+        )
+    return df
+
+
+@register_feature_set("external_lth_sth_interactions")
+def build_lth_sth_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
+    """LTH vs STH 行为分化交互特征 (8 个).
+
+    捕捉 "派发期顶部" / "全员恐慌底" 等典型周期信号.
+    详见 onchain_lth_sth_feature_plan.md §3.3.
+    """
+    df = df.copy()
+    # 一次性加载 6 个指标到缓存 (避免重复 IO)
+    cache: dict[str, pd.Series] = {}
+    for name in LTH_STH_INDICATORS:
+        s = _load_onchain_series(name, df.index)
+        if s is not None:
+            cache[name] = s
+
+    n_added = 0
+    eps = 1e-6  # 防除零
+
+    # MVRV 维度: 派发期 / 比率
+    if "lth_mvrv" in cache and "sth_mvrv" in cache:
+        df["ext_mvrv_lth_sth_diff"] = cache["lth_mvrv"] - cache["sth_mvrv"]
+        df["ext_mvrv_lth_sth_ratio"] = cache["lth_mvrv"] / (cache["sth_mvrv"] + eps)
+        n_added += 2
+
+    # NUPL 维度: 情绪分化
+    if "lth_nupl" in cache and "sth_nupl" in cache:
+        df["ext_nupl_lth_sth_diff"] = cache["lth_nupl"] - cache["sth_nupl"]
+        df["ext_nupl_lth_sth_ratio"] = cache["lth_nupl"] / (cache["sth_nupl"].abs() + eps)
+        n_added += 2
+
+    # SOPR 维度: 抛压分化
+    if "lth_sopr" in cache and "sth_sopr" in cache:
+        df["ext_sopr_lth_sth_diff"] = cache["lth_sopr"] - cache["sth_sopr"]
+        n_added += 1
+
+    # 周期信号 (阈值特征)
+    if "lth_sopr" in cache:
+        df["ext_lth_capitulation"] = (cache["lth_sopr"] < 1.0).astype(int)
+        n_added += 1
+    if "sth_sopr" in cache:
+        df["ext_sth_panic"] = (cache["sth_sopr"] < 1.0).astype(int)
+        n_added += 1
+    if "lth_nupl" in cache:
+        df["ext_lth_euphoria"] = (cache["lth_nupl"] > 0.75).astype(int)
+        n_added += 1
+
+    if n_added == 0:
+        logger.warning(
+            "  ⚠️ LTH/STH 交互特征 0 个 (数据缺失), 请运行: "
+            "python scripts/download_onchain_bgeo.py --core-only"
+        )
+    else:
+        logger.info(f"  ✅ LTH/STH interactions 特征: {n_added} 个")
     return df

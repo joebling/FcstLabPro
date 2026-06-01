@@ -1,0 +1,74 @@
+experiment:
+  name: v0601_E1_repro_2020start
+  description: '复现性验证: 用 2020-01-01 起始 (匹配 production E1 effective range) 看能否复现 kappa=0.348'
+  tags:
+  - reproducibility
+  - data_governance
+  - v0601
+  category: weekly
+  hypothesis: 'production E1 (promote 2026-05-29) 当时 BTC csv 只有 2020+ 数据 (2192 effective
+    rows),
+
+    现在 csv 被回填了 2018-2019 早期数据 → kappa 从 0.348 崩到 0.241.
+
+    本实验把 start 锁到 2020-01-01, 验证是否能复现 production E1 的 kappa=0.348 / f1=0.4161.
+
+    '
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2020-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  rsi_window: 14
+  rsi_threshold: 45.0
+  ma_window: 50
+  require_below_ma: true
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42

@@ -273,8 +273,18 @@ Phase 4 (宏观/ETF/HODL Waves/Address 等)         ← feature_engineering_road
 
 启动 Phase 2.6 前确认:
 
+### 10.1 业务上下文检查
 - [ ] Phase 2.5 Wave 1-2 完成 (E18a/E18b/E19c/E20 至少 4 个)
 - [ ] Phase 2.5 优胜实验已 promote 或明确决策方向
+- [ ] 优胜者 Kappa ≥ E1 × 1.05 = 0.3654 (生产基准)
+
+### 10.2 数据基准检查 (2026-06-01 新增, 参考 lesson_0601)
+- [ ] **`data.start: '2020-01-01'`** 锁定, 不准改为 2018
+- [ ] `data.end: '2025-12-31'` 锁定, 不准扩到 2026+
+- [ ] BTC csv 实际 sha256 与上次实验一致 (避免被默默扩充)
+- [ ] E1 baseline 能复现 Kappa = 0.3480 ± 0.001 (sanity check)
+
+### 10.3 技术检查
 - [ ] `scripts/download_onchain_bgeo.py` 仍正常工作
 - [ ] `data/external/onchain/healthcheck.json` 最新一次拉取全绿
 - [ ] git working tree clean
