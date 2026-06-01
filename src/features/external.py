@@ -50,15 +50,35 @@ def _load_onchain_csv(name: str) -> pd.DataFrame | None:
     return pd.read_csv(path, parse_dates=["date"], index_col="date")
 
 
-def _load_onchain_series(name: str, target_index: pd.Index) -> pd.Series | None:
-    """加载链上指标并对齐到主数据日期索引 (ffill).
+# Layer 0 数据治理 (phase2.5_feature_landscape_v0601.md §3):
+# 链上指标 t 日的值通常是 t 日 UTC 结束后才能算出, 模型 t 日决策时不可用.
+# 默认 availability_lag = 1 天 (即 t 日决策只能用 t-1 及之前的链上数据).
+ONCHAIN_AVAILABILITY_LAG_DAYS = 1
+
+
+def _load_onchain_series(
+    name: str,
+    target_index: pd.Index,
+    availability_lag_days: int = ONCHAIN_AVAILABILITY_LAG_DAYS,
+) -> pd.Series | None:
+    """加载链上指标并对齐到主数据日期索引 (ffill + 防未来函数 shift).
+
+    Args:
+        name: 指标名 (对应 data/external/onchain/{name}.csv).
+        target_index: 主数据 (BTC OHLCV) 的日期索引.
+        availability_lag_days: 链上数据可用延迟天数. 默认 1 天,
+            因为 t 日 UTC 结束后才能计算 t 日的链上聚合值,
+            模型 t 日开盘决策时只能拿到 <= t-1 的数据 (Layer 0 防护).
 
     返回 None 则表示文件缺失, 调用方需处理.
     """
     data = _load_onchain_csv(name)
     if data is None or "value" not in data.columns:
         return None
-    return data["value"].reindex(target_index, method="ffill")
+    aligned = data["value"].reindex(target_index, method="ffill")
+    if availability_lag_days > 0:
+        aligned = aligned.shift(availability_lag_days)
+    return aligned
 
 
 @register_feature_set("external")
