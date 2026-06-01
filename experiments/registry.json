@@ -1362,5 +1362,36 @@
       "cohen_kappa": 0.32442945943191837
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0601_E19_puell_run1",
+    "name": "v0601_E19_puell",
+    "description": "Phase 2.5 Wave 2 #1: E1 + Puell Multiple (单指标 short-horizon 派生)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e19",
+      "puell",
+      "bgeometrics"
+    ],
+    "created_at": "2026-06-01T08:27:42.900700",
+    "status": "completed",
+    "duration_seconds": 34.61,
+    "git_commit": "c7ec6ba",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8784067085953878,
+      "f1_binary": 0.3940298507462687,
+      "precision_binary": 0.4024390243902439,
+      "recall_binary": 0.38596491228070173,
+      "cohen_kappa": 0.32648608043211913
+    },
+    "error": null
   }
 ]

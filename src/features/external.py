@@ -538,3 +538,78 @@ def build_lth_sth_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
     else:
         logger.info(f"  ✅ LTH/STH interactions 特征: {n_added} 个")
     return df
+
+
+# ============================================================
+# Phase 2.5 Wave 2: Short-Horizon 派生 + E19-* feature sets
+# ============================================================
+#
+# 设计依据 (phase2.5_feature_landscape_v0601.md §4 #6 慢变量纪律):
+#   - raw level 禁止直接作为特征 (任何 >30 天周期指标都必须做转换)
+#   - 必须的转换: zscore_30, zscore_90, slope_7, slope_30, momentum_7
+#
+# 依据 (phase2.5_feature_landscape_v0601.md §3 数据治理铁律):
+#   - _load_onchain_series 已自动 shift(1) (Layer 0 防护)
+#   - 不允许使用 *_btc_price.json (是 BTC 价格副轴)
+# ============================================================
+
+
+def _add_short_horizon_features(
+    df: pd.DataFrame, name: str, series: pd.Series,
+) -> int:
+    """为单个慢变量指标添加 5 个 short-horizon 派生特征.
+
+    遵守 phase2.5 §4 #6: 不含 raw, 全部 short-horizon 转换.
+
+    生成的 5 个特征:
+      - zscore_30: 30 天滚动 z-score
+      - zscore_90: 90 天滚动 z-score
+      - slope_7:   7 天线性回归斜率
+      - slope_30:  30 天线性回归斜率
+      - momentum_7: 7 天动量 (pct_change)
+
+    返回新增列数 (固定 5).
+    """
+    def _zscore(s: pd.Series, w: int) -> pd.Series:
+        mean = s.rolling(w).mean()
+        std = s.rolling(w).std()
+        return (s - mean) / (std + 1e-12)
+
+    def _slope(s: pd.Series, w: int) -> pd.Series:
+        return s.rolling(w).apply(
+            lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True
+        )
+
+    df[f"ext_{name}_zscore_30"] = _zscore(series, 30)
+    df[f"ext_{name}_zscore_90"] = _zscore(series, 90)
+    df[f"ext_{name}_slope_7"] = _slope(series, 7)
+    df[f"ext_{name}_slope_30"] = _slope(series, 30)
+    df[f"ext_{name}_momentum_7"] = series.pct_change(7)
+    return 5
+
+
+@register_feature_set("external_puell")
+def build_puell_features(df: pd.DataFrame) -> pd.DataFrame:
+    """E19-PUELL: Puell Multiple (Charles Edwards) 周期 indicator.
+
+    单一长历史指标 (2012-2025, 14 年, L1: cov 99.5%, stale 2d).
+    经典 BTC 周期顶/底信号 (>4 = 顶部预警, <0.5 = 底部机会).
+
+    生成 5 个 short-horizon 特征 (§4 #6, 不含 raw):
+      ext_puell_zscore_30, _zscore_90, _slope_7, _slope_30, _momentum_7
+
+    用途: E19-PUELL 实验 (优先级 1, Phase 2.5 Wave 2 第一炮).
+    详见 docs/plans/phase2.5_feature_landscape_v0601.md §5.1.
+    """
+    df = df.copy()
+    s = _load_onchain_series("puell_multiple_data", df.index)
+    if s is None:
+        logger.warning(
+            "  ⚠️ puell_multiple_data.csv 缺失, 请先运行: "
+            "python scripts/download_onchain_bgeo.py --indicators puell_multiple_data"
+        )
+        return df
+
+    n_added = _add_short_horizon_features(df, "puell", s)
+    logger.info(f"  ✅ E19-PUELL 特征: {n_added} 个 (puell_multiple_data, 2012-2025)")
+    return df
