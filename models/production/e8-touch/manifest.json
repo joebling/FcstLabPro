@@ -148,7 +148,9 @@
     "decontaminated": true,
     "execution_policy_present": true,
     "data_manifest_present": true,
-    "reproducibility_verified": false,
+    "reproducibility_verified": true,
+    "reproducibility_verified_at": "2026-05-29T08:48:00Z",
+    "reproducibility_method": "scripts/verify_reproducibility.py — E1/E8 metrics bit-exact (diff=0.00e+00)",
     "python_version": "3.10"
   }
 }

@@ -132,14 +132,14 @@ E8 的正例率提升源于「路径触达 ≥ 终点达成」，这也是 E8 �
 | technical | 技术指标 | MACD, BB, ATR, 动量, EMA |
 | volume | 成交量 | OBV, VWAP, 量价相关性 |
 | flow | 资金流 | 净买入、CVD、买卖压力 |
-| market_structure | 市场结构 | funding_rate, 距高低点距离 |
+| market_structure | 市场结构 | price_mom_smooth, 距高低点距离 |
 | external_fgi | 情绪指标 | 恐惧贪婪指数及其衍生 |
 
 ### 3.3 Top 10 特征重要性
 
 | 排名 | 特征 | 重要性 | 解读 |
 |------|------|---------|------|
-| 1 | funding_rate_14 | **166** | 14日资金费率代理（动量指标） |
+| 1 | price_mom_smooth_14 | **145** | 14日价格动量平滑（原误导名 funding_rate_14） |
 | 2 | high_50d_dist | 84 | 距 50 日高点的距离 |
 | 3 | low_50d_dist | 57 | 距 50 日低点的距离 |
 | 4 | return_3d | 46 | 3 日收益率 |
@@ -150,7 +150,7 @@ E8 的正例率提升源于「路径触达 ≥ 终点达成」，这也是 E8 �
 | 9 | obv | 31 | OBV 能量潮 |
 | 10 | macd | 30 | MACD 主线 |
 
-> 💡 与 E1 对比：E8 的 `funding_rate_14` 重要性（166）是 E1（79）的 **2 倍多**，说明 touch 标签更依赖中期动量信号。`high_50d_dist` / `low_50d_dist` 进入 Top 3 也反映了"触达路径"对极值位置的高度敏感。
+> 💡 与 E1 对比：E8 的 `price_mom_smooth_14` 重要性（145）是 E1（80）的近 **2 倍**，说明 touch 标签更依赖中期动量信号。`high_50d_dist` / `low_50d_dist` 进入 Top 3 也反映了"触达路径"对极值位置的高度敏感。
 
 ### 3.4 训练方式（与 E1 完全相同）
 

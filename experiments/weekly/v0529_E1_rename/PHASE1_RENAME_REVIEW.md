@@ -106,7 +106,9 @@ feature_cols + 复现验证, 而非 "0 风险纯文字改动"。
 - [x] predictions 逐行一致
 - [x] PnL bit-exact
 - [x] 重命名副作用 (live halt) 已识别并记录
-- [ ] **promote 或 revert 决策 (待 owner 拍板)**
+- [x] **promote 决策 (已落地): 走 promotion SOP 刷新 production e1-conservative + e8-touch,
+  feature_cols 均为新名, live halt 解除; 2026-05-29 复现验证 bit-exact,
+  manifest reproducibility_verified 已翻绿。**
 
 ---
 

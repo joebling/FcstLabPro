@@ -166,11 +166,12 @@ features:
 | technical | ~49 | Binance OHLCV | high/low_50d_dist, BB, MACD |
 | volume | ~28 | Binance OHLCV | OBV |
 | flow | ~27 | Binance OHLCV | trades_sma |
-| market_structure | ~23 | Binance OHLCV | **funding_rate_14** (Top1) |
+| market_structure | ~23 | Binance OHLCV | **price_mom_smooth_14** (Top1) |
 | external_fgi | ~11 | FGI CSV | ext_fgi_ma30 |
 
-> ℹ️ `funding_rate_14` 是 **模拟** funding rate（= 14天收益率均值 × 100），
-> 本质是中期动量指标，不是真实的 Binance 永续合约资金费率。
+> ℹ️ `price_mom_smooth_14`（原误导名 funding_rate_14）本质是中期动量指标
+> （= 14天收益率均值 × 100），不是真实的 Binance 永续合约资金费率。
+> 2026-05-29 Phase1 清污已重命名为诚实名。
 > 实验 E10 已验证：真实资金费率反而不如这个模拟版有效。
 
 ---
