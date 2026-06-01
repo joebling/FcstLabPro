@@ -1821,5 +1821,101 @@
       "cohen_kappa": 0.7687439883276925
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0601_E21b_repro_seed123_run1",
+    "name": "v0601_E21b_repro_seed123",
+    "description": "E21b 复现性验证 — seed=123 (原 seed=42 → kappa 0.7695)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e21",
+      "prune",
+      "touch",
+      "reproducibility"
+    ],
+    "created_at": "2026-06-01T08:50:25.696692",
+    "status": "completed",
+    "duration_seconds": 19.8,
+    "git_commit": "949ebd9",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 123,
+    "aggregate_metrics": {
+      "accuracy": 0.9299191374663073,
+      "f1_binary": 0.812199036918138,
+      "precision_binary": 0.7968503937007874,
+      "recall_binary": 0.8281505728314239,
+      "cohen_kappa": 0.769140627770043
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0601_E21b_repro_seed456_run1",
+    "name": "v0601_E21b_repro_seed456",
+    "description": "E21b 复现性验证 — seed=456 (原 seed=42 → kappa 0.7695)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e21",
+      "prune",
+      "touch",
+      "reproducibility"
+    ],
+    "created_at": "2026-06-01T08:50:48.428762",
+    "status": "completed",
+    "duration_seconds": 19.86,
+    "git_commit": "949ebd9",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 456,
+    "aggregate_metrics": {
+      "accuracy": 0.9302186283318359,
+      "f1_binary": 0.8137490007993605,
+      "precision_binary": 0.7953125,
+      "recall_binary": 0.8330605564648118,
+      "cohen_kappa": 0.7708439064520889
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0601_E21b_repro_seed789_run1",
+    "name": "v0601_E21b_repro_seed789",
+    "description": "E21b 复现性验证 — seed=789 (原 seed=42 → kappa 0.7695)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e21",
+      "prune",
+      "touch",
+      "reproducibility"
+    ],
+    "created_at": "2026-06-01T08:51:11.115695",
+    "status": "completed",
+    "duration_seconds": 19.9,
+    "git_commit": "949ebd9",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 789,
+    "aggregate_metrics": {
+      "accuracy": 0.9323150643905361,
+      "f1_binary": 0.8189102564102564,
+      "precision_binary": 0.8021978021978022,
+      "recall_binary": 0.8363338788870703,
+      "cohen_kappa": 0.7773118443938574
+    },
+    "error": null
   }
 ]
