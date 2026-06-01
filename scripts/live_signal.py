@@ -208,7 +208,10 @@ def generate_signal(
         return "HOLD", meta
 
     # --- Step 3: 模型预测 ---
-    X_today = df[feature_cols].iloc[[-1]].values
+    # 保留 DataFrame (含列名), 让 LightGBM 双保险校验列名一致:
+    # 上游 validate_feature_cols() 已校过顺序, 这里不转 .values 能消除
+    # "X does not have valid feature names" 警告 + 防未来重构静默错位。
+    X_today = df[feature_cols].iloc[[-1]]
     y_pred = int(model.predict(X_today)[0])
     meta["model_pred"] = y_pred
 

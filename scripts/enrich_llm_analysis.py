@@ -16,6 +16,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# 锁定到项目根, 不依赖 cwd —— 修复 cron 从 /opt/fcstlabpro 启动时
+# 裸相对路径找不到 OHLCV 的 bug (与 run_production_pipeline.py:58 对齐)
+OHLCV_PATH = PROJECT_ROOT / "data" / "raw" / "btc_binance_BTCUSDT_1d.csv"
+
 
 def main(signal_path: str) -> None:
     with open(signal_path) as f:
@@ -25,12 +30,7 @@ def main(signal_path: str) -> None:
         from src.llm.analyst import generate_analysis
         import pandas as pd
 
-        data_file = Path("data/raw/btc_binance_BTCUSDT_1d.csv")
-        # Docker 环境
-        if Path("/app/data/raw/btc_binance_BTCUSDT_1d.csv").exists():
-            data_file = Path("/app/data/raw/btc_binance_BTCUSDT_1d.csv")
-
-        df = pd.read_csv(str(data_file), index_col=0).sort_index()
+        df = pd.read_csv(str(OHLCV_PATH), index_col=0).sort_index()
         recent = df.tail(7)
         klines = [
             {
