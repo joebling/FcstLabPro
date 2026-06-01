@@ -322,3 +322,50 @@ def build_external_fr_features(df: pd.DataFrame) -> pd.DataFrame:
     else:
         logger.warning("  ⚠️ Funding Rate 数据不可用")
     return df
+
+
+@register_feature_set("external_mvrv")
+def build_external_mvrv_features(df: pd.DataFrame) -> pd.DataFrame:
+    """仅构建 MVRV 链上估值特征 (用于消融实验).
+
+    MVRV = Market Value / Realized Value, 链上慢变量, 与价格低相关,
+    能识别整个减半周期。数据源: scripts/download_mvrv.py (CoinMetrics)。
+    共 12 个特征, 见 docs/plans/feature_engineering_roadmap.md §2.3。
+    """
+    df = df.copy()
+    mvrv_data = _load_external_csv("mvrv_btc.csv")
+    if mvrv_data is not None and "mvrv" in mvrv_data.columns:
+        # 对齐到主数据索引, ffill 应对链上数据 1-2 天延迟
+        mvrv = mvrv_data["mvrv"].reindex(df.index, method="ffill")
+
+        df["ext_mvrv"] = mvrv                                    # 核心
+        df["ext_mvrv_ma_30"] = mvrv.rolling(30).mean()          # 短期平滑
+        df["ext_mvrv_ma_90"] = mvrv.rolling(90).mean()          # 周期视角
+        df["ext_mvrv_change_7"] = mvrv.pct_change(7)            # 周环比
+        df["ext_mvrv_change_30"] = mvrv.pct_change(30)          # 月环比
+
+        # 1 年滚动 Z-score (即 MVRV-Z Score)
+        ma365 = mvrv.rolling(365).mean()
+        std365 = mvrv.rolling(365).std()
+        df["ext_mvrv_zscore_365"] = (mvrv - ma365) / (std365 + 1e-10)
+
+        # 2 年历史分布百分位
+        df["ext_mvrv_pct_rank_730"] = mvrv.rolling(730).apply(
+            lambda x: (x.iloc[-1] >= x).mean(), raw=False
+        )
+
+        # 阈值特征 (Messari 顶部 / 资金成本线 / 警戒区 / 机会区)
+        df["ext_mvrv_extreme_top"] = (mvrv >= 3.0).astype(int)
+        df["ext_mvrv_extreme_bottom"] = (mvrv <= 1.0).astype(int)
+        df["ext_mvrv_in_top_zone"] = (mvrv >= 2.5).astype(int)
+        df["ext_mvrv_in_bottom_zone"] = (mvrv <= 1.2).astype(int)
+
+        # 30 日线性斜率 (趋势加速度)
+        df["ext_mvrv_slope_30"] = mvrv.rolling(30).apply(
+            lambda x: np.polyfit(range(len(x)), x, 1)[0], raw=True
+        )
+
+        logger.info("  ✅ MVRV 子特征集构建完成 (12 特征)")
+    else:
+        logger.warning("  ⚠️ MVRV 数据不可用 (运行 scripts/download_mvrv.py 后回传 CSV)")
+    return df

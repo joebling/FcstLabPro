@@ -1,0 +1,30 @@
+{
+  "experiment_id": "v0529_E17_with_external",
+  "name": "v0529_E17_with_external",
+  "description": "v0529 E17: 在当前 live baseline (v0529_E1_rename / e1-conservative) 基础上 叠加真实外部数据 external_fr (Binance funding rate) + external_macro (宏观因子)。 Phase 2 P1-1，单变量隔离真外部数据净贡献。",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0529",
+    "phase2",
+    "external_data",
+    "E17"
+  ],
+  "category": "weekly",
+  "created_at": "2026-05-29T08:56:55.220965",
+  "git": {
+    "commit": "5576da1",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 56.69,
+  "aggregate_metrics": {
+    "accuracy": 0.868523510032944,
+    "f1_binary": 0.3108320251177394,
+    "precision_binary": 0.33559322033898303,
+    "recall_binary": 0.2894736842105263,
+    "cohen_kappa": 0.23859901732996114
+  }
+}
