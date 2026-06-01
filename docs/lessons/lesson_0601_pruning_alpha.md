@@ -230,20 +230,35 @@ done
 
 ---
 
-## 9. 待办
+## 9. Production 决策更新 (2026-06-01)
+
+E21b 虽然是 **分类层显著 alpha** (Kappa +1.93%, 4-seed CV 0.50%), 但 **暂不 promote**。
+
+| 执行版本 | E8 baseline | E21b | 决策 |
+|---|---:|---:|---|
+| raw 策略 CAGR | 17.8% | **29.6%** | E21b 胜 |
+| raw Sharpe | 0.626 | **0.882** | E21b 胜 |
+| +止盈 CAGR | **29.9%** | 25.5% | baseline 胜 |
+| 止盈+regime Sharpe | **0.806** | 0.666 | baseline 胜 |
+
+**结论**: E21b 是更激进、更少漏报的 touch signal, 但当前执行层 (尤其止盈规则) 未适配。production promotion 只推进 E20c；E21b 进入 research/shadow 池, 等执行规则重调后再评估。
+
+---
+
+## 10. 待办
 
 - [x] E20c/E21b 4-seed 复现性验证 (done, commit `c3881aa` + `4ae794a`)
 - [ ] E20c 晋升生产 (`models/production/e20c-conservative-prune/`)
-- [ ] E21b 晋升生产 (`models/production/e21b-touch-prune/`)
-- [ ] phase2.5 主文档加 "先剪后加" 警告
+- [x] E21b **暂不晋升生产**: 分类/Kappa 显著提升, 但 PnL 执行层不全线胜出 (止盈版本弱于 E8 baseline), 先保留 research/shadow 候选
+- [x] phase2.5 主文档加 "先剪后加" 警告
 - [ ] OPS_MANUAL §2.3 加 "铁律 A: 显著性测试"
 - [ ] 探索 4-seed 集成 (OOF probability 平均) 看是否能继续推 kappa
 
 ---
 
-## 10. 一句话总结
+## 11. 一句话总结
 
-> **"加新指标"是手段, 不是目的; "kappa 提升"才是目的。当 baseline 过参数化时, 剪枝比加新指标快 100 倍。**
+> **"加新指标"是手段, 不是目的; "kappa 提升"也不是终点; production 还必须过 PnL/执行层验证。当 baseline 过参数化时, 剪枝比加新指标快 100 倍。**
 
 ---
 
