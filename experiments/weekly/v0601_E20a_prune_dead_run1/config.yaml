@@ -1,0 +1,85 @@
+experiment:
+  name: v0601_E20a_prune_dead
+  description: 'Phase 2.5 Wave 2 #3: E1 剪枝实验 a — 仅删 6 个 importance=0 的死特征'
+  tags:
+  - weekly
+  - bear
+  - v0601
+  - phase_2_5
+  - wave_2
+  - e20
+  - prune
+  category: weekly
+  hypothesis: '验证假设: LightGBM 自身能否忽略 importance=0 的死特征?
+
+    如果 kappa 不变 → LightGBM 内部已忽略, 死特征无害
+
+    如果 kappa 提升 → tie-break 受死特征影响, 后续剪枝有意义
+
+    如果 kappa 下降 → 死特征通过 colsample_bytree 抽样提供了正则化'
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2020-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+  expected_effective_rows: 2192
+  expected_sha256: 004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+  - avg_trade_size_ma_10
+  - avg_trade_size_ma_20
+  - ext_fgi_extreme_fear
+  - ext_fgi_extreme_greed
+  - qvol_ratio_10
+  - volume_density_ma_5
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  ma_window: 50
+  require_below_ma: true
+  rsi_threshold: 45.0
+  rsi_window: 14
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: true
+    n_jobs: 1
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42

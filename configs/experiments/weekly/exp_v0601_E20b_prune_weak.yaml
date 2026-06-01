@@ -1,0 +1,121 @@
+data:
+  end: '2025-12-31'
+  expected_effective_rows: 2192
+  expected_sha256: 004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+  source: binance
+  start: '2020-01-01'
+  symbol: BTCUSDT
+evaluation:
+  init_train: 800
+  method: walk_forward
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  oos_window: 63
+  purge_gap: 21
+  step: 21
+experiment:
+  name: v0601_E20b_prune_weak
+  description: 'Phase 2.5 Wave 2 #4: E1 剪枝实验 b — 删 44 个 importance<5 的弱特征 (含 6 死)'
+  hypothesis: '验证假设: 剪掉所有弱特征 (~34%) 是否能提升 kappa?
+
+    若 E20a kappa 不变但 E20b 提升 → 弱特征数量过多时才产生 tie-break 噪声
+
+    若 E20a/E20b 同向提升 → 单调剪枝有效, 应继续 E20c (only-keep-28 核心)'
+  tags:
+  - weekly
+  - bear
+  - v0601
+  - phase_2_5
+  - wave_2
+  - e20
+  - prune
+  category: weekly
+features:
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+  - avg_trade_size_ma_10
+  - avg_trade_size_ma_20
+  - avg_trade_size_ma_5
+  - avg_trade_size_ratio_20
+  - avg_trade_size_sma_20
+  - bb_lower_20
+  - bb_upper_20
+  - ema_10
+  - ema_20
+  - ema_5
+  - ema_50
+  - ext_fgi_extreme_fear
+  - ext_fgi_extreme_greed
+  - ext_fgi_ma14
+  - ext_fgi_ma30
+  - flow_change_1d
+  - flow_change_5d
+  - flow_momentum_5
+  - price_mom_smooth_7
+  - qvol_ratio_10
+  - qvol_ratio_20
+  - qvol_ratio_5
+  - sma_10
+  - sma_20
+  - sma_50
+  - sma_cross_5_20
+  - trades_change_1d
+  - trades_change_5d
+  - trades_ratio_20
+  - trades_ratio_5
+  - vol_change_1d
+  - vol_change_3d
+  - vol_ratio_10
+  - vol_ratio_20
+  - vol_ratio_5
+  - vol_ratio_50
+  - vol_sma_10
+  - vol_sma_20
+  - vol_sma_5
+  - volume_cumsum_24
+  - volume_density
+  - volume_density_ma_10
+  - volume_density_ma_5
+  - volume_density_sma_5
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+label:
+  T: 21
+  X: 0.04
+  ma_window: 50
+  require_below_ma: true
+  rsi_threshold: 45.0
+  rsi_window: 14
+  strategy: directional_filtered
+model:
+  params:
+    auto_scale_pos_weight: true
+    colsample_bytree: 0.8
+    learning_rate: 0.05
+    max_depth: 6
+    min_child_samples: 20
+    n_estimators: 100
+    n_jobs: 1
+    num_leaves: 31
+    random_state: 42
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    subsample: 0.8
+    verbose: -1
+  type: lightgbm
+seed: 42

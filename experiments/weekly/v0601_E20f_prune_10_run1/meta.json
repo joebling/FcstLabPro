@@ -1,0 +1,31 @@
+{
+  "experiment_id": "v0601_E20f_prune_10_run1",
+  "name": "v0601_E20f_prune_10",
+  "description": "Phase 2.5 Wave 2: 只留 importance>=40 (约 10 特征, U 形曲线下沿)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e20",
+    "prune"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:42:16.633084",
+  "git": {
+    "commit": "c88d918",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 3.0,
+  "aggregate_metrics": {
+    "accuracy": 0.8131080389144906,
+    "f1_binary": 0.43498452012383904,
+    "precision_binary": 0.31015452538631344,
+    "recall_binary": 0.727979274611399,
+    "cohen_kappa": 0.3440760779550598
+  }
+}

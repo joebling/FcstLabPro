@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "n_features": 9,
+  "feature_cols": [
+    "atr_pct_21",
+    "return_14d",
+    "volatility_20d",
+    "high_50d_dist",
+    "obv_sma_20",
+    "vol_volatility_10",
+    "flow_change_10d",
+    "price_mom_smooth_14",
+    "cvd_change_21"
+  ],
+  "sha256": "bc3dd68fe6916e86f10b414ae863062245dd1b1589d0fd12c15e4b0adae23337",
+  "generated_by": "src.experiment.runner.run_experiment"
+}
