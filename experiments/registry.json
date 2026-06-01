@@ -1697,5 +1697,129 @@
       "cohen_kappa": 0.411616511170787
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0601_E21a_prune_dead_run1",
+    "name": "v0601_E21a_prune_dead",
+    "description": "Phase 2.5 Wave 2 (E8 系剪枝): imp=0 删",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e21",
+      "prune",
+      "touch"
+    ],
+    "created_at": "2026-06-01T08:46:56.047369",
+    "status": "completed",
+    "duration_seconds": 28.61,
+    "git_commit": "c3881aa",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9272237196765498,
+      "f1_binary": 0.800982800982801,
+      "precision_binary": 0.8016393442622951,
+      "recall_binary": 0.8003273322422259,
+      "cohen_kappa": 0.7564528760176725
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0601_E21b_prune_weak_run1",
+    "name": "v0601_E21b_prune_weak",
+    "description": "Phase 2.5 Wave 2 (E8 系剪枝): imp<5 删",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e21",
+      "prune",
+      "touch"
+    ],
+    "created_at": "2026-06-01T08:47:27.421911",
+    "status": "completed",
+    "duration_seconds": 19.84,
+    "git_commit": "c3881aa",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9296196466007787,
+      "f1_binary": 0.8127490039840638,
+      "precision_binary": 0.7919254658385093,
+      "recall_binary": 0.8346972176759411,
+      "cohen_kappa": 0.7694519457601741
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0601_E21c_prune_core_run1",
+    "name": "v0601_E21c_prune_core",
+    "description": "Phase 2.5 Wave 2 (E8 系剪枝): imp<20 删 (留 17)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e21",
+      "prune",
+      "touch"
+    ],
+    "created_at": "2026-06-01T08:47:50.103960",
+    "status": "completed",
+    "duration_seconds": 6.69,
+    "git_commit": "c3881aa",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.9124338624338625,
+      "f1_binary": 0.7863137508069722,
+      "precision_binary": 0.7777777777777778,
+      "recall_binary": 0.7950391644908616,
+      "cohen_kappa": 0.7312563793263431
+    },
+    "error": null
+  },
+  {
+    "experiment_id": "v0601_E21d_prune_mid_run1",
+    "name": "v0601_E21d_prune_mid",
+    "description": "Phase 2.5 Wave 2 (E8 系剪枝): imp<10 删 (留 44)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e21",
+      "prune",
+      "touch"
+    ],
+    "created_at": "2026-06-01T08:48:00.527304",
+    "status": "completed",
+    "duration_seconds": 11.99,
+    "git_commit": "c3881aa",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.927822701407607,
+      "f1_binary": 0.8133230054221534,
+      "precision_binary": 0.7720588235294118,
+      "recall_binary": 0.8592471358428805,
+      "cohen_kappa": 0.7687439883276925
+    },
+    "error": null
   }
 ]

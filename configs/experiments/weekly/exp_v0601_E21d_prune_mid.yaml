@@ -1,0 +1,165 @@
+data:
+  end: '2025-12-31'
+  expected_effective_rows: 2192
+  expected_sha256: 004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+  source: binance
+  start: '2020-01-01'
+  symbol: BTCUSDT
+evaluation:
+  init_train: 800
+  method: walk_forward
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  oos_window: 63
+  purge_gap: 21
+  step: 21
+experiment:
+  name: v0601_E21d_prune_mid
+  description: 'Phase 2.5 Wave 2 (E8 系剪枝): imp<10 删 (留 44)'
+  hypothesis: '验证 E20 剪枝规律在 E8 (touch_filtered, kappa 0.757 已较高) 是否普适.
+
+    镜像 E20d (E1 +7.1%).
+
+    若 E21c 同样有显著提升 → "剪枝>加特征" 是 weekly 任务通用规律.
+
+    若 E21c 持平或下降 → E8 已接近 touch 任务上限, 规律仅在 E1 系成立.'
+  tags:
+  - weekly
+  - bear
+  - v0601
+  - phase_2_5
+  - wave_2
+  - e21
+  - prune
+  - touch
+  category: weekly
+features:
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+  - atr_pct_14
+  - avg_trade_size
+  - avg_trade_size_ma_10
+  - avg_trade_size_ma_20
+  - avg_trade_size_ma_5
+  - avg_trade_size_ratio_10
+  - avg_trade_size_ratio_20
+  - avg_trade_size_ratio_5
+  - avg_trade_size_sma_10
+  - avg_trade_size_sma_20
+  - avg_trade_size_sma_5
+  - bb_lower_20
+  - bb_upper_20
+  - buy_pressure
+  - buy_pressure_ma_10
+  - cvd
+  - cvd_change_14
+  - cvd_change_21
+  - cvd_ma_14
+  - cvd_ma_21
+  - ema_10
+  - ema_20
+  - ema_200
+  - ema_5
+  - ema_50
+  - ext_fgi
+  - ext_fgi_change_14d
+  - ext_fgi_extreme_fear
+  - ext_fgi_extreme_greed
+  - ext_fgi_ma7
+  - flow_change_10d
+  - flow_change_1d
+  - flow_change_3d
+  - flow_change_5d
+  - flow_momentum_5
+  - flow_price_divergence_20
+  - low_14d_dist
+  - low_21d_dist
+  - macd_hist
+  - price_mom_smooth_24
+  - price_vs_vwap_10
+  - qvol_ratio_10
+  - qvol_ratio_20
+  - qvol_ratio_5
+  - qvol_sma_10
+  - qvol_sma_20
+  - qvol_sma_5
+  - return_5d
+  - return_7d
+  - sma_10
+  - sma_100
+  - sma_20
+  - sma_5
+  - sma_50
+  - stoch_d_14
+  - trades_change_1d
+  - trades_change_5d
+  - trades_ratio_10
+  - trades_ratio_20
+  - trades_ratio_5
+  - trades_sma_20
+  - vol_change_1d
+  - vol_change_3d
+  - vol_change_5d
+  - vol_price_corr_10
+  - vol_price_corr_20
+  - vol_ratio_10
+  - vol_ratio_20
+  - vol_ratio_5
+  - vol_ratio_50
+  - vol_sma_10
+  - vol_sma_20
+  - vol_sma_5
+  - vol_sma_50
+  - volatility_20d
+  - volume_cumsum_14
+  - volume_cumsum_24
+  - volume_cumsum_7
+  - volume_density
+  - volume_density_ma_10
+  - volume_density_ma_5
+  - volume_density_sma_10
+  - volume_density_sma_5
+  - vwap_10
+  - vwap_20
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+label:
+  T: 21
+  X: 0.04
+  ma_window: 50
+  require_below_ma: true
+  rsi_threshold: 45.0
+  rsi_window: 14
+  strategy: touch_filtered
+model:
+  params:
+    auto_scale_pos_weight: true
+    colsample_bytree: 0.8
+    learning_rate: 0.05
+    max_depth: 6
+    min_child_samples: 20
+    n_estimators: 100
+    n_jobs: 1
+    num_leaves: 31
+    random_state: 42
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    subsample: 0.8
+    verbose: -1
+  type: lightgbm
+seed: 42
