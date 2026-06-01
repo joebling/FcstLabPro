@@ -1,23 +1,58 @@
 # Phase 2.5 特征工程战略
 
-> **状态**: 🟢 活动主文档
+> **状态**: 🟡 **方向已重定向** (2026-06-01) — 详见下方 P0 警告
 > **前置阅读**:
->   - `docs/lessons/lesson_0601_data_governance_regime_shift.md` ⚠️ **必读** (数据治理铁律由来)
+>   - `docs/lessons/lesson_0601_pruning_alpha.md` 🚨 **第一必读** (本文档方向重定向的依据)
+>   - `docs/lessons/lesson_0601_data_governance_regime_shift.md` ⚠️ 必读 (数据治理铁律由来)
 >   - `docs/plans/feature_engineering_roadmap.md` (Phase 1-4 全局)
 >   - `docs/ops/OPS_MANUAL.md` §2-§3 (实验规范)
 
 ---
 
+## ⚠️ P0 警告: 本文档原始路线已被 Wave 2 实证推翻 (2026-06-01)
+
+**原计划**: 通过 7 个 "加特征" sub-experiment (E19-PUELL/SOPR/MVRV/ADDRESS/STABLE/AVIV/DERIV-SHORT) 提升 E1 (Kappa 0.348).
+
+**实际跑了 3 个的结果**:
+
+| 实验 | Kappa | Δ vs E1 |
+|---|---|---|
+| E19-PUELL (+5 特征) | 0.326 | **-6.2%** 🔴 |
+| E19-FUNDING (+16 特征) | 0.288 | **-17.1%** 🔴 |
+| E18a (LTH/STH +36) | 0.324 | -6.8% 🔴 |
+
+**根因**: E1 baseline 本身就过参数化 (129 特征里 ~100 个是噪声), 任何"加特征"都被噪声淹没。**不是新指标没信号** (puell_zscore_90 进 Top 3, fr_zscore 进 Top 10), **是 baseline 不健康**。
+
+**剪枝路线打破僵局**:
+
+| 实验 | n_feat | Kappa | 显著性 |
+|---|---|---|---|
+| **E20c (E1 剪到 28)** | 28 | **0.4290** (+27.8%) | 4-seed CV 3.21%, 强 alpha |
+| **E21b (E8 剪到 81)** | 81 | **0.7717** (+1.93%) | 4-seed CV 0.50%, 3.8σ 显著 |
+
+**新铁律 (Wave 2 沉淀)**:
+1. 任何 "加特征" 实验启动前, **先做 baseline 剪枝扫描**, 确认 baseline 不过参数化
+2. 任何 Kappa 提升 ≥ 0.5% 必须做 **4-seed 显著性测试 (3σ)** 才能下结论
+3. 不能跨任务套用 CV (E1 系 CV 3.21%, E8 系 CV 0.50%, 差 6 倍)
+
+**本文档 §5 (7 个 sub-experiments) 整体暂停**, 详见 §5 头部状态标记。
+
+---
+
 ## 0. TL;DR
 
-**Phase 2.5 = 在 2020-2025 锁定基准上, 用 BGeo 长历史指标 (≥ 12 年) 给 weekly bear 模型寻找
-正交 alpha**, 通过 7 个并行 sub-experiment (E19-PUELL/SOPR-NEW/MVRV-EXT/ADDRESS/STABLE/AVIV/DERIV-SHORT)
-验证. 每 sub ≤ 1.5h, 全部跟 E1 baseline (Kappa 0.3480) 对比, 门槛 Kappa ≥ 0.3654 (+5%).
+> ⚠️ 以下是 **原计划** 描述, 已被 Wave 2 实证调整. 当前有效路线以上方 P0 警告 + §6.2 为准.
 
-**核心约束**:
+**Phase 2.5 原计划 = 在 2020-2025 锁定基准上, 用 BGeo 长历史指标 (≥ 12 年) 给 weekly bear 模型寻找
+正交 alpha**, 通过 7 个并行 sub-experiment (E19-PUELL/SOPR-NEW/MVRV-EXT/ADDRESS/STABLE/AVIV/DERIV-SHORT)
+验证. 原门槛 Kappa ≥ 0.3654 (+5% vs E1 0.348), **现门槛 Kappa ≥ 0.4505 (+5% vs E20c 0.4290)**.
+
+**核心约束** (仍有效):
 - 慢变量必须 short-horizon 转换 (raw level 禁进特征集)
 - 候选指标必须通过 `audit_bgeo_nan.py` 数据卫生检 (cov ≥ 95%, stale ≤ 90d)
 - 基准数据 sha256 锁定, 任何变动必先验证 E1 bit-exact
+- **新增**: 任何 Kappa 变动 ≥ 0.5% 必须 4-seed 显著性检验 (§6.2 双引用)
+- **新增**: 加特征前必须先扫 baseline 剪枝曲线 (§9 + lesson_0601_pruning_alpha)
 
 ---
 
@@ -156,6 +191,16 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 
 ## 5. Sub-Experiments 矩阵 (7 个并行)
 
+> 🟡 **状态 (2026-06-01)**: 本节 7 个 sub-experiments **整体暂停**, 等待以下前置完成:
+>
+> 1. ✅ **E20c 完成** — 新 E1 系 baseline = **0.4290** (不是 0.348)
+> 2. ✅ **E21b 完成** — 新 E8 系 baseline = **0.7717** (不是 0.757)
+> 3. ⏳ 本节 §6.2 决策树 **门槛必须从 0.348 上调到 0.4290** (弱 alpha 门槛 ≥ 0.4505, 强 alpha 门槛 ≥ 0.515)
+> 4. ⏳ 需验证 §5.x 指标是否能在 **E20c 的 28 特征 baseline** 上按新门槛赢 (难度远高于原计划)
+>
+> **推荐路径**: 先 promote E20c/E21b → 重扫 7 个 sub 能否超 E20c → 幸存者进入 §5 探索
+> **下面 §5.x 原本 保留** 用作 "后续扫描时的并行候选清单"。
+
 ### 5.1 E19-PUELL ⭐ 优先级 1
 
 | 字段 | 值 |
@@ -254,14 +299,20 @@ E19-PUELL (30 min, 最稳)
 - **PUELL + SOPR 全失败** → 慢变量在 weekly bear 系统性无效, 必须换高频
 - **DERIV-SHORT 失败** → Phase 2.5 整体结束, 转 Phase 3
 
-### 6.2 决策树 (基于 E1 baseline Kappa = 0.3480)
+### 6.2 决策树 (基于 Wave 2 后新 baseline)
+
+> ⚠️ **门槛已上调** (2026-06-01): 原门槛基于 E1=0.348, 现基于 **E20c=0.4290** (prune+27.8%).
 
 | 单个 sub Kappa | 行动 |
 |---|---|
-| ≥ 0.40 | 🟢 强 alpha, 立即 promote 候选, 进入 ensemble + interaction 探索 |
-| 0.365 ~ 0.40 | 🟢 弱 alpha 达门槛, 继续展开 (加 interactions) |
-| 0.348 ~ 0.365 | 🟡 持平, 视计算成本决定是否保留 |
-| < 0.348 | 🔴 拒绝, 此方向噪声 > 信号, 终止 |
+| ≥ 0.515 | 🟢 强 alpha (+20% vs E20c), 立即 promote 候选 |
+| 0.4505 ~ 0.515 | 🟢 弱 alpha 达门槛 (+5% vs E20c), 继续展开 |
+| 0.4290 ~ 0.4505 | 🟡 持平, 视计算成本决定是否保留 |
+| < 0.4290 | 🔴 拒绝, 不如 E20c 纯剪枝 |
+
+**重要**: 运行新 sub-experiment 时, **baseline 应是 E20c 的 28 特征 + 新指标**, 不是 原 E1 的 129 特征 + 新指标. 后者默认过参数化, 调不出东西.
+
+**4-seed 显著性强制**: 任何合格结论必须补上 4-seed 重跑 + 3σ 显著性检验 (参考 `lesson_0601_pruning_alpha.md` §6 铁律 A).
 
 ---
 
@@ -321,6 +372,9 @@ E19-PUELL (30 min, 最稳)
 ## 9. 已知失败方向 (避免重复试)
 
 - **LTH/STH 6 核心指标** (E18a, 165 features, Kappa 0.3244 vs E1 0.3480, -6.8%): 周期级慢变量 (>180d) 与 weekly bear (T=21) 尺度严重错配. **教训沉淀为 §4 设计原则 #6**. 详见 `docs/plans/archive/` + `onchain_lth_sth_feature_plan.md` §7.
+- **E19-PUELL** (134 features, Kappa 0.326 vs E1 0.348, -6.2%): 加 5 个 short-horizon Puell 派生. 单点信号很强 (puell_zscore_90 rank 3, importance 48), 但整体 kappa 仍下降. 详见 commit `7399f91` + `lesson_0601_pruning_alpha.md` §2.1.
+- **E19-FUNDING** (145 features, Kappa 0.288 vs E1 0.348, -17.1%): 加 16 个 Funding Rate 特征 (复用现有 `external_fr`). 16 个里 5 个 importance=0 废特征, 共线严重. 详见 commit `c88d918`.
+- **“加特征”路线本身** (PUELL/FUNDING/E18a 3 连败): **不是新指标没信号, 是 baseline 过参数化**. 必须先走 prune 路线 (E20c +27.8%) 再判断。
 - **Miner 系列** (miner_balance / out_flows / reserves / sell_presure): BGeo 矿工数据全部停更 200+ 天, 不可用. 未来如有 CryptoQuant 等公开源可重启.
 
 ---
