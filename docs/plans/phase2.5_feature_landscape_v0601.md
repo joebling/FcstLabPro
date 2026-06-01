@@ -101,28 +101,30 @@ CMD 不是 "首选数据源", 而是 "**衍生品 + 短历史链上的备份源*
 | **Coinbase Premium** | — | CMD `btc_coinbase_premium_index` (2022+), 或 DIY (Coinbase + Binance 价差, 2019+) |
 | **Exchange Flow** | BGeo `inflow_exchanges_btc` (2021-06+, **已停 2024-06**) ❌ 不可靠 | CMD `btc_exchange_netflow`, `whale_ratio` (2022+) |
 
-### 2.2 数据可得性等级
+### 2.2 数据可得性等级 (v1.2: audit 实测后修订)
 
-> ⚠️ **重要免责**: 以下分级是**估计**, 不是逐指标验证. Wave 2 启动前必须跑
-> `scripts/audit_bgeo_nan.py` (待写, 见 §5.2) 对每个候选指标在 2020-2025 区间内实跳
-> NaN 计数 + 前导 null 检查。
+> ✅ **2026-06-01 v1.2**: `scripts/audit_bgeo_nan.py` 已实现 + 首次跑完,
+> 输出 `data/external/onchain/nan_audit.json`. 以下分级从"估计"升级为"实测".
 >
-> **反例**: `puell_multiple_data.json` 总长 5166 行 (2012-03 起), 但 **前 47 行为
-> `[ts, null]`** (对应 2012-03 初期数据未补齐). 2020-01-01 基准后理论上应
-> 无影响, 但需实验证.
+> **三大 audit 发现** (推翻了 v1.1 假设):
+> 1. **L0 (严格 0 NaN) 在 BGeo 不存在** — 所有长历史指标都有 10-20 个 align-NaN
+>    (周末/季度边界造成), L1 + ffill_then_drop 是实际工作面.
+> 2. **stale_d (距今天数) 是错过的关键维度** — 许多起始早的指标其实已停更 200+ 天,
+>    需 "stale_d > 90" 自动划为 L3.
+> 3. **前导 null 在 2020 基准后都是 0** — review 担心的 puell 47 行 null 实验证不影响
+>    (全在 2012-03 段).
 
-| 等级 | 定义 | 实验策略 |
-|---|---|---|
-| **L0: 完整 2020-2025** | 在基准内 0 NaN (需实跳验证) | 直接加入特征集, ffill_then_drop 不丢行 |
-| **L1: 部分覆盖 ≥ 70%** | 起始 2020-2022 | 加入但需 NaN-aware (改 builder) 或截断 |
-| **L2: 短覆盖 < 70%** | 起始 2022+ | 仅 NaN-aware, 或换基准 (放弃 5 年 baseline) |
-| **L3: 不可靠** | 已停更新或数据漂移 | 不用 |
+| 等级 | 定义 | 实验策略 | 实测样本 (15 个候选) |
+|---|---|---|---|
+| **L0: 严格 0 NaN** | align 后 0 NaN + 0 前导 null + stale ≤ 90d | (理论等级, BGeo 实测 0 个) | **0** 💥 |
+| **L1: 高覆盖 ≥ 95%** | align cov ≥ 95% 且 stale ≤ 90d | 加入特征集, ffill_then_drop 不丢行 | **8** (puell, mvrv × 4, stablecoin usdt/dai/pax) |
+| **L2: 中覆盖 70-95%** | align cov 70-95% 且 stale ≤ 90d | 加入但需 NaN-aware (改 builder) 或截断 | (audit 中 0, CMD 起始 2022 属此) |
+| **L3: 不可靠** | stale > 90d 或 cov < 70% | 不用 | **7** (4 miner + mvrv_zscore_adapt + stablecoin supply/others) |
 
-**估计统计** (需 audit 脚本验证):
-- L0 BGeo 长历史: ~200+ 个 (主要工作面)
-- L1 BGeo 部分覆盖: ~30 个 (open_interest_futures, stablecoin_*)
-- L2 CMD 全部 + BGeo funding_rate: ~30 个 (需 NaN-aware)
-- L3 不可用: ~15 个 (inflow_exchanges_btc 等已停)
+**实测后预估带拓展** (需扩充 audit):
+- L1 BGeo 长历史: **15+ 已验证** (5 sub + AVIV + SOPR + CDD + realized_cap...), 预估总量 80-120 个
+- L2 CMD 全部: 29 个 (起始 2022-12, 需 NaN-aware)
+- L3 已停更 / 不可靠: 15+ 个 (miner 全室 + stablecoin supply/others/tusd/crvusd)
 
 ### 2.3 同族变体去重规则 (新增, 遵守 OPS_MANUAL §4.1 剪枝原则)
 
@@ -183,7 +185,7 @@ CMD 不是 "首选数据源", 而是 "**衍生品 + 短历史链上的备份源*
 
 ---
 
-## 4. Wave 2 重新设计 (E19 拆 5 个 sub-experiments)
+## 4. Wave 2 重新设计 (E19 拆 7 个 sub-experiments, v1.2)
 
 ### 4.1 设计原则
 
@@ -202,50 +204,93 @@ CMD 不是 "首选数据源", 而是 "**衍生品 + 短历史链上的备份源*
    - **例外**: 仅“作为 regime 标记”需要原始 level 时 (如 mvrv_zscore < -2 为极深熟市),
      才可例外存在. 需在 sub config 中明示标记.
 
-### 4.2 5 个 Sub-Experiments
+7. **🆕 v1.2 加: 数据卫生硬阻塞** (audit 驱动):
+   - 任何 BGeo 候选指标必须先过 `scripts/audit_bgeo_nan.py`, 达标:
+     - `coverage ≥ 95%` (align 后有效行数 / BTC 基准总行数)
+     - `stale_d ≤ 90` (最后一行距今 ≤ 90 天, 避免停更源)
+     - `align_NaN < 30` (与 BTC 日历 align 后 NaN < 30)
+     - `leading_nulls_after_2020 = 0` (2020 基准后无前导 null)
+   - 不达标直接拒绝, 不写进 sub config. 结果入库 `data/external/onchain/nan_audit.json`.
+   - **E19-MINER 全部 L3 被剔除** 就是这条条款的首例.
 
-#### E19-PUELL ⭐ 优先
+### 4.2 Sub-Experiments 矩阵 (v1.2: audit 后修订)
+
+> ⚠️ **2026-06-01 v1.2 修订**: `nan_audit.json` 推翻了 v1.1 假设. 改动:
+> - 🔴 **删除 E19-MINER**: 4 个指标全部 L3 (停更 217-291 天)
+> - 🟡 **E19-MVRV-EXT**: 替换 `mvrv_zscore_adapt_data` (L3 停更 234d) → `mvrv_btc_price` (L1)
+> - 🟡 **E19-STABLE**: 删 `stablecoin_supply` + `stablecoin_others` (L3 停更 900+d), 补 `usdc` + `busd`
+> - ✨ **新增 E19-SOPR-NEW** (5 指标, 2012+, 14 年)
+> - ✨ **新增 E19-ADDRESS** (5 指标, 2010-2012, HODL Waves)
+> - ✨ **新增 E19-AVIV** (1 指标, 2010, 16 年长历史)
+>
+> 全部基于 `data/external/onchain/nan_audit.json` 实测数据.
+
+#### E19-PUELL ⭐ 优先级 1 (最快验证)
 
 | 字段 | 值 |
 |---|---|
 | 假设 | Puell Multiple (Charles Edwards 经典周期 indicator) 能给 bear 模型提供"周期顶/底"信号 |
 | 数据源 | BGeo `puell_multiple_data.json` (2012-2025, 14 年) |
-| 数据等级 | L0 |
-| 新增特征 | **符合 §4.1 #6**: 不用 raw level, 仅衰生 — 1×5 = 5 (zscore_30, zscore_90, slope_7, slope_30, momentum_7) |
+| 数据等级 | **L1** (cov 99.5%, 10 align-NaN, stale 2d) |
+| 新增特征 | **符合 §4.1 #6**: 不用 raw level, 仅衍生 — 1×5 = 5 (zscore_30, zscore_90, slope_7, slope_30, momentum_7) |
 | 时间预算 | 30 min |
 | 优势 | 单一指标快速验证, 经典机构信号, 长历史 |
 
-#### E19-MINER
+#### E19-SOPR-NEW ⭐ 优先级 2 (全新方向, 长历史)
 
 | 字段 | 值 |
 |---|---|
-| 假设 | 矿工抛压/累积是 Bear 风险供给端核心信号 |
-| 数据源 | BGeo `miner_balance`, `miner_out_flows`, `miner_reserves`, `miner_sell_presure` (全 2013+) |
-| 数据等级 | L0 |
-| 新增特征 | **符合 §4.1 #6**: 4 指标 × 5 衰生 = 20 (zscore_30/90, slope_7/30, momentum_7), **不含 raw** |
+| 假设 | SOPR 家族 (Spent Output Profit Ratio) + CDD (Coin Days Destroyed) 是"实现盈利/亏损"行为信号, 跨周期稳定 |
+| 数据源 | BGeo 5 个: `sopr_data`, `lth_sopr`, `sth_sopr`, `cdd`, `cdd_terminal_ajusted` (全 2012+, 14 年) |
+| 数据等级 | **L1** (cov 99.3-99.5%, 全 stale ≤ 2d) |
+| 新增特征 | **符合 §4.1 #6**: 5 指标 × 5 衍生 = 25 (zscore_30/90, slope_7/30, momentum_7), **不含 raw** |
 | 时间预算 | 45 min |
-| 风险 | 矿工已被多次套利, alpha 可能衰减 |
+| 关联 | E18a 用过 LTH/STH NUPL/MVRV/SOPR 但**没用过 SOPR 顶层 + CDD**, 完全独立信息维度 |
+| 风险 | LTH/STH SOPR 跟 E18a 失败的 LTH/STH 系列同源, 可能也是慢变量 (#6 衍生应能缓解) |
 
-#### E19-MVRV-EXT
+#### E19-MVRV-EXT (v1.2 替换)
 
 | 字段 | 值 |
 |---|---|
 | 假设 | MVRV Z-Score 多种 representation 在不同周期阶段强弱不同 |
-| 数据源 | BGeo `mvrv_data`, `mvrv_365dma`, `mvrv_diff`, `mvrv_zscore_*` (全 2012+) |
-| 数据等级 | L0 |
-| 新增特征 | **符合 §4.1 #6**: 5 指标 (§2.3 筛选后) × 5 衰生 = 25, **不含 raw**. **例外**: `mvrv_zscore_data` 作为 regime 标记保留 raw level (明示在 config) |
+| 数据源 | BGeo 5 个 (v1.2): `mvrv_data`, `mvrv_365dma`, `mvrv_diff`, `mvrv_zscore_data`, **`mvrv_btc_price`** (替换 zscore_adapt_data L3) |
+| 数据等级 | **L1** (全 cov 99.5%, stale 2d) |
+| 新增特征 | **符合 §4.1 #6**: 5 指标 (§2.3 筛选后) × 5 衍生 = 25, **不含 raw**. **例外**: `mvrv_zscore_data` 作为 regime 标记保留 raw level (明示在 config) |
 | 时间预算 | 45 min |
-| 关联 | E18a 用过 LTH/STH 但没用过 mvrv_data/zscore 这些总体 MVRV variants |
+| 关联 | E18a 用过 LTH/STH MVRV 但没用过总体 MVRV variants |
 
-#### E19-STABLE
+#### E19-ADDRESS ⭐ 优先级 3 (HODL Waves 真实信号)
+
+| 字段 | 值 |
+|---|---|
+| 假设 | 不同档位地址数变化代表"散户/中户/机构/鲸鱼"行为分化, 提供 holder 结构信号 |
+| 数据源 | BGeo 5 个: `address_01_1`, `address_10_100`, `address_100_1000`, `addresses_active`, `realized_cap` (2010-2012 起, 15 年!) |
+| 数据等级 | **L1** (cov 99.1-99.5%, stale 2-36d) |
+| 新增特征 | **符合 §4.1 #6**: 5 指标 × 5 衍生 = 25 (zscore_30/90, slope_30, pct_chg_30, momentum_7), **不含 raw** |
+| 时间预算 | 45 min |
+| 优势 | 真实 holder 结构, 跟价格/链上活动正交; realized_cap 是 Glassnode 旗舰指标 |
+
+#### E19-STABLE (v1.2 缩+补)
 
 | 字段 | 值 |
 |---|---|
 | 假设 | 稳定币供给变化代表"待入场购买力" (Lyn Alden 论点) |
-| 数据源 | BGeo `stablecoin_supply`, `stablecoin_usdt`, `stablecoin_dai`, `stablecoin_pax`, `stablecoin_others` (2017+) |
-| 数据等级 | L1 (2017 起, 2020 基准 100% 覆盖, 但训练初期 stablecoin 总量低) |
-| 新增特征 | **符合 §4.1 #6**: 5 指标 × 5 衰生 = 25 (zscore_30/90, slope_7/30, pct_chg_30), **不含 raw** |
+| 数据源 | BGeo 5 个 (v1.2): `stablecoin_usdt`, `stablecoin_dai`, `stablecoin_pax`, **`stablecoin_usdc`**, **`stablecoin_busd`** (扔 supply/others L3, 补 usdc/busd L1) |
+| 数据等级 | **L1** (全 cov 99.5%, stale 2d) |
+| 新增特征 | **符合 §4.1 #6**: 5 指标 × 5 衍生 = 25 (zscore_30/90, slope_7/30, pct_chg_30), **不含 raw** |
 | 时间预算 | 45 min |
+| 风险 | BUSD 已被 Paxos 停发新铸 (2023-02+), 但流通量数据仍刷新, 信号可能衰减 |
+
+#### E19-AVIV (单点扩展)
+
+| 字段 | 值 |
+|---|---|
+| 假设 | AVIV (Active Value Index Verified) 是 ChainExposed 派的"活跃 BTC 价值"周期 indicator, 跨多个周期峰底 |
+| 数据源 | BGeo `aviv.json` (2010-2026, **16 年!**) |
+| 数据等级 | **L1** (cov 99.7%, stale 1d, raw rows 5789) |
+| 新增特征 | **符合 §4.1 #6**: 1 × 5 = 5 (zscore_30/90, slope_7/30, momentum_7) |
+| 时间预算 | 30 min |
+| 优势 | BGeo 最长历史指标之一, 跨 4 个减半周期 |
 
 #### E19-DERIV-SHORT (需 NaN-aware 改造前置)
 
@@ -253,23 +298,38 @@ CMD 不是 "首选数据源", 而是 "**衍生品 + 短历史链上的备份源*
 |---|---|
 | 假设 | 衍生品高频信号 (funding/OI/taker/liq) 提供短期风险溢价 |
 | 数据源 | CMD `btc_funding_rates`, `btc_open_interest`, `btc_taker_buy_sell_ratio`, `btc_long_liquidations`, `btc_short_liquidations`, `btc_coinbase_premium_index` (全 2022-12+) |
-| 数据等级 | L2 |
-| 前置 | 改 `src/features/builder.py` 加 `keep_nan_features` 选项 (LightGBM 原生支持 NaN) |
-| 新增特征 | **符合 §4.1 #6**: 6 指标 × 5 衰生 = 30, **不含 raw** (衍生品本身已是高频, 但 funding/OI 的 ma_7/zscore_90 比 raw 更稳) |
+| 数据等级 | **L2** |
+| 前置 | 改 `src/features/builder.py` 加 `keep_nan_features` 选项 (LightGBM 原生支持 NaN) — §5.3 ⛔ 硬阻塞 |
+| 新增特征 | **符合 §4.1 #6**: 6 指标 × 5 衍生 = 30, **不含 raw** (衍生品本身已是高频, 但 funding/OI 的 ma_7/zscore_90 比 raw 更稳) |
 | 时间预算 | 1.5h (含改 builder + 测试 bit-exact + 跑) |
 | 风险 | 2020-2022 全 NaN, 模型可能学到 "NaN 通道" 而非真信号 |
 
-### 4.3 推荐执行顺序
+#### ~~E19-MINER~~ (v1.2 删除)
+
+> 🔴 **2026-06-01 audit 发现**: 4 个候选指标 (miner_balance/out_flows/reserves/sell_presure) 全部 stale > 200 天.
+> BGeo 矿工系列已停更, 该方向暂时不可行.
+> 替代方案: 未来如有公开矿工数据源 (CryptoQuant 等), 可重启此方向.
+
+### 4.3 推荐执行顺序 (v1.2 修订)
 
 ```
-E19-PUELL (30 min)
-    ├─ Kappa ≥ 0.365: 大成功 → E19-MINER (验证矿工)
-    └─ Kappa < 0.348: 失败 → 跳过 MINER/MVRV-EXT, 直接 E19-STABLE (换方向)
-                                        ↓
-                                  仍失败 → E19-DERIV-SHORT (短历史)
-                                        ↓
-                                  全部失败 → 转 Phase 3 剪枝
+E19-PUELL (30 min, 最稳)
+    ├─ Kappa ≥ 0.365: 进 E19-SOPR-NEW (验证全新长历史方向)
+    │                       ├─ 成功 → E19-MVRV-EXT (验证家族扩展)
+    │                       │             └─ 成功 → E19-ADDRESS (验证 HODL 结构)
+    │                       │                           └─ 成功 → E19-AVIV / E19-STABLE
+    │                       └─ 失败 → E19-AVIV (单点最长历史 16 年终极测试)
+    └─ Kappa < 0.348: 失败 → 跳过所有慢变量 sub
+                                ↓
+                       直接 E19-DERIV-SHORT (短历史高频, 完全不同尺度)
+                                ↓
+                       仍失败 → 转 Phase 3 剪枝
 ```
+
+**关键决策点**:
+- **PUELL + SOPR 任一成功** → BGeo 长历史方向有 alpha, 继续展开
+- **PUELL + SOPR 全失败** → 慢变量在 weekly bear 系统性无效, 必须换高频
+- **DERIV-SHORT 失败** → Phase 2.5 整体结束, 转 Phase 3
 
 ### 4.4 决策树 (基于 E1 baseline kappa = 0.3480)
 
@@ -292,19 +352,17 @@ E19-PUELL (30 min)
 - [x] `configs/experiments/weekly/exp_v0601_E18a_bgeo_core.yaml` 锁 2020-01-01
 - [x] `scripts/download_onchain_bgeo.py` 11 指标拉取脚本
 - [x] `src/features/external.py` `_load_onchain_csv` / `_load_onchain_series` helper
+- [x] **v1.2 新**: `scripts/audit_bgeo_nan.py` 实现 + 首次跑完 (15 个候选 audit)
+- [x] **v1.2 新**: `data/external/onchain/nan_audit.json` 输出, 推翻 §4.2 v1.1 假设
 
 ### 5.2 Wave 2 启动前待办
 
-- [ ] 写 `scripts/download_bgeo_long_history.py` (扩展支持 puell/mvrv/miner/stablecoin 系列)
-- [ ] 写 `scripts/audit_bgeo_nan.py` (**新增**, review §2.2 调) — 对每个候选指标跑:
-  - 2020-01-01 起始 NaN 计数
-  - 前导 null 检查
-  - 与 BTC csv index align 后的有效行数
-  - 输出 `data/external/onchain/nan_audit.json`, 供 sub config 引用则重写为 L0/L1/L2
+- [ ] 写 `scripts/download_bgeo_long_history.py` (扩展支持 puell/mvrv/sopr/cdd/address/aviv/stablecoin 系列)
 - [ ] BTC csv freeze: `sha256: 004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858`
 - [ ] 所有 v0601+ config 强制加 `expected_sha256` (CI 检查)
-- [ ] 实现 `_load_onchain_csv` 的 short-horizon 衰生 helper (§4.1 #6 依赖):
+- [ ] 实现 `src/features/external.py` short-horizon 衍生 helper (§4.1 #6 依赖):
   - `zscore_N`, `slope_N`, `momentum_N`, `pct_chg_N`, `percentile_rank_N`
+- [ ] **可选**: 扩充 audit 范围 — 扫 200+ BGeo 长历史指标, 生成完整 L1 可用清单 (佛后续 Phase 3)
 
 ### 5.3 E19-DERIV-SHORT 专属前置 (NaN-aware) — ⛔ 硬阻塞
 
@@ -356,6 +414,20 @@ E19-PUELL (30 min)
   - **🟢 低**: §2 标题改 "联合特征空间", 加脚注澄清 466 口径.
   - §5.3 NaN-aware 前置升级为 **⛔ 硬阻塞**: E1 bit-exact 不过即回滚.
   - §5.2 增加 short-horizon helper 实现待办 (§4.1 #6 依赖).
+
+* **2026-06-01 v1.2**: 跑完 `scripts/audit_bgeo_nan.py` 后大改 §4.2 (5 sub → 7 sub):
+  - **§4.2 重写** (audit 驱动):
+    - 🔴 删 E19-MINER (4 个指标全 L3 stale 217-291 天)
+    - 🟡 E19-MVRV-EXT 替换 `mvrv_zscore_adapt_data` (L3 234d) → `mvrv_btc_price` (L1)
+    - 🟡 E19-STABLE 缩+补 (扔 supply/others L3 停更 900+d, 补 usdc/busd L1)
+    - ✨ 新增 E19-SOPR-NEW (5 指标 sopr+cdd, 14 年长历史)
+    - ✨ 新增 E19-ADDRESS (5 指标 HODL Waves + realized_cap, 15 年)
+    - ✨ 新增 E19-AVIV (1 指标, 16 年最长历史)
+  - **§4.3 推荐顺序重画**: PUELL → SOPR-NEW → MVRV-EXT → ADDRESS → AVIV/STABLE → DERIV-SHORT
+  - **§2.2 L0-L3 从"估计"升级"实测"**: 发现 严格 L0 在 BGeo = 0 个, L1 是实际工作面.
+    `stale_d` 是错过的关键维度.
+  - **§4.1 #7 新增**: 数据卫生硬阻塞 (cov≥95%, stale≤90d, NaN<30, leading=0).
+  - **§5.1 升级**: audit 脚本 待办→已完成, 并加入可选拓展 task (扫 200+ BGeo).
 
 ---
 
