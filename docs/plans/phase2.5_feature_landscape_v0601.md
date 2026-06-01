@@ -28,14 +28,14 @@
 | 实验 | n_feat | Kappa | 显著性 |
 |---|---|---|---|
 | **E20c (E1 剪到 28)** | 28 | **0.4290** (+27.8%) | 4-seed CV 3.21%, 强 alpha |
-| **E21b (E8 剪到 81)** | 81 | **0.7717** (+1.93%) | 4-seed CV 0.50%, 3.8σ 显著；**仅研究候选, 暂不 promote** |
+| **E21b (E8 剪到 81)** | 81 | **0.7717** (+1.93%) | 3.8σ 显著; research only |
 
 **新铁律 (Wave 2 沉淀)**:
 1. 任何 "加特征" 实验启动前, **先做 baseline 剪枝扫描**, 确认 baseline 不过参数化
 2. 任何 Kappa 提升 ≥ 0.5% 必须做 **4-seed 显著性测试 (3σ)** 才能下结论
 3. 不能跨任务套用 CV (E1 系 CV 3.21%, E8 系 CV 0.50%, 差 6 倍)
 
-**Production 决策更新**: E20c 是当前唯一 promotion 候选；E21b 分类/Kappa 显著, 但 PnL 执行层不全线胜出 (止盈版本弱于 E8 baseline), **暂不 promote**, 保留 research/shadow 候选。
+**Production 决策更新**: E20c 是当前唯一 promotion 候选。E21b 分类/Kappa 显著, 但 PnL 执行层不全线胜出 (止盈版本弱于 E8 baseline), **暂不 promote**, 保留 research/shadow 候选。
 
 **本文档 §5 (7 个 sub-experiments) 整体暂停**, 详见 §5 头部状态标记。
 
@@ -171,8 +171,8 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 1. **小步快跑**: 每个 sub-experiment ≤ 1.5h, 失败立即停止
 2. **L1 优先**: 长历史 BGeo 实测可用指标先做, 数据治理风险最低
 3. **正交假设**: 每 sub 覆盖不同 alpha 来源 (周期 / 行为 / 结构 / 高频)
-4. **公平基准**: 全部 2020-2025, 跟 E1 baseline (Kappa 0.3480) 对比
-5. **门槛**: Kappa ≥ E1 × 1.05 = **0.3654** 才考虑下一步
+4. **公平基准**: 全部 2020-2025; 新 sub 必须跟 **E20c baseline (Kappa 0.4290)** 对比, 不再跟原 E1 0.348 对比
+5. **门槛**: Kappa ≥ E20c × 1.05 = **0.4505** 才考虑下一步; production 还必须通过 PnL/执行层 gate
 6. **⚠️ 慢变量纪律**:
    - **raw level 禁止直接进特征集**
    - 任何 >30 天周期指标必须先做 short-horizon 转换:
@@ -197,8 +197,8 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 >
 > 1. ✅ **E20c 完成** — 新 E1 系 baseline = **0.4290** (不是 0.348)
 > 2. ✅ **E21b 完成** — 新 E8 系分类候选 = **0.7717** (不是 0.757), 但 **PnL 执行层不全线胜出, 暂不 promote**
-> 3. ⏳ 本节 §6.2 决策树 **门槛必须从 0.348 上调到 0.4290** (弱 alpha 门槛 ≥ 0.4505, 强 alpha 门槛 ≥ 0.515)
-> 4. ⏳ 需验证 §5.x 指标是否能在 **E20c 的 28 特征 baseline** 上按新门槛赢 (难度远高于原计划)
+> 3. ✅ 本节 §6.2 决策树已从 0.348 上调到 **0.4290** (弱 alpha 门槛 ≥ 0.4505, 强 alpha 门槛 ≥ 0.515)
+> 4. ⏳ 若重启 §5.x, 需验证指标能否在 **E20c 的 28 特征 baseline** 上按新门槛赢 (难度远高于原计划)
 >
 > **推荐路径**: 先 promote E20c；E21b 进入 shadow/research 池；再重扫 7 个 sub 能否超 E20c → 幸存者进入 §5 探索
 > **下面 §5.x 原本 保留** 用作 "后续扫描时的并行候选清单"。
@@ -280,26 +280,33 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 
 ## 6. 执行顺序与决策
 
-### 6.1 推荐执行顺序
+### 6.1 推荐执行顺序 (Wave 2 后修正版)
 
 ```
-E19-PUELL (30 min, 最稳)
-    ├─ Kappa ≥ 0.365: 进 E19-SOPR-NEW (验证全新长历史方向)
-    │                       ├─ 成功 → E19-MVRV-EXT (验证家族扩展)
-    │                       │             └─ 成功 → E19-ADDRESS (验证 HODL 结构)
-    │                       │                           └─ 成功 → E19-AVIV / E19-STABLE
-    │                       └─ 失败 → E19-AVIV (单点最长历史 16 年终极测试)
-    └─ Kappa < 0.348: 失败 → 跳过所有慢变量 sub
-                                ↓
-                       直接 E19-DERIV-SHORT (短历史高频, 完全不同尺度)
-                                ↓
-                       仍失败 → 转 Phase 3 剪枝
+Step 0: 停止原 E19 加特征流水线
+    └─ 原 E1(129 特征) 已证明过参数化, 不再作为 add-feature baseline
+
+Step 1: promote E20c (directional, 28 特征)
+    └─ 当前唯一 production promotion 候选
+
+Step 2: E21b 进入 research/shadow 池
+    └─ 分类显著, raw PnL 胜, 但止盈/执行层未适配 → 不 promote
+
+Step 3: 若继续 Phase 2.5, 所有 add-feature sub 必须重建为:
+    E20c 28 核心特征 + 单一新指标族
+        ├─ Kappa ≥ 0.4505 且 4-seed 3σ 显著 → 继续 PnL gate
+        ├─ PnL/执行层全线或核心版本胜出 → promote 候选
+        └─ 否则 → research/shadow 或归档
+
+Step 4: 对 E8/touch 路线的任何优化
+    └─ 必须额外证明当前止盈/执行规则适配, 否则只算分类候选
 ```
 
 **关键决策点**:
-- **PUELL + SOPR 任一成功** → BGeo 长历史方向有 alpha, 继续展开
-- **PUELL + SOPR 全失败** → 慢变量在 weekly bear 系统性无效, 必须换高频
-- **DERIV-SHORT 失败** → Phase 2.5 整体结束, 转 Phase 3
+- **Kappa 提升不是终点** → production 必须过 PnL/执行层 gate
+- **E20c 是当前唯一 production 候选** → 后续 add-feature 先跟 E20c 比
+- **E21b 暂不 promote** → 等执行规则重调后再评估
+- **原 PUELL/SOPR/MVRV 等 §5 sub** → 保留为候选清单, 不是立即执行队列
 
 ### 6.2 决策树 (基于 Wave 2 后新 baseline)
 
@@ -332,19 +339,21 @@ E19-PUELL (30 min, 最稳)
 | **Audit 脚本** | `scripts/audit_bgeo_nan.py` |
 | **Audit 结果库** | `data/external/onchain/nan_audit.json` |
 
-### 7.2 Wave 2 启动前待办
+### 7.2 Wave 2 后待办
 
-- [ ] `scripts/download_bgeo_long_history.py` (扩展支持 puell/mvrv/sopr/cdd/address/aviv/stablecoin 系列)
+- [x] E20/E21 剪枝曲线完成, 并沉淀 `lesson_0601_pruning_alpha.md`
+- [x] Phase 2.5 原加特征路线暂停, 主文档加 P0 警告
+- [ ] promote E20c 到 production (当前唯一候选)
+- [ ] E21b 保留 research/shadow, 等执行规则重调后再评估
 - [ ] 所有 v0601+ config 强制加 `expected_sha256` (CI 检查)
-- [ ] `src/features/external.py` short-horizon 衍生 helper (§4 #6 依赖):
-  - `zscore_N`, `slope_N`, `momentum_N`, `pct_chg_N`, `percentile_rank_N`
-- [ ] **可选**: 扩充 audit 范围, 扫 200+ BGeo 长历史指标, 生成完整 L1 可用清单 (供 Phase 3 用)
+- [ ] 若重启 §5 add-feature sub: 先基于 **E20c 28 核心特征** 创建新 config, 不再基于原 E1 129 特征
+- [ ] **可选**: 扩充 audit 范围, 扫 200+ BGeo 长历史指标, 生成完整 L1 可用清单 (供后续 add-feature 候选用)
 
 ### 7.3 E19-DERIV-SHORT 专属前置 ⛔ 硬阻塞
 
 - [ ] `src/features/builder.py` 加 `keep_nan_features: list[str]` 选项
 - [ ] LightGBM 验证: 含 NaN 列训练正常, 不一致行不被 drop
-- [ ] ⛔ **硬阻塞**: E1 bit-exact 复现测试 (OPS_MANUAL §5.3), 任一 metric diff > 1e-12 立即回滚 builder 修改
+- [ ] ⛔ **硬阻塞**: E1/E8 production + E20c candidate 复现测试, 任一 metric diff > 1e-12 立即回滚 builder 修改
 
 ---
 
@@ -355,10 +364,25 @@ E19-PUELL (30 min, 最稳)
 - `meta.json` 含 `data.sha256`, `data.effective_rows`, `data.effective_start/end`
 - `metrics.json` 含 `kappa/f1/precision/recall/accuracy`
 - `fold_metrics.csv` 至少 50+ folds (init_train=800, oos_window=63 默认)
-- `report.md` 包含跟 E1 baseline 的对比表
+- `pnl_metrics.json` + `pnl_report.md` 必须存在; production 候选不能只看分类指标
+- `report.md` 包含跟 **E20c baseline** 的对比表 (若是 touch 路线, 同时跟 E8 production 对比)
 - `feature_importance.csv` 显示新增特征排名分布
+- 4-seed 复现性汇总: mean/std/CV/min/max + baseline 是否落在 3σ 之外
 
-### 8.2 反 over-fitting 纪律
+### 8.2 Production PnL gate
+
+分类指标达标后, 必须继续通过执行层验证。最低要求:
+
+| Gate | 要求 |
+|---|---|
+| raw signal | CAGR/Sharpe/MaxDD 不劣于 baseline |
+| 默认执行 | 跟对应 baseline 版本比较 |
+| 风险指标 | MaxDD 不恶化; Calmar/PF 改善 |
+| 稳定性 | 4-seed 分类显著; 主 seed PnL 胜 |
+
+**E21b 反例**: Kappa +1.93% 且 raw PnL 胜, 但 `+止盈` 与 `止盈+regime` 输给 E8 baseline, 所以暂不 promote。
+
+### 8.3 反 over-fitting 纪律
 
 **禁止**:
 - ❌ sub 失败后反复调超参数让它 "看起来更好"
@@ -367,7 +391,8 @@ E19-PUELL (30 min, 最稳)
 
 **允许**:
 - ✅ 失败 sub 单独写一段 CONCLUSION 段落 (本文 §5 对应 sub 下), 然后**关闭**该方向
-- ✅ 成功 sub 进入下一阶段 (加 interactions, ensemble 等)
+- ✅ 分类成功但 PnL 未过 gate 的 sub 进入 research/shadow 池 (E21b 模式)
+- ✅ 分类 + PnL 都过 gate 的 sub 才能进入 promotion SOP
 
 ---
 
