@@ -1,6 +1,6 @@
 # 实验报告: v0305_E1_decontam
 
-**生成时间**: 2026-06-01 06:37:08
+**生成时间**: 2026-06-01 06:59:20
 
 ## 1. 实验概要
 
@@ -9,7 +9,7 @@
 | 实验名称 | v0305_E1_decontam |
 | 描述 | v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征) |
 | 标签 | ['weekly', 'bear', 'v0305', 'decontamination', 'directional_filtered'] |
-| Git Commit | c4e21ef |
+| Git Commit | 728392b |
 | Git Branch | feat/model-governance-overhaul |
 | 耗时 | (运行中) |
 | 随机种子 | 42 |
