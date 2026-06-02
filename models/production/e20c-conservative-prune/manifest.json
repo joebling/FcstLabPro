@@ -249,7 +249,7 @@
     "decontaminated": true,
     "execution_policy_present": true,
     "data_manifest_present": true,
-    "reproducibility_verified": false,
+    "reproducibility_verified": true,
     "python_version": "3.10"
   }
 }
