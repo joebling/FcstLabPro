@@ -264,7 +264,8 @@
 
 ## 5. 生产推理链路（Cloud Run Job · 每日 UTC 00:05）
 
-**入口**：`deploy/docker_entrypoint.sh`，由 Cloud Scheduler 触发，每模型独立 Job。
+**入口**：`deploy/vps/run_daily_nodock.sh` → `scripts/run_production_pipeline.py`，由 VPS 定时触发，模型由 `active.yaml` 驱动。
+（⤴️ 旧入口 `deploy/docker_entrypoint.sh` + Cloud Run 已于 2026-06-02 停用归档）
 
 ```
 ┌─ Step 1: 下载最新数据 ──────────────────────────────────────────┐

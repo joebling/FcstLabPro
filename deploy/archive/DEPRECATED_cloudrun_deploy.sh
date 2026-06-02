@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 # =============================================================================
+# ⛔️ DEPRECATED (2026-06-02) — Cloud Run 部署已完全停用, 勿运行!
+#
+# 现役生产链路 = VPS 无 Docker:
+#     deploy/vps/run_daily_nodock.sh → scripts/run_production_pipeline.py
+#     模型/variant 由 models/production/active.yaml 单一真相源决定。
+#
+# 本脚本用旧的 MODEL_NAME / STRATEGY_VARIANT 环境变量 (多处真相源),
+# 与现架构不兼容。仅作历史备查。
+# 详见 deploy/README.md
+# =============================================================================
+# =============================================================================
 # FcstLabPro 通用部署脚本 (模型无关)
 #
 # 用法:

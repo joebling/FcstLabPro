@@ -3,8 +3,9 @@
 # ─────────────────────────────────────────────────────────────────────────
 #
 # 这是生产部署 / 推理唯一应该读取的「现在用哪个模型」配置。
-# 所有脚本 (live_signal / build_signal_json / deploy.sh / docker_entrypoint)
+# 现役脚本 (live_signal / build_signal_json / run_production_pipeline)
 # 都从这里取 artifact_dir + strategy_variant，禁止再硬编码模型名。
+# (⤴️ 旧的 deploy.sh / docker_entrypoint Cloud Run 部署已停用归档, 见 deploy/README.md)
 #
 # 切换模型 = 改这里的 artifact_dir + status，然后 git commit。
 # 回滚 = git revert 那个 commit。

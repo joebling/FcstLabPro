@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
+# ⛔️ DEPRECATED (2026-06-02) — Cloud Run 容器入口已完全停用, 勿运行!
+#
+# 现役生产链路 = VPS 无 Docker:
+#     deploy/vps/run_daily_nodock.sh → scripts/run_production_pipeline.py
+#     → live_signal.run_for_model() (variant flags 从 active.yaml 解析)
+#
+# 本脚本的 STRATEGY_VARIANT 环境变量是旧的多真相源做法。仅作历史备查。
+# 详见 deploy/README.md
+# =============================================================================
+# =============================================================================
 # FcstLabPro 通用 Cloud Run Job 入口脚本 (模型无关)
 #
 # 通过 MODEL_NAME 环境变量切换模型:

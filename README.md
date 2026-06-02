@@ -65,13 +65,11 @@ FcstLabPro/
 │   ├── prob_calibration_analysis.py  #   概率校准分析
 │   └── ...                           #   其他分析工具 (约 17 个)
 │
-├── deploy/                           # 🚀 部署
-│   ├── Dockerfile                    #   生产镜像 (LightGBM only, 无 torch)
-│   ├── deploy.sh                     #   Cloud Run 一键部署 (build/deploy/scheduler)
-│   ├── docker_entrypoint.sh          #   容器入口 (MODEL_NAME 环境变量控制)
-│   ├── run_signal.sh                 #   本地双模型一键信号脚本 (macOS)
-│   ├── com.fcstlab.signal.plist      #   macOS launchd 定时配置 (本地备份运行)
-│   └── archive/                      #   历史版本部署文件 (v0215~v0305)
+├── deploy/                           # 🚀 部署 (现役=VPS 无Docker, 详见 deploy/README.md)
+│   ├── vps/run_daily_nodock.sh        #   ✅ 现役生产入口 (→ run_production_pipeline.py)
+│   ├── run_signal.sh                  #   🟡 macOS 本地 launchd 入口
+│   ├── com.fcstlab.signal.plist      #   macOS launchd 定时配置
+│   └── archive/                      #   🗄️ 历史版本 + ⤴ DEPRECATED_cloudrun_* (已停用)
 │
 ├── models/production/                # 🏭 生产模型
 │   ├── SUMMARY.md                    #   E1 vs E8 完整对比 (横向对比唯一权威)
@@ -140,14 +138,19 @@ git commit -m "promote: e1-conservative"
 
 ### 4. 部署
 
-**云端（Google Cloud Run，生产主路径）**：
+**现役生产（VPS 无 Docker）**：切模型 = 改 `active.yaml` + git commit
 
 ```bash
-MODEL_NAME=e1-conservative ./deploy/deploy.sh    # 一键部署 (build + deploy + scheduler)
-MODEL_NAME=e8-touch       ./deploy/deploy.sh
+# 1. 切换模型: 改 models/production/active.yaml 的 primary.artifact_dir
+git add models/production/active.yaml
+git commit -m "switch: primary → <new_model>"
+# 2. VPS 上拉取 + 定时脚本自动跑 deploy/vps/run_daily_nodock.sh
+# 回滚 = git revert 那个 commit
 ```
 
 详见 [`deploy/README.md`](deploy/README.md)。
+
+> ⛔️ Cloud Run (`MODEL_NAME ./deploy/deploy.sh`) 已于 2026-06-02 停用并归档。
 
 **本地定时（macOS launchd，云端镜像备份）**：
 
