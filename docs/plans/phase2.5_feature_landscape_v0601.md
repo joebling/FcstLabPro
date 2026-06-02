@@ -343,9 +343,9 @@ Step 4: 对 E8/touch 路线的任何优化
 
 - [x] E20/E21 剪枝曲线完成, 并沉淀 `lesson_0601_pruning_alpha.md`
 - [x] Phase 2.5 原加特征路线暂停, 主文档加 P0 警告
-- [ ] promote E20c 到 production (当前唯一候选)
-- [ ] E21b 保留 research/shadow, 等执行规则重调后再评估
-- [ ] 所有 v0601+ config 强制加 `expected_sha256` (CI 检查)
+- [x] promote E20c 到 production (当前唯一候选) — `models/production/e20c-conservative-prune`, 已 live primary (`active.yaml`), commit `a0d76be`; 复现 gate seed=42 bit-exact 已补验 (metrics+predictions+model sha256), commit `dbf4554`
+- [ ] E21b 保留 research/shadow, 等执行规则重调后再评估 (决策已定; shadow 注册产物待落地)
+- [x] 所有 v0601+ config 强制加 `expected_sha256` — 全量覆盖完成 (E1_repro/E18a_2020start 补齐, commit `aa90b37`); ⏳ CI 自动检查待加
 - [ ] 若重启 §5 add-feature sub: 先基于 **E20c 28 核心特征** 创建新 config, 不再基于原 E1 129 特征
 - [ ] **可选**: 扩充 audit 范围, 扫 200+ BGeo 长历史指标, 生成完整 L1 可用清单 (供后续 add-feature 候选用)
 
