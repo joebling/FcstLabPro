@@ -42,6 +42,10 @@ CANDIDATE_INDICATORS = [
     "mvrv_data",
     "mvrv_zscore_data",
     "nupl_data",
+    # Phase 2.5 Wave 3 E23-SOPR (总体 SOPR + CDD 行为信号, §5.2)
+    "sopr_data",
+    "cdd",
+    "cdd_terminal_ajusted",
 ]
 
 ALL_INDICATORS = CORE_INDICATORS + CANDIDATE_INDICATORS

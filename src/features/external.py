@@ -613,3 +613,55 @@ def build_puell_features(df: pd.DataFrame) -> pd.DataFrame:
     n_added = _add_short_horizon_features(df, "puell", s)
     logger.info(f"  ✅ E19-PUELL 特征: {n_added} 个 (puell_multiple_data, 2012-2025)")
     return df
+
+
+# E23-SOPR 指标集 (Phase 2.5 Wave 3, 优先级 2)
+# 设计 (phase2.5 §5.2): 总体 SOPR + CDD 行为信号, 跨周期稳定, 正交于价格动量.
+# 刻意排除 lth_sopr / sth_sopr — 它们是 E18a 已证伪的 LTH/STH 慢变量 (§9 失败清单),
+# 纳入等于重蹈覆辙 (§5.2 风险栏自指)。
+SOPR_INDICATORS = [
+    "sopr_data",              # 总体 Spent Output Profit Ratio
+    "cdd",                    # Coin Days Destroyed (老币移动行为)
+    "cdd_terminal_ajusted",  # Terminal-adjusted CDD (BGeo 命名拼写沿用上游)
+]
+
+
+@register_feature_set("external_sopr")
+def build_sopr_features(df: pd.DataFrame) -> pd.DataFrame:
+    """E23-SOPR: 总体 SOPR + CDD 家族 "实现盈亏 / 老币移动" 行为信号.
+
+    3 个长历史指标 (全 2012+, L1: cov 99.3-99.5%, stale ≤ 2d) × 5 short-horizon
+    派生 = 15 特征 (§4 #6, 不含 raw)。每指标:
+      ext_{name}_zscore_30, _zscore_90, _slope_7, _slope_30, _momentum_7
+
+    假设: SOPR/CDD 是行为维度信号, 跨周期稳定, 与价格动量正交 — 区别于
+    E22-PUELL (与价格动量共线, 已证伪)。
+
+    刻意排除 lth_sopr/sth_sopr (E18a 已证伪的慢变量, 见 SOPR_INDICATORS 注释)。
+    用途: E23 实验 (Wave 3 #2)。详见 phase2.5_feature_landscape_v0601.md §5.2。
+    """
+    df = df.copy()
+    n_total = 0
+    n_missing = 0
+    for name in SOPR_INDICATORS:
+        s = _load_onchain_series(name, df.index)
+        if s is None:
+            n_missing += 1
+            logger.warning(
+                f"  ⚠️ {name}.csv 缺失, 请先运行: "
+                f"python scripts/download_onchain_bgeo.py --indicators {name}"
+            )
+            continue
+        n_total += _add_short_horizon_features(df, name, s)
+
+    if n_missing:
+        logger.warning(
+            f"  ⚠️ E23-SOPR: {n_missing}/{len(SOPR_INDICATORS)} 指标缺失, "
+            f"特征不完整 (仅生成 {n_total} 个)"
+        )
+    else:
+        logger.info(
+            f"  ✅ E23-SOPR 特征: {n_total} 个 "
+            f"({len(SOPR_INDICATORS)} 指标 × 5 short-horizon, 2012-2025)"
+        )
+    return df
