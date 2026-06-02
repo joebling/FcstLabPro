@@ -1,7 +1,10 @@
 # Data (now tracked in git)
-# data/raw/*.csv
+# data/raw/*.csv  — 训练基准, tracked, sha 锁定 (勿取消注释)
 # data/raw/*.parquet
 # data/external/
+
+# Live/实时下载数据 — 可变, 绝不进 git (lesson_0602: 防实时数据覆盖基准被commit回来)
+data/live/
 
 # Experiments outputs (keep configs, ignore large files)
 experiments/**/model.joblib

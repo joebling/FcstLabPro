@@ -113,6 +113,7 @@ def run_experiment(
             end=data_cfg.get("end"),
             expected_sha256=data_cfg.get("expected_sha256"),
             expected_effective_rows=data_cfg.get("expected_effective_rows"),
+            strict_sha=True,  # 训练/复现路径硬阀门: 基准被改直接 raise (lesson_0602)
         )
 
         # ========== 3. 特征工程 ==========

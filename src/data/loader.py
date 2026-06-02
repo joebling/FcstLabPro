@@ -45,6 +45,7 @@ def load_csv(
     end: str | None = None,
     expected_sha256: str | None = None,
     expected_effective_rows: int | None = None,
+    strict_sha: bool = False,
 ) -> pd.DataFrame:
     """加载 CSV 数据文件并做基本校验.
 
@@ -57,10 +58,15 @@ def load_csv(
     end : str | None
         结束日期 (含, 如 '2025-12-31'); None 不过滤
     expected_sha256 : str | None
-        期望的 CSV 文件 sha256 (full hex). 不一致仅 WARN, 不阻塞.
-        防御 BTC csv 被默默扩展 (lesson_0601).
+        期望的 CSV 文件 sha256 (full hex).
+        默认不一致仅 WARN; strict_sha=True 时不一致直接 raise.
+        防御 BTC csv 被默默扩展/覆盖 (lesson_0601 / lesson_0602).
     expected_effective_rows : int | None
         期望的过滤后行数. 不一致仅 WARN.
+    strict_sha : bool
+        训练/复现路径应传 True: expected_sha256 不符时硬阻塞 (raise),
+        而非静默 WARN. 实时推理路径保持 False (实时数据本就会变).
+        依据: lesson_0602 — VPS --download 覆盖基准, WARN 被日志淹没无人察觉.
 
     Returns
     -------
@@ -77,12 +83,21 @@ def load_csv(
 
     if expected_sha256 is not None:
         if actual_sha256 != expected_sha256:
+            if strict_sha:
+                raise ValueError(
+                    "🔴 CSV SHA256 硬阀门拦截 (strict_sha=True): 训练/复现基准被改!\n"
+                    f"    file:     {path.name}\n"
+                    f"    expected: {expected_sha256}\n"
+                    f"    actual:   {actual_sha256}\n"
+                    "    基准数据不可信, 拒绝训练. 还原基准或核对 config.\n"
+                    "    参考: docs/lessons/lesson_0602_download_overwrite_baseline.md"
+                )
             logger.warning("=" * 70)
-            logger.warning("⚠️  CSV SHA256 不一致! 数据文件可能被修改/扩展")
+            logger.warning("⚠️  CSV SHA256 不一致! 数据文件可能被修改/覆盖")
             logger.warning(f"    file:     {path.name}")
             logger.warning(f"    expected: {expected_sha256}")
             logger.warning(f"    actual:   {actual_sha256}")
-            logger.warning("    参考: docs/lessons/lesson_0601_data_governance_regime_shift.md")
+            logger.warning("    参考: docs/lessons/lesson_0602_download_overwrite_baseline.md")
             logger.warning("=" * 70)
         else:
             logger.info(f"  ✅ CSV SHA256 验证通过: {actual_sha256[:16]}...")

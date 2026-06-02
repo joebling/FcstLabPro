@@ -55,7 +55,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-OHLCV_PATH = PROJECT_ROOT / "data" / "raw" / "btc_binance_BTCUSDT_1d.csv"
+OHLCV_PATH = PROJECT_ROOT / "data" / "live" / "btc_binance_BTCUSDT_1d.csv"
 FGI_PATH = PROJECT_ROOT / "data" / "external" / "fear_greed_index.csv"
 
 # 输出根目录: 默认跟 VPS 部署一致 (/opt/fcstlabpro), 可用 FCST_DATA_DIR 覆盖。

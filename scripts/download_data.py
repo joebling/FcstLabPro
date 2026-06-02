@@ -24,14 +24,21 @@ def main():
     parser.add_argument("--interval", default="1d")
     parser.add_argument("--start", default="2018-01-01")
     parser.add_argument("--end", default=None)
-    parser.add_argument("--output", default=None, help="输出路径, 默认自动生成")
+    parser.add_argument("--output", default=None, help="输出路径, 默认自动生成 (data/live/)")
+    parser.add_argument(
+        "--rebuild-baseline", action="store_true",
+        help="重建 data/raw/ 训练基准 (会覆盖 sha 锁定文件, 慎用!). "
+             "不加此 flag 时下载一律写 data/live/ (lesson_0602).",
+    )
     args = parser.parse_args()
 
     setup_logging()
 
+    # 默认写 data/live/ (可变区); --rebuild-baseline 才写 data/raw/ (不可变基准)
+    target_dir = "data/raw" if args.rebuild_baseline else "data/live"
     if args.output is None:
         safe_symbol = args.symbol.replace("-", "")
-        args.output = f"data/raw/btc_{args.source}_{safe_symbol}_{args.interval}.csv"
+        args.output = f"{target_dir}/btc_{args.source}_{safe_symbol}_{args.interval}.csv"
 
     output_path = Path(args.output)
 
@@ -42,6 +49,7 @@ def main():
             start=args.start,
             end=args.end,
             output_path=output_path,
+            allow_overwrite_raw=args.rebuild_baseline,
         )
     else:
         df = download_yahoo(

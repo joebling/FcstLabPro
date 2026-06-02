@@ -78,3 +78,33 @@ def test_dedup_and_sort(tmp_path):
     assert list(df.index) == sorted(df.index)  # 排序
     # keep=last → 2026-01-01 取后者
     assert df.loc["2026-01-01", "close"] == 9
+
+
+# ====== strict_sha 硬阀门 (lesson_0602) ======
+
+import hashlib
+
+
+def _sha256_of(p) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def test_strict_sha_mismatch_raises(tmp_path):
+    """strict_sha=True 且 sha 不符 → raise (训练基准被改必须硬崩)."""
+    p = _sample(tmp_path)
+    with pytest.raises(ValueError, match="SHA256 硬阀门拦截"):
+        load_csv(p, expected_sha256="deadbeef" * 8, strict_sha=True)
+
+
+def test_strict_sha_match_passes(tmp_path):
+    """strict_sha=True 且 sha 相符 → 正常加载."""
+    p = _sample(tmp_path)
+    df = load_csv(p, expected_sha256=_sha256_of(p), strict_sha=True)
+    assert len(df) == 4
+
+
+def test_non_strict_sha_mismatch_only_warns(tmp_path):
+    """默认 strict_sha=False: sha 不符仅 WARN, 不阻塞 (实时推理路径)."""
+    p = _sample(tmp_path)
+    df = load_csv(p, expected_sha256="deadbeef" * 8)  # strict_sha 默认 False
+    assert len(df) == 4
