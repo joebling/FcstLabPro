@@ -213,6 +213,24 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 | 时间预算 | 30 min |
 | 优势 | 单一指标快速验证, 经典机构信号, 长历史 |
 
+> **CONCLUSION (2026-06-02, Wave 3 — E22 on E20c baseline)** 🔴 **关闭此方向**
+>
+> Wave 2 已证明 PUELL on E1(129) 失败 (0.326 < 0.348), 但归因为 "baseline 过参数化"。
+> Wave 3 用健康 baseline (E20c 28 特征) 重测以隔离真因:
+>
+> | 对照 | n_feat | Kappa | Δ |
+> |---|---|---|---|
+> | E20c baseline (seed=42) | 28 | 0.4448 | — |
+> | E20c 4-seed mean | 28 | 0.4290 | — |
+> | **E22 = E20c + PUELL (seed=42)** | 33 | **0.4375** | **-1.6% vs seed42; +2.0% vs mean** |
+>
+> 未达门槛 (0.4505)。关键观察: `ext_puell_zscore_90` importance=63 **排第 5** (比 E1 下的 48 还高,
+> 因为噪声变少更突出), 模型**确实在用**这个特征 — 但整体 Kappa 仍无增量。
+>
+> **真因判定**: 不是 "被噪声淹没", 而是 **puell 信息与现有价格动量/波动率特征高度重叠, 非正交 alpha**。
+> 高 importance ≠ 高 alpha 增量 (经典陷阱: 模型把方差分给它, 但预测力没提升)。
+> **教训**: Wave 3 后续 sub 不能只看 importance 排名, 必须看 Kappa 净增量 + 4-seed 显著性。
+
 ### 5.2 E19-SOPR-NEW ⭐ 优先级 2
 
 | 字段 | 值 |
@@ -344,7 +362,7 @@ Step 4: 对 E8/touch 路线的任何优化
 - [x] E20/E21 剪枝曲线完成, 并沉淀 `lesson_0601_pruning_alpha.md`
 - [x] Phase 2.5 原加特征路线暂停, 主文档加 P0 警告
 - [x] promote E20c 到 production (当前唯一候选) — `models/production/e20c-conservative-prune`, 已 live primary (`active.yaml`), commit `a0d76be`; 复现 gate seed=42 bit-exact 已补验 (metrics+predictions+model sha256), commit `dbf4554`
-- [ ] E21b 保留 research/shadow, 等执行规则重调后再评估 (决策已定; shadow 注册产物待落地)
+- [x] E21b 保留 research/shadow, 等执行规则重调后再评估 — 已落地 `models/production/e21b-touch-prune` (candidate 槽, status=offline_only, role=sota_candidate), 复现 seed=42 bit-exact, active.yaml 已注册+校验通过
 - [x] 所有 v0601+ config 强制加 `expected_sha256` — 全量覆盖完成 (E1_repro/E18a_2020start 补齐, commit `aa90b37`); ⏳ CI 自动检查待加
 - [ ] 若重启 §5 add-feature sub: 先基于 **E20c 28 核心特征** 创建新 config, 不再基于原 E1 129 特征
 - [ ] **可选**: 扩充 audit 范围, 扫 200+ BGeo 长历史指标, 生成完整 L1 可用清单 (供后续 add-feature 候选用)
@@ -400,6 +418,7 @@ Step 4: 对 E8/touch 路线的任何优化
 
 - **LTH/STH 6 核心指标** (E18a, 165 features, Kappa 0.3244 vs E1 0.3480, -6.8%): 周期级慢变量 (>180d) 与 weekly bear (T=21) 尺度严重错配. **教训沉淀为 §4 设计原则 #6**. 详见 `docs/plans/archive/` + `onchain_lth_sth_feature_plan.md` §7.
 - **E19-PUELL** (134 features, Kappa 0.326 vs E1 0.348, -6.2%): 加 5 个 short-horizon Puell 派生. 单点信号很强 (puell_zscore_90 rank 3, importance 48), 但整体 kappa 仍下降. 详见 commit `7399f91` + `lesson_0601_pruning_alpha.md` §2.1.
+- **E22 = E20c + PUELL** (33 features, Kappa 0.4375 vs E20c seed42 0.4448 / 4-seed mean 0.4290): Wave 3 用健康 baseline 重测 PUELL, **未达门槛 0.4505**. `ext_puell_zscore_90` importance 升到 rank 5 (63), 模型确实在用, 但整体无增量 → **puell 与价格动量/波动率高度共线, 非正交 alpha**. 结论: PUELL 方向彻底关闭 (E1-based 和 E20c-based 双重证伪). 详见 §5.1 CONCLUSION.
 - **E19-FUNDING** (145 features, Kappa 0.288 vs E1 0.348, -17.1%): 加 16 个 Funding Rate 特征 (复用现有 `external_fr`). 16 个里 5 个 importance=0 废特征, 共线严重. 详见 commit `c88d918`.
 - **“加特征”路线本身** (PUELL/FUNDING/E18a 3 连败): **不是新指标没信号, 是 baseline 过参数化**. 必须先走 prune 路线 (E20c +27.8%) 再判断。
 - **Miner 系列** (miner_balance / out_flows / reserves / sell_presure): BGeo 矿工数据全部停更 200+ 天, 不可用. 未来如有 CryptoQuant 等公开源可重启.

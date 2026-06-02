@@ -1,0 +1,32 @@
+{
+  "experiment_id": "v0601_E22_e20c_puell_run1",
+  "name": "v0601_E22_e20c_puell",
+  "description": "Phase 2.5 Wave 3 #1: E20c (28 核心剪枝) + Puell Multiple (5 short-horizon 派生). 重启 add-feature 路线的第一炮, 但 baseline 改为健康的 E20c (非过参数化的 E1 129).",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_3",
+    "e22",
+    "puell",
+    "e20c_based"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-02T05:37:37.534893",
+  "git": {
+    "commit": "05f14db",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 25.11,
+  "aggregate_metrics": {
+    "accuracy": 0.8855944893680743,
+    "f1_binary": 0.5013054830287206,
+    "precision_binary": 0.4528301886792453,
+    "recall_binary": 0.5614035087719298,
+    "cohen_kappa": 0.43752629364745477
+  }
+}
