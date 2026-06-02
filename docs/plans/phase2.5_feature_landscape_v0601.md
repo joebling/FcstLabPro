@@ -240,7 +240,29 @@ CMD 是 "**衍生品 + 短历史链上的备份源**":
 | 新增特征 | 5 × 5 = 25 (`zscore_30/90`, `slope_7/30`, `momentum_7`), **不含 raw** |
 | 时间预算 | 45 min |
 | 关联 | SOPR 顶层 + CDD 与 E18a 失败的 LTH/STH NUPL 完全独立信息维度 |
-| 风险 | `lth_sopr`/`sth_sopr` 与 LTH/STH 同源, 可能也是慢变量 (#6 衍生应能缓解) |
+| 风险 | `lth_sopr`/`sth_sopr` 与 LTH/STH 同源, 可能也是慢变量 (#6 衰生应能缓解) |
+
+> **CONCLUSION (2026-06-02, Wave 3 — E23 on E20c baseline)** 🔴 **关闭此方向**
+>
+> 实际执行时 **刻意排除 `lth_sopr`/`sth_sopr`** (E18a 已证伪慢变量, §9), 只用 3 个正交指标:
+> `sopr_data` + `cdd` + `cdd_terminal_ajusted` × 5 short-horizon = 15 特征 (非原计划 25)。
+>
+> | 对照 | n_feat | Kappa | Δ |
+> |---|---|---|---|
+> | E20c baseline (seed=42) | 28 | 0.4448 | — |
+> | E20c 4-seed mean | 28 | 0.4290 | — |
+> | E22 = E20c + PUELL | 33 | 0.4375 | -1.6% |
+> | **E23 = E20c + SOPR/CDD (seed=42)** | 43 | **0.4126** | **-7.2% vs seed42; -3.8% vs mean** |
+>
+> 未达门槛 (0.4505), 且比 E22 更差。关键观察: 15 个 SOPR/CDD 特征 **全部挤在末尾**
+> (importance 排名 23-43), 最高 `ext_sopr_data_slope_30`=31 (rank 23), 8 个 importance ≤ 10。
+>
+> **真因判定 (与 E22 不同的失败模式)**:
+> - E22-PUELL: 信号**强但冗余** (rank 5, 与价格动量共线)
+> - E23-SOPR: 信号**弱** (模型几乎不用, 全堆末尾), 15 特征稀释了模型容量 → 反而拖低 Kappa。
+>
+> **教训**: short-horizon 转换不能救活本身信息含量低的链上慢变量。SOPR/CDD 在日频
+> directional T=21 任务上无预测力 (在周频/月频可能不同, 但不在本项目范围)。
 
 ### 5.3 E19-MVRV-EXT
 
@@ -419,6 +441,7 @@ Step 4: 对 E8/touch 路线的任何优化
 - **LTH/STH 6 核心指标** (E18a, 165 features, Kappa 0.3244 vs E1 0.3480, -6.8%): 周期级慢变量 (>180d) 与 weekly bear (T=21) 尺度严重错配. **教训沉淀为 §4 设计原则 #6**. 详见 `docs/plans/archive/` + `onchain_lth_sth_feature_plan.md` §7.
 - **E19-PUELL** (134 features, Kappa 0.326 vs E1 0.348, -6.2%): 加 5 个 short-horizon Puell 派生. 单点信号很强 (puell_zscore_90 rank 3, importance 48), 但整体 kappa 仍下降. 详见 commit `7399f91` + `lesson_0601_pruning_alpha.md` §2.1.
 - **E22 = E20c + PUELL** (33 features, Kappa 0.4375 vs E20c seed42 0.4448 / 4-seed mean 0.4290): Wave 3 用健康 baseline 重测 PUELL, **未达门槛 0.4505**. `ext_puell_zscore_90` importance 升到 rank 5 (63), 模型确实在用, 但整体无增量 → **puell 与价格动量/波动率高度共线, 非正交 alpha**. 结论: PUELL 方向彻底关闭 (E1-based 和 E20c-based 双重证伪). 详见 §5.1 CONCLUSION.
+- **E23 = E20c + SOPR/CDD** (43 features, Kappa 0.4126 vs E20c seed42 0.4448 / 4-seed mean 0.4290): 用 3 正交指标 (sopr_data/cdd/cdd_terminal_ajusted, 排除证伪的 lth/sth_sopr) × 5 short-horizon. **未达门槛, 比 E22 更差 -7.2%**. 15 个 SOPR/CDD 特征全部挤在末尾 (rank 23-43), 模型几乎不用 → **信号弱, 稀释模型容量反而拖低 Kappa** (有别于 E22 的冗余失败). 结论: 链上慢变量在日频 directional T=21 任务无预测力. 详见 §5.2 CONCLUSION.
 - **E19-FUNDING** (145 features, Kappa 0.288 vs E1 0.348, -17.1%): 加 16 个 Funding Rate 特征 (复用现有 `external_fr`). 16 个里 5 个 importance=0 废特征, 共线严重. 详见 commit `c88d918`.
 - **“加特征”路线本身** (PUELL/FUNDING/E18a 3 连败): **不是新指标没信号, 是 baseline 过参数化**. 必须先走 prune 路线 (E20c +27.8%) 再判断。
 - **Miner 系列** (miner_balance / out_flows / reserves / sell_presure): BGeo 矿工数据全部停更 200+ 天, 不可用. 未来如有 CryptoQuant 等公开源可重启.
