@@ -37,10 +37,24 @@
 - `scripts/regime_gating_backtest.py` — 绝对阈值 gating 回测 (证明钝化)
 - `scripts/eval_mvrv_top_signal.py` — 信号准确率评估
 - `scripts/phase3a_signalB_gating.py` — 软减仓叠加回测 (含顶OOS)
+- `scripts/phase3a_three_way_compare.py` — 信号B vs 线上 regime 三策略对比
+
+### 信号B vs 线上 regime (关键认知)
+
+线上 E20c 用 **价格 63天/-10% 熄断** (被动止损, 笨但稳);
+信号B 用 **链上 MVRV-Z 动量** (主动降暴露, 靠前但脆弱)。思路不同但互补:
+三策略回测证明线上熄断是大头 (MaxDD -47%→-20.5%), 信号B 在其之上再降28%
+(→-14.7%) 但让渡~4pp 收益 — **是回撤优化非收益增强**。
+
+### 收口决定 (2026-06-02)
+
+**不上线信号B**。原因: +0.03 Sharpe 边际太小, 建立在脆弱参数 (hold=63) 上,
+不值得为此给生产加一层复杂度。Phase 3a 价值在于 **摸清了边界**:
+链上 regime 可用但脆弱, 线上笨规则已是性价比最优解。
 
 ### 后续 (可选, 不急)
 
-- 将信号B 固化为生产风控模块 (接 live_signal, 固定参数)
+- 若将来解决信号B 脆弱性 (更多样本/多资产验证) → 再考虑影子模式上线
 - 或转 Phase 3b (Case B 月度配置 / Case C 极值择时)
 
 ---
