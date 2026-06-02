@@ -28,6 +28,8 @@ data:
   start: '2020-01-01'
   end: '2025-12-31'
   path: data/raw/btc_binance_BTCUSDT_1d.csv
+  expected_effective_rows: 2192
+  expected_sha256: 004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858
 features:
   sets:
   - technical
