@@ -47,10 +47,15 @@ challenger:
     E8 touch_filtered (路径触达)。当前 paper 观察，未转 live。
     同配置下 Return/Sharpe 更高，但 MaxDD 更大 (-21.4%)、暴露更高。
 
-# 候选模型 (离线指标超越 E8，PnL 未完成，暂不部署)
-# candidate:
-#   artifact_dir: models/production/e16b-savgol-close
-#   role: sota_candidate
-#   strategy_variant: conservative
-#   status: offline_only
-#   note: v0308 E16b，离线 Kappa 0.7646 > E8，待 PnL 回测后再议晋升。
+# 【candidate】离线候选 — E21b touch 剪枝 (research/shadow, 不部署)
+candidate:
+  artifact_dir: models/production/e21b-touch-prune
+  role: sota_candidate
+  strategy_variant: conservative
+  status: offline_only
+  note: >-
+    v0601 E21b touch_filtered 剪枝版 (81 特征)。分类层显著: Kappa 0.7717 (4-seed CV 0.50%,
+    3.8σ 显著, +1.93% vs E8)，复现 seed=42 bit-exact (metrics+predictions+model sha256)。
+    暂不 promote 原因: PnL 执行层未全线胜出 — 「+止盈」「止盈+regime」变体输给 e8-touch baseline。
+    定位 research/shadow: 等执行规则 (止盈/regime 阈值) 重调后再评估是否转 paper。
+    详见 docs/plans/phase2.5_feature_landscape_v0601.md §6.1 Step 2 + §8.2。
