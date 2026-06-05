@@ -193,10 +193,10 @@ def _run_one_model(model, ctx: PipelineCtx) -> str:
     )
     tags = [signal]
 
-    # 同日重跑 (幂等): 信号本身仍展示, 但跳过 JSON 重写/LLM/邮件
-    # —— 避免「一天多封重复邮件」。首次当日运行才会出邮件。
-    if meta.get("duplicate"):
-        return f"{model.name}={signal}+dup(跳过邮件)"
+    # 同日重跑: 仍走完整流程 (JSON/LLM/邮件都发), 只是标上「第 N 次」记号。
+    # 这样你能确认每次跑都成功, 持仓天数又不会被重跑虚增 (按日期算)。
+    if meta.get("is_rerun"):
+        tags.append(f"第{meta.get('run_count_today', '?')}次")
 
     # 2. JSON (输出侧, 失败不 halt)
     signal_json = _try_build_json(model, state_path, out_dir, tags)

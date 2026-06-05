@@ -441,8 +441,11 @@ def send_email(signal_path: str) -> bool:
 
     # 构建邮件
     msg = MIMEMultipart("alternative")
+    # 同日重跑 (第≥第2次) 加记号, 一眼辨识是重复信号还是当日首发
+    run_count = data.get("run_count_today", 1)
+    rerun_tag = f"[重跑#{run_count}] " if run_count and run_count > 1 else ""
     msg["Subject"] = (
-        f"[BTC] {date[5:] if len(date) > 5 else date} "
+        f"{rerun_tag}[BTC] {date[5:] if len(date) > 5 else date} "
         f"{style['emoji']} {style['label']} | "
         f"${price:,.0f} | {model_name} {model_ver}"
     )

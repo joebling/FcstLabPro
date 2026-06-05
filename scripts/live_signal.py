@@ -67,6 +67,7 @@ class PositionState:
     days_held: int = 0
     last_signal_date: str | None = None
     last_signal: str | None = None
+    run_count_today: int = 0  # 今日已运行次数 (同日重跑计数, 跨日重置)
     last_reason: str | None = None
     last_regime: str | None = None
     last_regime_detail: str | None = None
@@ -328,18 +329,21 @@ def run_signal(
         config=config, use_tp=use_tp, use_regime=use_regime,
     )
 
-    # 幂等闸门: 今日已出过信号 → 同日重跑, 不再动状态/账本, 也告知
-    # pipeline 跳过重发邮件 (避免「一天 3 封邮件 + 持仓天数虚增」)。
-    # 以 OHLCV 最新交易日 (meta['date']) 为准, 与 last_signal_date 比对。
-    duplicate = bool(state.last_signal_date == meta["date"])
-    meta["duplicate"] = duplicate
-    if duplicate and not dry_run:
-        logger.warning(
-            f"⚠️ 今日 ({meta['date']}) 已出过信号 (last={state.last_signal}), "
-            f"同日重跑 → 跳过状态更新/账本/邮件 (幂等)。调试请用 --dry-run。"
+    # 同日重跑计数: 今日第几次跑 (跨日重置)。
+    # 策略: 重跑仍发邮件 (你能确认每次跑都成功), 但标上「第 N 次」记号;
+    # 持仓天数按日期算 (不受次数影响), 重跑多少次都不会虚增天数。
+    is_rerun = bool(state.last_signal_date == meta["date"])
+    if is_rerun:
+        state.run_count_today += 1
+    else:
+        state.run_count_today = 1
+    meta["is_rerun"] = is_rerun
+    meta["run_count_today"] = state.run_count_today
+    if is_rerun:
+        logger.info(
+            f"ℹ️ 今日 ({meta['date']}) 第 {state.run_count_today} 次运行 "
+            f"(重跑, 持仓天数不受影响)。"
         )
-        print_signal(signal, meta, state, model_path.parent.name)
-        return signal, meta
 
     _apply_signal_to_state(state, signal, meta)
     print_signal(signal, meta, state, model_path.parent.name)

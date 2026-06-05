@@ -195,6 +195,7 @@ def build_signal_json(
         "reason": state.get("last_reason", "无"),
         "regime": state.get("last_regime", "未知"),
         "regime_detail": state.get("last_regime_detail", ""),
+        "run_count_today": state.get("run_count_today", 1),  # 今日第几次运行
         "position": position,
         "history": history,
         "model": model_info,
