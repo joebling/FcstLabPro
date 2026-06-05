@@ -59,8 +59,9 @@ mkdir -p "${DATA_DIR}/logs"     # 运行日志
 chown -R "${CRON_USER}:${CRON_USER}" "${DATA_DIR}" 2>/dev/null || true
 echo "✅ 数据目录: ${DATA_DIR}"
 
-# ── 生成 .env 模板 ─────────────────────────────────────────────────────────
-ENV_FILE="${DATA_DIR}/.env"
+# ── 生成 .env 模板 ──────────────────────────────────────────────
+# 配置唯一真相源: 仓库根 .env (被 .gitignore 忽略, git pull 碰不到)。
+ENV_FILE="${REPO_DIR}/.env"
 if [ ! -f "${ENV_FILE}" ]; then
     cat > "${ENV_FILE}" << 'ENVEOF'
 # ============================================================

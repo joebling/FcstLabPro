@@ -24,6 +24,7 @@ import smtplib
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -38,7 +39,10 @@ except ImportError:  # 兼容 `python scripts/send_signal_email.py ...`
         model_semantics_text,
     )
 
-load_dotenv()
+# 显式指向仓库根 .env (配置唯一真相源), 不按 cwd 瞎找。
+# override=False: bash 已 source 过的环境变量优先, 避免双源漂移。
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(_REPO_ROOT / ".env", override=False)
 
 # =====================================================================
 # Signal Style Mapping

@@ -14,7 +14,9 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DATA_DIR="/opt/fcstlabpro"
 VENV_PYTHON="${REPO_DIR}/.venv/bin/python"
-ENV_FILE="${DATA_DIR}/.env"
+# 配置唯一真相源: 仓库根的 .env (被 .gitignore 忽略, git pull 碰不到)。
+# 不再用 /opt/fcstlabpro/.env, 避免双 .env 打架 (lesson: provider 同进程漂移)。
+ENV_FILE="${REPO_DIR}/.env"
 
 echo "=============================================="
 echo "🔮 FcstLabPro 每日信号 — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"

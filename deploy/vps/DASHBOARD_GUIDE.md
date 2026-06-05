@@ -94,7 +94,7 @@ new archive, 下次请求 (缓存过期后) 自动反映。
 
 ---
 
-## 六、配置项 (env, 可写进 /opt/fcstlabpro/.env)
+## 六、配置项 (env, 可写进 ~/FcstLabPro/.env)
 
 | 变量 | 默认 | 说明 |
 |---|---|---|

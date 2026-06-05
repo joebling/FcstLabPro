@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/root/FcstLabPro
-EnvironmentFile=/opt/fcstlabpro/.env
+EnvironmentFile=/root/FcstLabPro/.env
 # 默认绑 127.0.0.1:8000 (仅本机). 需外部访问请走 nginx 反代 + TLS + 认证,
 # 不要在这里改成 0.0.0.0 裸暴露公网。
 ExecStart=/root/FcstLabPro/.venv/bin/python scripts/serve_dashboard.py

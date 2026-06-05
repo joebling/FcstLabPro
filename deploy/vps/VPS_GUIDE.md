@@ -64,13 +64,13 @@ sudo bash deploy/vps/setup_vps_nodock.sh
 - 安装系统依赖：`python3`, `python3-venv`, `pip`, `libgomp1`
 - 创建 `.venv`
 - 安装 Python 依赖
-- 生成 `/opt/fcstlabpro/.env`
+- 生成 `~/FcstLabPro/.env`
 - 注册每日 cron
 
 ### 3. 填写配置
 
 ```bash
-nano /opt/fcstlabpro/.env
+nano ~/FcstLabPro/.env
 ```
 
 必填：
@@ -143,7 +143,7 @@ bash deploy/vps/run_daily_nodock.sh
 
 ## 配置运行模型
 
-编辑 `/opt/fcstlabpro/.env`。
+编辑 `~/FcstLabPro/.env`。
 
 串行运行两个模型：
 
@@ -182,7 +182,7 @@ sudo bash deploy/vps/setup_vps_nodock.sh
 nc -zv smtp.qq.com 465
 ```
 
-再确认 `/opt/fcstlabpro/.env` 里的 `SMTP_PASS` 是授权码。
+再确认 `~/FcstLabPro/.env` 里的 `SMTP_PASS` 是授权码。
 
 ### Binance Klines API 不可用
 
@@ -202,7 +202,7 @@ https://api3.binance.com
 https://api4.binance.com
 ```
 
-也可以在 `/opt/fcstlabpro/.env` 中强制指定：
+也可以在 `~/FcstLabPro/.env` 中强制指定：
 
 ```ini
 BINANCE_BASE_URL=https://data-api.binance.vision
