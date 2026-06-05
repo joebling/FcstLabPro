@@ -22,6 +22,54 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 from src.serving.paths import LIVE_OHLCV_PATH as OHLCV_PATH
 
 
+def _compute_indicators(df) -> dict:
+    """从 OHLCV 算出当前关键技术指标快照, 喞 LLM 做定量判断。
+
+    只算轻量、解读性强的指标 (SMA/RSI/波动率/量比/位置),
+    避免依赖完整特征工程 (那是推理链的事)。数据不足时跳过该项。
+    """
+    import numpy as np
+
+    close = df["close"].astype(float)
+    vol = df["volume"].astype(float)
+    out: dict = {}
+    last = float(close.iloc[-1])
+
+    # 均线 + 价格相对位置
+    for w in (20, 50, 200):
+        if len(close) >= w:
+            sma = float(close.tail(w).mean())
+            out[f"SMA{w}"] = round(sma, 2)
+            out[f"价格 vs SMA{w}"] = f"{(last / sma - 1) * 100:+.1f}%"
+
+    # RSI(14) — 标准 Wilder 均值
+    if len(close) >= 15:
+        delta = close.diff()
+        gain = delta.clip(lower=0).rolling(14).mean()
+        loss = (-delta.clip(upper=0)).rolling(14).mean()
+        rs = gain / loss.replace(0, np.nan)
+        rsi = 100 - 100 / (1 + rs)
+        if not np.isnan(rsi.iloc[-1]):
+            out["RSI14"] = round(float(rsi.iloc[-1]), 1)
+
+    # 近期收益 + 年化波动率
+    if len(close) >= 8:
+        out["7日收益"] = f"{(last / float(close.iloc[-8]) - 1) * 100:+.1f}%"
+    if len(close) >= 64:
+        out["63日收益"] = f"{(last / float(close.iloc[-64]) - 1) * 100:+.1f}%"
+    if len(close) >= 21:
+        daily_ret = close.pct_change().tail(20)
+        out["20日年化波动率"] = f"{float(daily_ret.std()) * (365 ** 0.5) * 100:.0f}%"
+
+    # 成交量比 (当日 vs 20日均量)
+    if len(vol) >= 20:
+        vma = float(vol.tail(20).mean())
+        if vma > 0:
+            out["量比(vs 20日均)"] = f"{float(vol.iloc[-1]) / vma:.2f}x"
+
+    return out
+
+
 def main(signal_path: str) -> None:
     with open(signal_path) as f:
         data = json.load(f)
@@ -44,10 +92,12 @@ def main(signal_path: str) -> None:
             for idx, r in recent.iterrows()
         ]
 
+        indicators = _compute_indicators(df)
+
         analysis = generate_analysis(
             data,
             klines,
-            {},
+            indicators,
             trade_history=data.get("history"),
             position=data.get("position"),
         )

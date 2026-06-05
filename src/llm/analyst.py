@@ -47,7 +47,7 @@ SYSTEM_PROMPT = """你是一位专业的加密货币量化分析师，负责解�
 - **信号类型**: BUY (开仓), HOLD (继续持仓), SELL (平仓), SILENT (无信号)
 - **策略变体**: 止盈 (+X% 即平仓) + regime 开关 (63天收益≤-10% 时静默)
 
-### 特征集 (129 个特征, 已去污染)
+### 特征集来源
 - **technical**: SMA/EMA/MACD/BB/ATR/动量 (已移除 RSI/SMA 避免与标签泄漏)
 - **volume**: 成交量均线、量比、OBV、VWAP
 - **flow**: 资金流向代理指标
@@ -55,9 +55,11 @@ SYSTEM_PROMPT = """你是一位专业的加密货币量化分析师，负责解�
 - **external_fgi**: Fear & Greed Index 及其移动平均
 
 ⚠️ 不包含：链上数据、新闻/社交媒体、宏观经济指标、基本面数据
+注意: 本次解读的模型具体特征数 / Kappa / 回测指标见下方「当前模型档案」，
+以那里的真实数值为准 (不同模型差异很大, 不要臆测固定数字)。
 
 ### 你的分析原则
-1. 模型 Kappa 较低 (约 0.19-0.75)，永远提醒用户预测力有限
+1. 模型预测力有限 (以「当前模型档案」的 Kappa 为准)，永远提醒用户风险
 2. 结合近期 K 线走势判断技术面以外的驱动因素
 3. 如果提供了历史战绩，分析胜负模式（哪种退出方式胜率高、哪种市场条件下表现好）
 4. 如果有当前持仓，重点分析持仓风险和潜在退出时机
@@ -65,6 +67,9 @@ SYSTEM_PROMPT = """你是一位专业的加密货币量化分析师，负责解�
 """
 
 USER_PROMPT_TEMPLATE = """以下是今日的预测信号和近期走势数据，请给出分析。
+
+## 当前模型档案 (以此为准, 勿臆测)
+{model_context}
 
 ## 今日信号
 - 日期: {date}
@@ -124,6 +129,32 @@ def _format_indicators(indicators: dict) -> str:
             lines.append(f"- {name}: {value:.4f}")
         else:
             lines.append(f"- {name}: {value}")
+    return "\n".join(lines)
+
+
+def _format_model_context(model: dict) -> str:
+    """从 signal JSON 的 model 字段提凖真实模型画像, 注入 prompt.
+
+    这部分是为了让 LLM 拿到本次模型的**真实** Kappa / 特征数 / 回测指标,
+    而不是 System Prompt 里的通用描述 (不同模型差异很大)。model 缺失时回退提示。
+    """
+    if not model:
+        return "（未提供模型档案, 请以保守态度评估预测力）"
+    bt = model.get("backtest", {}) or {}
+    lines = [
+        f"- 模型: {model.get('name', 'N/A')} ({model.get('raw_name', '')})",
+        f"- 类型/标签: {model.get('type', 'N/A')} / {model.get('label', 'N/A')}",
+        f"- 策略变体: {model.get('variant', 'N/A')}",
+        f"- 特征数: {model.get('features', 'N/A')} 个 (剩枝后)",
+        f"- Cohen's Kappa: {model.get('kappa', 'N/A')} (越高越可靠, 低于 0.2 接近噪音)",
+    ]
+    if bt:
+        lines.append(
+            f"- 该变体回测: CAGR={bt.get('cagr', 'N/A')}, "
+            f"MaxDD={bt.get('max_dd', 'N/A')}, "
+            f"Sharpe={bt.get('sharpe', 'N/A')}, "
+            f"PF={bt.get('pf', 'N/A')}"
+        )
     return "\n".join(lines)
 
 
@@ -362,6 +393,7 @@ def generate_analysis(
 
     # 构建 User Prompt
     user_prompt = USER_PROMPT_TEMPLATE.format(
+        model_context=_format_model_context(signal_data.get("model", {})),
         date=signal_data.get("date", ""),
         price=signal_data.get("price", 0),
         signal_display=signal_data.get("signal_display", ""),
