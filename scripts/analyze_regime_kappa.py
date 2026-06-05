@@ -31,36 +31,47 @@ def analyze(exp_dir: str, label: str):
         expected_sha256=data_cfg.get("expected_sha256"),
         expected_effective_rows=data_cfg.get("expected_effective_rows"),
     )
-    feat_cfg = cfg["features"]
-    df_feat = build_features(
-        df_raw,
-        feature_sets=feat_cfg["sets"],
-        drop_features=feat_cfg.get("drop_features"),
-        smoothing=feat_cfg.get("smoothing"),
-    )
-    lbl_cfg = cfg["label"]
-    label_fn = get_label_strategy(lbl_cfg["strategy"])
-    label_params = {k: v for k, v in lbl_cfg.items() if k != "strategy"}
-    y_full = label_fn(df_feat, **label_params)
 
-    valid_idx = y_full.dropna().index
-    df_aligned = df_feat.loc[valid_idx]
-    n = len(df_aligned)
-    cv_cfg = cfg["evaluation"]
-    folds = walk_forward_split(
-        n, cv_cfg["init_train"], cv_cfg["oos_window"], cv_cfg["step"]
-    )
+    if "date" in preds.columns:
+        # 新格式 (2026-06-05+): predictions.csv 自带 date 列 + 已去重。
+        # 直接用, 无需重建 walk-forward 反推日期。
+        preds["date"] = pd.to_datetime(preds["date"])
+        preds = preds.set_index("date")
+    else:
+        # 旧格式 (无 date 列, 重叠未去重): 重建 walk-forward 反推日期。
+        # ⚠️ 这条路径聚合 kappa 含重叠虚高 (手册 §2.1), 仅为向后兼容旧实验。
+        feat_cfg = cfg["features"]
+        df_feat = build_features(
+            df_raw,
+            feature_sets=feat_cfg["sets"],
+            drop_features=feat_cfg.get("drop_features"),
+            smoothing=feat_cfg.get("smoothing"),
+        )
+        lbl_cfg = cfg["label"]
+        label_fn = get_label_strategy(lbl_cfg["strategy"])
+        label_params = {k: v for k, v in lbl_cfg.items() if k != "strategy"}
+        y_full = label_fn(df_feat, **label_params)
 
-    test_dates = []
-    for fold in folds:
-        for idx in range(fold.test_start, fold.test_end):
-            test_dates.append(df_aligned.index[idx])
-
-    assert len(test_dates) == len(preds), (
-        f"date {len(test_dates)} vs pred {len(preds)}"
-    )
-    preds["date"] = test_dates
-    preds = preds.set_index("date")
+        valid_idx = y_full.dropna().index
+        df_aligned = df_feat.loc[valid_idx]
+        n = len(df_aligned)
+        cv_cfg = cfg["evaluation"]
+        folds = walk_forward_split(
+            n, cv_cfg["init_train"], cv_cfg["oos_window"], cv_cfg["step"]
+        )
+        test_dates = []
+        for fold in folds:
+            for idx in range(fold.test_start, fold.test_end):
+                test_dates.append(df_aligned.index[idx])
+        assert len(test_dates) == len(preds), (
+            f"date {len(test_dates)} vs pred {len(preds)}"
+        )
+        preds["date"] = test_dates
+        preds = preds.set_index("date")
+        print(
+            "  ⚠️  旧格式 predictions.csv (无 date 列, 重叠未去重), "
+            "聚合 kappa 可能虚高 — 建议重跑实验。"
+        )
 
     btc = df_raw[["close"]].copy()
     btc["ma_200"] = btc["close"].rolling(200).mean()

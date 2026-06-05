@@ -162,7 +162,9 @@ walk-forward 重叠 (`oos_window=63, step=21` → 63/21=3) 导致同一日期被
 
 - [x] ~~修重叠聚合 bug~~ ✅ 已修 (§5)
 - [x] ~~predictions.csv 加日期列~~ ✅ 已加
-- [ ] (低优先) 修 `analyze_regime_kappa.py` 加去重选项, 避免再产出虚高数字
+- [x] ~~修 `analyze_regime_kappa.py` 适配新格式~~ ✅ 已改: 自动探测 date 列
+      (新格式直接用已去重数据; 旧格式回退反推+虚高警告)。
+      新格式跑出 ALL kappa=0.4288, 与 dedup 脚本/重跑实验 **三路同值**。
 - [ ] (研究) 趋势跟随模型 + e20c 双模型切换, 看能否牛市吃主升浪 / 震荡抄底两头通吃
 - [ ] (研究) vol targeting 替代开关式 regime, 仓位与实现波动率挂钩 (手册 §4.1 推荐)
 
