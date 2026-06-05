@@ -145,11 +145,12 @@
   },
   "metrics": {
     "classification": {
-      "accuracy": 0.8858939802336029,
-      "f1_binary": 0.5083870967741936,
-      "precision_binary": 0.45496535796766746,
-      "recall_binary": 0.5760233918128655,
-      "cohen_kappa": 0.4448485372147186
+      "accuracy": 0.8857142857142857,
+      "f1_binary": 0.49230769230769234,
+      "precision_binary": 0.4444444444444444,
+      "recall_binary": 0.5517241379310345,
+      "cohen_kappa": 0.4287576997437166,
+      "_note": "去重版 (非重叠 OOS, 1155 唯一日期, 手册 §2.1)。原重叠版 kappa=0.4448 (3339 行)见 docs/research/20260605_*.md。模型权重未变。"
     },
     "pnl": {
       "策略(无开关)": {

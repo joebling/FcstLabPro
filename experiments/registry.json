@@ -1980,5 +1980,35 @@
       "cohen_kappa": 0.41259169676813645
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0601_E20c_dedup_verify",
+    "name": "v0601_E20c_dedup_verify",
+    "description": "Phase 2.5 Wave 2: 激进剪枝 — 只留 28 个 importance>=20 的核心特征 (删 101)",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "bear",
+      "v0601",
+      "phase_2_5",
+      "wave_2",
+      "e20",
+      "prune"
+    ],
+    "created_at": "2026-06-05T03:08:27.806758",
+    "status": "completed",
+    "duration_seconds": 9.5,
+    "git_commit": "5f582e1",
+    "git_branch": "feat/model-governance-overhaul",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.8857142857142857,
+      "f1_binary": 0.49230769230769234,
+      "precision_binary": 0.4444444444444444,
+      "recall_binary": 0.5517241379310345,
+      "cohen_kappa": 0.4287576997437166
+    },
+    "error": null
   }
 ]

@@ -55,3 +55,6 @@ data/live/monitoring/
 .env
 .env.*
 !.env.example
+
+# 临时备份目录 (本地应急还原用, 不进库 — git 本身即版本备份)
+experiments/_backup_*/

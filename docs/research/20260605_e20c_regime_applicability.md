@@ -123,8 +123,45 @@ e20c 入场门槛 = 价格<SMA50 **且** RSI<45 (即必须 "先回调" 才出手
 
 ---
 
-## 5. 遗留 / 后续可做
+## 5. 重叠聚合 Bug 修复 + metrics 回填 (2026-06-05 后续)
 
+### 5.1 根因
+`src/evaluation/backtest.py` 聚合 `all_y_true/all_y_pred` 时无脑拼接所有 fold,
+walk-forward 重叠 (`oos_window=63, step=21` → 63/21=3) 导致同一日期被计 ~2.89 次。
+`runner.py` 存 predictions.csv 时又丢了日期列, 下游只能反推。双重违反手册 §2.1。
+
+### 5.2 修复
+- `backtest.py`: 新增 `_dedup_by_index()` 辅助函数, 串行/并行两条路径聚合时
+  按全局行索引去重 (保留最早 fold)。`FoldResult`/`BacktestResult` 增 `test_idx` 字段。
+- `runner.py`: predictions.csv 现含 `date` 列 + 已去重。
+
+### 5.3 验证 (双路径交叉)
+- 独立脚本 `regime_kappa_dedup.py` 去重 Kappa = **0.4288**
+- 修改源码后重跑实验 (隔离目录 `v0601_E20c_dedup_verify`) Kappa = **0.4288**
+- 两条独立路径同值 → 修复正确 ✅
+- 🔒 源实验 `v0601_E20c_prune_core_run1` sha256 不变 (备份: `experiments/_backup_20260605/`)
+
+### 5.4 e20c 整体指标变化 (重叠 → 去重)
+| 指标 | 旧(重叠 3339) | 新(去重 1155) | 变化 |
+|------|-------------|-------------|------|
+| accuracy | 0.8859 | 0.8857 | -0.0002 |
+| cohen_kappa | 0.4448 | **0.4288** | -0.0161 |
+| f1_binary | 0.5084 | 0.4923 | -0.0161 |
+| precision | 0.4550 | 0.4444 | -0.0105 |
+| recall | 0.5760 | 0.5517 | -0.0243 |
+
+**重点**: 模型权重未变 (joblib 未重训), 只是评估口径修正。生产行为零变化。
+
+### 5.5 metrics 回填
+已将去重值回填到 `models/production/e20c-conservative-prune/` 的 `metrics.json` /
+`meta.json` / `manifest.json` (均带 `_note` 保留旧值追溯)。
+
+---
+
+## 6. 遗留 / 后续可做
+
+- [x] ~~修重叠聚合 bug~~ ✅ 已修 (§5)
+- [x] ~~predictions.csv 加日期列~~ ✅ 已加
 - [ ] (低优先) 修 `analyze_regime_kappa.py` 加去重选项, 避免再产出虚高数字
 - [ ] (研究) 趋势跟随模型 + e20c 双模型切换, 看能否牛市吃主升浪 / 震荡抄底两头通吃
 - [ ] (研究) vol targeting 替代开关式 regime, 仓位与实现波动率挂钩 (手册 §4.1 推荐)

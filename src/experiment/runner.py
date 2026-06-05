@@ -279,12 +279,19 @@ def run_experiment(
         else:
             logger.info("并行模式跳过模型保存")
 
-        # 6e. 预测结果
-        pred_df = pd.DataFrame({
+        # 6e. 预测结果 (含日期, 已去重 — 手册 §2.1 非重叠)
+        # all_test_idx 是 df (对齐后) 的行索引, 映射回日期便于下游对齐 regime/价格。
+        pred_cols = {
             "y_true": bt_result.all_y_true,
             "y_pred": bt_result.all_y_pred,
-        })
-        pred_df.to_csv(exp_dir / "predictions.csv", index=False)
+        }
+        if bt_result.all_test_idx is not None:
+            pred_dates = df.index[bt_result.all_test_idx]
+            pred_df = pd.DataFrame(pred_cols, index=pred_dates)
+            pred_df.index.name = "date"
+            pred_df.to_csv(exp_dir / "predictions.csv")
+        else:
+            pd.DataFrame(pred_cols).to_csv(exp_dir / "predictions.csv", index=False)
 
         # ========== 7. 生成报告 ==========
         cls_report = compute_classification_report(bt_result.all_y_true, bt_result.all_y_pred)
