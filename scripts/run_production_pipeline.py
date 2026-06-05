@@ -288,10 +288,17 @@ def preflight(args: argparse.Namespace) -> PipelineCtx:
     slots = [f"{s}={m.name}({m.status})" for s, m in models.items()]
 
     # LLM / 邮件: 凭据存在才启用 (跟 VPS .sh 的环境变量门控一致)
-    # LLM provider 可配: gemini 看 GEMINI_API_KEY; anthropic 看 LLM_API_KEY/ANTHROPIC_API_KEY
+    # provider 可配: gemini→GEMINI_API_KEY; deepseek/openai→DEEPSEEK_API_KEY/LLM_API_KEY/
+    # OPENAI_API_KEY; anthropic→LLM_API_KEY/ANTHROPIC_API_KEY
     _llm_provider = os.environ.get("LLM_PROVIDER", "gemini").strip().lower()
     if _llm_provider == "gemini":
         enable_llm = bool(os.environ.get("GEMINI_API_KEY"))
+    elif _llm_provider in ("deepseek", "openai"):
+        enable_llm = bool(
+            os.environ.get("DEEPSEEK_API_KEY")
+            or os.environ.get("LLM_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+        )
     else:
         enable_llm = bool(
             os.environ.get("LLM_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")

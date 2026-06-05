@@ -8,10 +8,15 @@ Provider 通过环境变量选择 (零硬编码 key):
       GEMINI_API_KEY    Google AI API Key
       GEMINI_MODEL      默认 gemini-2.0-flash
 
-    LLM_PROVIDER=anthropic  (Anthropic Messages API 格式, 含腾讯 tokenhub 网关)
+LLM_PROVIDER=anthropic  (Anthropic Messages API 格式, 含腾讯 tokenhub 网关)
       LLM_API_KEY       API Key (或复用 ANTHROPIC_API_KEY)
       LLM_BASE_URL      网关地址, 如 https://tokenhub.tencentmaas.com/
       LLM_MODEL         模型名, 如 deepseek-v4-pro
+
+    LLM_PROVIDER=deepseek  (OpenAI 兼容 Chat Completions 格式, 官方 platform.deepseek.com)
+      DEEPSEEK_API_KEY  API Key (或复用 LLM_API_KEY)
+      LLM_BASE_URL      默认 https://api.deepseek.com
+      LLM_MODEL         默认 deepseek-chat
 
 Usage:
     from src.llm.analyst import generate_analysis
@@ -167,6 +172,27 @@ def _resolve_provider():
             "model": os.environ.get("LLM_MODEL", "claude-3-5-sonnet-latest"),
         }
 
+    if provider in ("deepseek", "openai"):
+        # OpenAI 兼容 Chat Completions 格式 (官方 DeepSeek / 任意 OpenAI 兼容网关)
+        api_key = (
+            os.environ.get("DEEPSEEK_API_KEY")
+            or os.environ.get("LLM_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+            or ""
+        ).strip()
+        if not api_key:
+            return None, None
+        _default_base = (
+            "https://api.deepseek.com" if provider == "deepseek"
+            else "https://api.openai.com"
+        )
+        _default_model = "deepseek-chat" if provider == "deepseek" else "gpt-4o-mini"
+        return "openai", {
+            "api_key": api_key,
+            "base_url": os.environ.get("LLM_BASE_URL", _default_base),
+            "model": os.environ.get("LLM_MODEL", _default_model),
+        }
+
     logger.warning("未知 LLM_PROVIDER=%s, 跳过 LLM 分析", provider)
     return None, None
 
@@ -200,6 +226,40 @@ def _call_gemini(system_prompt, user_prompt, cfg):
         "Gemini 返回无内容: %s", json.dumps(result, ensure_ascii=False)[:200]
     )
     return None
+
+
+def _call_openai(system_prompt, user_prompt, cfg):
+    """调用 OpenAI 兼容 Chat Completions API (官方 DeepSeek / 任意兼容网关)."""
+    base = (cfg.get("base_url") or "https://api.deepseek.com").rstrip("/")
+    url = f"{base}/v1/chat/completions"
+    payload = {
+        "model": cfg.get("model", "deepseek-chat"),
+        "max_tokens": 800,
+        "temperature": 0.7,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {cfg['api_key']}",
+    }
+    result = _http_post_json(url, payload, headers)
+    if not result:
+        return None
+    choices = result.get("choices", [])
+    if choices:
+        msg = choices[0].get("message", {})
+        text = msg.get("content", "")
+        if text:
+            return text
+    logger.warning(
+        "OpenAI 兼容 API 返回无内容: %s",
+        json.dumps(result, ensure_ascii=False)[:200],
+    )
+    return None
+
 
 
 def _call_anthropic(system_prompt, user_prompt, cfg):
@@ -237,7 +297,11 @@ def _call_anthropic(system_prompt, user_prompt, cfg):
     return None
 
 
-_DISPATCH = {"gemini": _call_gemini, "anthropic": _call_anthropic}
+_DISPATCH = {
+    "gemini": _call_gemini,
+    "anthropic": _call_anthropic,
+    "openai": _call_openai,
+}
 
 
 # ── Public API ──

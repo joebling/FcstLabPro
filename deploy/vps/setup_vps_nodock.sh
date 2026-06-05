@@ -81,9 +81,14 @@ MAIL_TO=your_receive@example.com
 COINGECKO_API_KEY=
 COINGLASS_API_KEY=
 
-# LLM 策略分析 (可选): LLM_PROVIDER=gemini 或 anthropic
+# LLM 策略分析 (可选): LLM_PROVIDER=gemini / deepseek / anthropic
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=
+# 官方 DeepSeek (platform.deepseek.com, OpenAI 兼容格式):
+# LLM_PROVIDER=deepseek
+# DEEPSEEK_API_KEY=sk-xxxxx
+# LLM_MODEL=deepseek-chat            # 可选, 默认 deepseek-chat
+# LLM_BASE_URL=https://api.deepseek.com   # 可选, 默认即此
 # anthropic (如 DeepSeek via 腾讯 tokenhub):
 # LLM_PROVIDER=anthropic
 # LLM_API_KEY=

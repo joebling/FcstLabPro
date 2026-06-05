@@ -23,7 +23,7 @@
 
 \* stage 4 内部：**推理失败 → halt**；但 JSON/LLM/邮件 是输出侧
 (required=False 语义)，单个失败不阻断 (信号本身已生成)。
-LLM 需 `GEMINI_API_KEY`，邮件需 `SMTP_USER`+`SMTP_PASS`，缺凭据自动跳过。
+LLM 需对应 provider 的 key (gemini/deepseek/anthropic, 见下文)，邮件需 `SMTP_USER`+`SMTP_PASS`，缺凭据自动跳过。
 
 信号摘要格式: `e1-conservative=SILENT+json+llm+mail` (后缀表示完成的输出环节)。
 
@@ -213,6 +213,21 @@ GEMINI_API_KEY=xxxxx
 # GEMINI_MODEL=gemini-2.0-flash   # 可选
 ```
 
+### provider=deepseek (官方 DeepSeek, OpenAI 兼容 Chat Completions 格式)
+
+例: platform.deepseek.com 官方 key
+
+```bash
+LLM_PROVIDER=deepseek
+DEEPSEEK_API_KEY=sk-xxxxx                  # 不要提交到 git! (也可用 LLM_API_KEY)
+# LLM_MODEL=deepseek-chat                  # 可选, 默认 deepseek-chat
+# LLM_BASE_URL=https://api.deepseek.com    # 可选, 默认即此
+```
+
+请求打到 `${LLM_BASE_URL}/v1/chat/completions`, 带 `Authorization: Bearer` 头,
+messages 用标准 OpenAI `system`+`user` 角色。任意 OpenAI 兼容网关可用
+`LLM_PROVIDER=openai` + `LLM_BASE_URL` 复用同一分支。
+
 ### provider=anthropic (Anthropic Messages API 格式, 含腾讯 tokenhub 网关)
 
 例: DeepSeek via 腾讯 tokenhub
@@ -231,15 +246,15 @@ LLM_MODEL=deepseek-v4-pro
 
 pipeline preflight 按 provider 检测 key:
 - gemini → 看 `GEMINI_API_KEY`
-- 其他 → 看 `LLM_API_KEY` 或 `ANTHROPIC_API_KEY`
+- deepseek/openai → 看 `DEEPSEEK_API_KEY` / `LLM_API_KEY` / `OPENAI_API_KEY`
+- anthropic → 看 `LLM_API_KEY` 或 `ANTHROPIC_API_KEY`
 
 缺 key → `enable_llm=False`, 自动跳过 (不阻断信号)。
 
 ### 连通性自测
 
 ```bash
-LLM_PROVIDER=anthropic LLM_API_KEY=sk-xxx \
-LLM_BASE_URL=https://tokenhub.tencentmaas.com/ LLM_MODEL=deepseek-v4-pro \
+LLM_PROVIDER=deepseek DEEPSEEK_API_KEY=sk-xxx \
 python -c "from src.llm.analyst import _resolve_provider,_DISPATCH; \
 p,c=_resolve_provider(); print(_DISPATCH[p]('测试','说连接成功',c))"
 ```
