@@ -55,8 +55,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-OHLCV_PATH = PROJECT_ROOT / "data" / "live" / "btc_binance_BTCUSDT_1d.csv"
-FGI_PATH = PROJECT_ROOT / "data" / "external" / "fear_greed_index.csv"
+# OHLCV/FGI 路径走 serving 单一真相源 (data/live/) — 与 freshness gate / 推理同源。
+# 历史上这里独立硬编码 OHLCV_PATH, 与 data_freshness 不一致 → 下载写 live/、
+# 校验读 raw/ 的精神分裂 bug (详 lesson_0602)。
+from src.serving.paths import FGI_PATH, LIVE_OHLCV_PATH as OHLCV_PATH  # noqa: E402
 
 # 输出根目录: 默认跟 VPS 部署一致 (/opt/fcstlabpro), 可用 FCST_DATA_DIR 覆盖。
 # 本地开发时设 FCST_DATA_DIR=/tmp/fcst 即可，不污染生产路径。

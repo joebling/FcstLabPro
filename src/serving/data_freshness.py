@@ -22,10 +22,14 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+# 路径单一真相源: live 链读 data/live/, 不再各自硬编码 (lesson_0602 整改收尾)。
+from src.serving.paths import (
+    FGI_PATH,
+    LIVE_OHLCV_PATH as OHLCV_PATH,
+    PROJECT_ROOT,
+)
+
 ACTIVE_YAML = PROJECT_ROOT / "models" / "production" / "active.yaml"
-OHLCV_PATH = PROJECT_ROOT / "data" / "raw" / "btc_binance_BTCUSDT_1d.csv"
-FGI_PATH = PROJECT_ROOT / "data" / "external" / "fear_greed_index.csv"
 
 # active.yaml 缺 data_freshness 时的兜底默认 (与文档 SLA=2 天一致)
 _DEFAULT_OHLCV_SLA = 2

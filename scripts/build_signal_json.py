@@ -23,6 +23,8 @@ from pathlib import Path
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def _extract_version(exp_id: str) -> str:
@@ -150,8 +152,10 @@ def build_signal_json(
     with open(model_dir / "manifest.json") as f:
         manifest = json.load(f)
 
-    # 读取价格
-    dp = data_path or Path("data/raw/btc_binance_BTCUSDT_1d.csv")
+    # 读取价格: 默认走 live 实时数据 (与推理/freshness gate 同源, lesson_0602)。
+    from src.serving.paths import LIVE_OHLCV_PATH
+
+    dp = data_path or LIVE_OHLCV_PATH
     if not dp.is_absolute():
         dp = PROJECT_ROOT / dp
     df = pd.read_csv(str(dp), index_col=0).sort_index()

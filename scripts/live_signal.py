@@ -91,18 +91,36 @@ class PositionState:
 # =====================================================================
 
 def fetch_latest_data(config: dict) -> pd.DataFrame:
-    """拉取最新数据，确保足够的历史窗口用于计算特征."""
-    from src.data.loader import load_csv
+    """拉取最新数据，确保足够的历史窗口用于计算特征.
 
-    # 优先用本地数据 (离线环境 / Binance API 不可用)
+    读取优先级 (lesson_0602 整改收尾):
+      1. data/live/ 实时下载落点 — 生产 pipeline stage 1 刚写的新数据
+      2. config 里的 data/raw/ 基准 — 离线/未跑下载时的兑底 (可能过期)
+      3. 在线拉取 Binance
+
+    为什么不直接用 config 的 data/raw/: 那是 sha 锁定的训练基准, 生产不会
+    更新它 (downloader 拒绝覆盖)。live 链必须吃 data/live/ 的新数据,
+    否则就是「下载写 live, 推理读 raw」的路径分裂 (这正是 freshness gate 报警的根因)。
+    """
+    from src.data.loader import load_csv
+    from src.serving.paths import LIVE_OHLCV_PATH
+
+    # 1. 优先用 data/live/ 实时数据 (生产 pipeline 刚下载的)
+    if LIVE_OHLCV_PATH.exists():
+        logger.info(f"使用实时数据 (data/live): {LIVE_OHLCV_PATH}")
+        df = load_csv(str(LIVE_OHLCV_PATH))
+        logger.info(f"数据加载完成: {len(df)} 行, {df.index[0].date()} ~ {df.index[-1].date()}")
+        return df
+
+    # 2. 回退 config 里的本地基准 (离线环境 / Binance API 不可用)
     local_path = config["data"].get("path")
     if local_path and Path(PROJECT_ROOT / local_path).exists():
-        logger.info(f"使用本地数据: {local_path}")
+        logger.info(f"使用本地基准数据: {local_path}")
         df = load_csv(str(PROJECT_ROOT / local_path))
         logger.info(f"数据加载完成: {len(df)} 行, {df.index[0].date()} ~ {df.index[-1].date()}")
         return df
 
-    # 尝试在线拉取
+    # 3. 尝试在线拉取
     try:
         from src.data.downloader import download_binance_klines
         end_date = datetime.utcnow().strftime("%Y-%m-%d")

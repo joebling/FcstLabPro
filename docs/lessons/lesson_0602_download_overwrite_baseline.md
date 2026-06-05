@@ -106,3 +106,32 @@ downloader 守卫 + loader strict_sha 已加单测覆盖 (见 `tests/`)。
 ---
 
 *本文档与 lesson_0601 同系列, 均为数据治理 (Layer 0) 红线事件.*
+
+---
+
+## 6. 后续 (2026-06-05): 整改只做了一半 → 路径精神分裂
+
+> **触发**: VPS `run_daily_nodock.sh` 在 stage 3.validate_data 报
+> `DataFreshnessError: OHLCV 过期 last_date=2026-06-01 落后 4 天`,
+> 但 stage 1 下载明明成功 (end=2026-06-05)。
+
+**根因**: §3.A 路径隔离当时只改了「写端」(downloader / pipeline 下载 stage 写
+`data/live/`), **读端没跟上**:
+
+| 环节 | 改前读取 | 问题 |
+|---|---|---|
+| `data_freshness.OHLCV_PATH` | `data/raw/` | 校验旧基准 → 误报过期 |
+| `live_signal.fetch_latest_data` | config 的 `data/raw/` | 推理吃旧基准 |
+| `build_signal_json` 默认 | `data/raw/` | JSON 用旧价格 |
+| `enrich_llm_analysis.OHLCV_PATH` | `data/raw/` (注释却写「与 pipeline 对齐」) | 名实不符 |
+
+下载写 `live/`、校验/推理读 `raw/` → freshness gate 忠实地发现「即将推理的数据过期」,
+报错没冤枉谁, 但根因是路径分裂而非数据真过期。
+
+**修复**: 新增 `src/serving/paths.py` 作为 live 链路径**单一真相源**
+(`LIVE_OHLCV_PATH` / `FGI_PATH` / `BASELINE_OHLCV_PATH`), 上述 4 处读端全部改 import 它。
+`fetch_latest_data` 读取优先级改为 `data/live/` → config 基准 → 在线拉取。
+
+**教训升级**: 路径隔离这种「写端/读端」对称的改动, 必须**两端一起改 + 收敛到单一常量**,
+否则就是把一个 DRY 违规拆成两个各写各的。验证: `test_data_freshness` 7/7 通过,
+三处路径常量 (`data_freshness` / `pipeline` / `paths`) assert 相等。
