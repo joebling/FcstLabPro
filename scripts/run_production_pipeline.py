@@ -187,11 +187,16 @@ def _run_one_model(model, ctx: PipelineCtx) -> str:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. 信号 (推理失败会抛 → stage FAILED → halt)
-    signal, _meta = run_for_model(
+    signal, meta = run_for_model(
         model, state_path=state_path,
         ledger_mode="dry-run" if ctx.dry_run else ctx.ledger_mode,
     )
     tags = [signal]
+
+    # 同日重跑 (幂等): 信号本身仍展示, 但跳过 JSON 重写/LLM/邮件
+    # —— 避免「一天多封重复邮件」。首次当日运行才会出邮件。
+    if meta.get("duplicate"):
+        return f"{model.name}={signal}+dup(跳过邮件)"
 
     # 2. JSON (输出侧, 失败不 halt)
     signal_json = _try_build_json(model, state_path, out_dir, tags)

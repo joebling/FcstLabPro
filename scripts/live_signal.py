@@ -24,7 +24,7 @@ import json
 import logging
 import sys
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import joblib
@@ -157,6 +157,17 @@ def is_bear_market(prices: pd.Series, window: int = 63, threshold: float = -0.10
 # Signal Logic
 # =====================================================================
 
+def _days_held(entry_date: str | None, today: str) -> int:
+    """持仓天数 = 日历差 (today - entry_date), 而非「跑了几次」的累加。
+
+    这是同日重跑幂等性的基石: 一天内跑 N 次, (today-entry).days 不变,
+    不再出现「跑 3 次就以为过了 3 天」的 bug。entry_date 缺失返回 0。
+    """
+    if not entry_date:
+        return 0
+    return (date.fromisoformat(today) - date.fromisoformat(entry_date)).days
+
+
 def generate_signal(
     model,
     df: pd.DataFrame,
@@ -208,7 +219,7 @@ def generate_signal(
 
     # --- Step 2: 如果已持仓，检查退出条件 ---
     if state.in_position:
-        days = state.days_held + 1
+        days = _days_held(state.entry_date, meta["date"])
         pnl = (current_price - state.entry_price) / state.entry_price
 
         # 止盈触发
@@ -265,7 +276,7 @@ def print_signal(signal: str, meta: dict, state: PositionState, model_name: str)
         pnl = (meta["price"] - state.entry_price) / state.entry_price
         print(f"  买入价:   ${state.entry_price:,.2f} ({state.entry_date})")
         print(f"  浮盈:     {pnl:+.2%}")
-        print(f"  持仓:     {state.days_held + 1} 天")
+        print(f"  持仓:     {_days_held(state.entry_date, meta['date'])} 天")
     print("=" * 60)
 
 
@@ -317,6 +328,19 @@ def run_signal(
         config=config, use_tp=use_tp, use_regime=use_regime,
     )
 
+    # 幂等闸门: 今日已出过信号 → 同日重跑, 不再动状态/账本, 也告知
+    # pipeline 跳过重发邮件 (避免「一天 3 封邮件 + 持仓天数虚增」)。
+    # 以 OHLCV 最新交易日 (meta['date']) 为准, 与 last_signal_date 比对。
+    duplicate = bool(state.last_signal_date == meta["date"])
+    meta["duplicate"] = duplicate
+    if duplicate and not dry_run:
+        logger.warning(
+            f"⚠️ 今日 ({meta['date']}) 已出过信号 (last={state.last_signal}), "
+            f"同日重跑 → 跳过状态更新/账本/邮件 (幂等)。调试请用 --dry-run。"
+        )
+        print_signal(signal, meta, state, model_path.parent.name)
+        return signal, meta
+
     _apply_signal_to_state(state, signal, meta)
     print_signal(signal, meta, state, model_path.parent.name)
 
@@ -358,7 +382,11 @@ def run_for_model(
 
 
 def _apply_signal_to_state(state: PositionState, signal: str, meta: dict) -> None:
-    """根据信号更新持仓状态 (BUY 建仓 / SELL 平仓 / HOLD 计天)."""
+    """根据信号更新持仓状态 (BUY 建仓 / SELL 平仓 / HOLD 计天).
+
+    days_held 一律由日期差派生 (today - entry_date), 不再 += 累加。
+    保证同一天重跑多次不会虚增天数 (幂等)。
+    """
     today_str = meta["date"]
     if signal == "BUY" and not state.in_position:
         state.in_position = True
@@ -373,7 +401,7 @@ def _apply_signal_to_state(state: PositionState, signal: str, meta: dict) -> Non
             "entry_price": state.entry_price,
             "exit_price": meta["price"],
             "pnl": round(pnl, 4),
-            "days_held": state.days_held + 1,
+            "days_held": _days_held(state.entry_date, today_str),
             "reason": meta["reason"],
         })
         state.in_position = False
@@ -381,7 +409,7 @@ def _apply_signal_to_state(state: PositionState, signal: str, meta: dict) -> Non
         state.entry_price = None
         state.days_held = 0
     elif signal == "HOLD":
-        state.days_held += 1
+        state.days_held = _days_held(state.entry_date, today_str)
 
     state.last_signal_date = today_str
     state.last_signal = signal
