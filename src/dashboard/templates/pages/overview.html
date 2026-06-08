@@ -25,16 +25,16 @@
         else (("截至 " ~ (price_date or "?") ~ " · ▼ " ~ (chg_pct|string) ~ "%") if chg_pct is not none
         else ("截至 " ~ (price_date or "?")))),
        "text-emerald-600" if (chg_pct or 0) >= 0 else "text-rose-500", "") }}
-  {{ ui.kpi("命中率",
+  {{ ui.kpi("命中率 (IC·理论)",
        (summary.get('hit_rate')|string ~ "%") if summary.get('hit_rate') is not none else "—",
-       (summary.get('n_bets', 0)|string) ~ " 笔下注",
-       "text-emerald-600" if (summary.get('hit_rate') or 0) >= 55 else "text-slate-700", "🎯") }}
-  {{ ui.kpi("Rank IC", summary.get('rank_ic', '—'), "≥0.02 有价值",
-       "text-emerald-600" if (summary.get('rank_ic') or 0) >= 0.02 else "text-slate-700", "📐") }}
-  {{ ui.kpi("当前 regime", latest.get('regime', '—'), "", "text-violet-600", "🌐") }}
-  {{ ui.kpi("成熟/待定",
+       "理论T=21信号质量, 非实盘",
+       "text-emerald-600" if (summary.get('hit_rate') or 0) >= 55 else "text-slate-700", "") }}
+  {{ ui.kpi("Rank IC", summary.get('rank_ic', '—'), "≥0.02 有价值 · 研究态",
+       "text-emerald-600" if (summary.get('rank_ic') or 0) >= 0.02 else "text-slate-700", "") }}
+  {{ ui.kpi("当前 regime", position.regime or latest.get('regime', '—'), "", "text-violet-600", "") }}
+  {{ ui.kpi("信号成熟/待定 (理论)",
        (summary.get('n_mature', 0)|string) ~ "/" ~ (summary.get('n_pending', 0)|string),
-       "信号样本", "text-slate-700", "⏳") }}
+       "理论T=21样本", "text-slate-700", "") }}
 </div>
 
 {# ── 持仓研判 (与每日邮件同源: 生产持仓账本) ── #}
