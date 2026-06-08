@@ -42,6 +42,17 @@ INDICATORS = {
     "恐惧贪婪指数":        ("external/fear_greed_index.csv",         "fgi_value", -1),
     "DXY(美元指数)":      ("external/macro_factors.csv",            "dxy_close", -1),
     "美债10年(TNX)":      ("external/macro_factors.csv",            "tnx_close", -1),
+    # === v1.1 扩充: 新增 8 个未检验链上因子 (均 2010~2013 起, 历史充足) ===
+    "AVIV比率(估值)":     ("external/onchain/aviv.csv",             "value", -1),
+    "CDD(币天销毁)":       ("external/onchain/cdd.csv",              "value", -1),
+    "CDD调整(终端)":       ("external/onchain/cdd_terminal_ajusted.csv", "value", -1),
+    "LTH-MVRV(长持估值)":  ("external/onchain/lth_mvrv.csv",         "value", -1),
+    "LTH-SOPR(长持获利)":  ("external/onchain/lth_sopr.csv",         "value", -1),
+    "STH-MVRV(短持估值)":  ("external/onchain/sth_mvrv.csv",         "value", -1),
+    "STH-NUPL(短持)":      ("external/onchain/sth_nupl.csv",         "value", -1),
+    "STH-SOPR(短持获利)":  ("external/onchain/sth_sopr.csv",         "value", -1),
+    # === 注: 合约杠杆率 (open_interest / long_short_ratio) 本地数据仅自 2026-02 起,
+    #     ~4个月 → 90d 非重叠采样后 N≈1, 无法做 IC 检验, 暂不纳入 (数据太短) ===
 }
 
 HORIZONS = [30, 90]  # 预测窗口(天) — 逃顶关心中期
