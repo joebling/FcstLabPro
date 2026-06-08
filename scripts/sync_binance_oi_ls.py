@@ -22,8 +22,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import requests
-import pandas as pd
+import pandas as pd  # requests 惰性导入 (见 download_* 函数) — 模块无网依赖即可 import/mock
 
 # 设置日志
 logging.basicConfig(
@@ -46,6 +45,7 @@ SYMBOL = "BTCUSDT"
 
 def download_long_short_ratio(symbol: str = "BTCUSDT", period: str = "1d") -> pd.DataFrame:
     """从 Binance 下载 Long/Short Ratio (顶级交易员)"""
+    import requests
     base_url = "https://fapi.binance.com/futures/data/topLongShortAccountRatio"
 
     params = {
@@ -87,6 +87,7 @@ def download_long_short_ratio(symbol: str = "BTCUSDT", period: str = "1d") -> pd
 
 def download_open_interest(symbol: str = "BTCUSDT", period: str = "1d") -> pd.DataFrame:
     """从 Binance 下载 Open Interest 历史"""
+    import requests
     base_url = "https://fapi.binance.com/futures/data/openInterestHist"
 
     params = {
@@ -149,39 +150,51 @@ def merge_and_save(new_df: pd.DataFrame, cache_path: Path, columns: list[str]) -
     logger.info(f"已保存: {cache_path}, {len(combined)} 行, {combined.index[0].date()} ~ {combined.index[-1].date()}")
 
 
-def main():
-    """主函数"""
-    logger.info("=" * 50)
-    logger.info("🔄 同步 Binance OI & Long/Short Ratio 数据")
-    logger.info("=" * 50)
+def sync_oi_ls(symbol: str = SYMBOL) -> dict:
+    """同步 OI + 多空比到 data/external (merge 累积历史) — 可 import 入口.
 
-    # 确保目录存在
+    Binance 接口只给最近 ~30 天, 故用 merge_and_save 逐日累积。
+    单源失败只记录, 不抛 (另一源照常)。
+
+    Returns
+    -------
+    dict : {"long_short": bool, "open_interest": bool} 各源是否成功落盘。
+    """
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    result = {"long_short": False, "open_interest": False}
 
-    # 下载 Long/Short Ratio
-    logger.info("📥 下载 Long/Short Ratio...")
-    ls_df = download_long_short_ratio(SYMBOL)
+    logger.info("下载 Long/Short Ratio...")
+    ls_df = download_long_short_ratio(symbol)
     if not ls_df.empty:
-        ls_path = CACHE_DIR / f"long_short_ratio_{SYMBOL}.csv"
-        merge_and_save(ls_df, ls_path, ["long_account", "short_account", "long_short_ratio"])
+        merge_and_save(ls_df, CACHE_DIR / f"long_short_ratio_{symbol}.csv",
+                       ["long_account", "short_account", "long_short_ratio"])
+        result["long_short"] = True
     else:
-        logger.warning("⚠️ Long/Short Ratio 下载失败")
+        logger.warning("Long/Short Ratio 下载失败")
 
     time.sleep(0.5)
 
-    # 下载 Open Interest
-    logger.info("📥 下载 Open Interest...")
-    oi_df = download_open_interest(SYMBOL)
+    logger.info("下载 Open Interest...")
+    oi_df = download_open_interest(symbol)
     if not oi_df.empty:
-        oi_path = CACHE_DIR / f"open_interest_{SYMBOL}.csv"
-        merge_and_save(oi_df, oi_path, ["open_interest", "open_interest_usd"])
+        merge_and_save(oi_df, CACHE_DIR / f"open_interest_{symbol}.csv",
+                       ["open_interest", "open_interest_usd"])
+        result["open_interest"] = True
     else:
-        logger.warning("⚠️ Open Interest 下载失败")
+        logger.warning("Open Interest 下载失败")
 
-    logger.info("✅ 同步完成!")
-    print(f"\n📁 数据保存位置: {DATA_DIR}")
-    print(f"   - long_short_ratio_{SYMBOL}.csv")
-    print(f"   - open_interest_{SYMBOL}.csv")
+    return result
+
+
+def main():
+    """CLI 薄壳 — 委托给 sync_oi_ls()."""
+    logger.info("=" * 50)
+    logger.info("同步 Binance OI & Long/Short Ratio 数据")
+    logger.info("=" * 50)
+    result = sync_oi_ls()
+    logger.info(f"同步完成! {result}")
+    print(f"\n数据保存位置: {DATA_DIR}")
+    return result
 
 
 if __name__ == "__main__":
