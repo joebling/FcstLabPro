@@ -10,6 +10,27 @@ import pytest
 from scripts import sync_market_data as smd
 
 
+# ---------- _is_fresh: 识破 "API失败→回退旧缓存" 的假成功 ----------
+
+def _df_ending(day: str) -> pd.DataFrame:
+    idx = pd.to_datetime(["2026-01-01", day])
+    return pd.DataFrame({"v": [1.0, 2.0]}, index=idx)
+
+
+def test_is_fresh_recent_true():
+    assert smd._is_fresh(_df_ending(str(pd.Timestamp.today().date()))) is True
+
+
+def test_is_fresh_stale_false():
+    # 陈旧缓存(如 451 后回退的 3 月旧数据) → 不算成功
+    assert smd._is_fresh(_df_ending("2026-03-08")) is False
+
+
+def test_is_fresh_empty_or_none_false():
+    assert smd._is_fresh(pd.DataFrame()) is False
+    assert smd._is_fresh(None) is False
+
+
 # ---------- best-effort 隔离 ----------
 
 def test_one_source_failure_isolated(monkeypatch):

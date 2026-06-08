@@ -23,7 +23,10 @@ from __future__ import annotations
 
 import logging
 import sys
+from datetime import date
 from pathlib import Path
+
+import pandas as pd
 
 # 直接运行时确保能 import src.*
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -37,16 +40,42 @@ logging.basicConfig(
 )
 logger = logging.getLogger("sync_market_data")
 
+# 下载结果的最新日期超过这么多天 → 视为未真正刷新。
+# 关键: 许多 download_* 函数在 API 失败时会回退读旧缓存(非空 stale df),
+# 仅检查 not df.empty 会被旧缓存骗过 → 谎报成功。故改用新鲜度判定。
+# 取 4 天: 对齐 dashboard market.STALE_DAYS, 容忍 macro business-day 周末滞后。
+FRESH_MAX_AGE_DAYS = 4
+
+
+def _is_fresh(df: pd.DataFrame | None) -> bool:
+    """下载结果是否真正新鲜 (最新日期在 FRESH_MAX_AGE_DAYS 内)。
+
+    用于识破 "API 失败→回退旧缓存" 的假成功: 空/陈旧都算失败。
+    """
+    if df is None or df.empty:
+        return False
+    try:
+        latest = pd.Timestamp(df.index.max()).date()
+    except (ValueError, TypeError):
+        return False
+    return (date.today() - latest).days <= FRESH_MAX_AGE_DAYS
+
 
 def _refresh_funding() -> bool:
-    """资金费率 — 全量历史自愈 (cache=False 强制刷)。"""
+    """资金费率 — 全量历史自愈 (cache=False 强制刷)。
+
+     走 Binance 期货接口 fapi.binance.com, 部分地区被 451 封锁 →
+    download 会回退旧缓存, 故用 _is_fresh 识破。
+    """
     from src.data.external import download_binance_funding_rate
-    df = download_binance_funding_rate(cache=False)
-    return df is not None and not df.empty
+    return _is_fresh(download_binance_funding_rate(cache=False))
 
 
 def _refresh_oi_ls() -> bool:
-    """OI + 多空比 — merge 累积 (复用 sync_binance_oi_ls.sync_oi_ls, DRY)。"""
+    """OI + 多空比 — merge 累积 (复用 sync_binance_oi_ls.sync_oi_ls, DRY)。
+
+    download 失败返回空 df → sync_oi_ls 直接报 False, 无需 _is_fresh。
+    """
     from scripts.sync_binance_oi_ls import sync_oi_ls
     r = sync_oi_ls()
     # 两个子源都成功才算这一源 OK
@@ -56,8 +85,7 @@ def _refresh_oi_ls() -> bool:
 def _refresh_macro() -> bool:
     """宏观 — 全量历史自愈 (cache=False)。yfinance 最易抽风, 隔离在此。"""
     from src.data.external import download_macro_factors
-    df = download_macro_factors(cache=False)
-    return df is not None and not df.empty
+    return _is_fresh(download_macro_factors(cache=False))
 
 
 # 源名 → 刷新函数 (单一注册表, 加新源只改这里)
