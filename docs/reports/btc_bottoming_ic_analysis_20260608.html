@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC 周期底部研判框架 — 单因子 IC 实证分析报告 (2026-06-08)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .chart-box{position:relative;height:420px;width:100%}
+  .chart-box.tall{height:560px}
+  th,td{white-space:nowrap}
+</style>
+</head>
+<body class="p-4 sm:p-6 bg-slate-50 text-slate-800">
+<div class="max-w-screen-xl mx-auto">
+
+<header class="mb-5 border-b-2 pb-3" style="border-color:#0053e2">
+  <div class="flex items-center gap-3 mb-1">
+    <span class="inline-block w-2.5 h-7 rounded-sm" style="background:#0053e2"></span>
+    <span class="inline-block w-2.5 h-7 rounded-sm" style="background:#ffc220"></span>
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">BTC 周期底部研判框架 — 单因子 IC 实证分析报告</h1>
+  </div>
+  <p class="text-sm text-slate-600 ml-7">18 因子 · 条件分位反弹检验 · 价格样本 2017–2026 · 姊妹篇
+    <code class="bg-slate-100 px-1 rounded">btc_topping_ic_analysis_20260608</code> · 生成于 2026-06-08</p>
+</header>
+
+<!-- 执行摘要 -->
+<section class="border-l-4 p-4 mb-6 rounded" style="background:#eef3ff;border-color:#0053e2">
+  <h2 class="text-lg font-bold text-slate-800 mb-2">执行摘要</h2>
+  <ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5">
+    <li><b>底部 alpha 真实存在,但冠军换人</b>:顶部唯一硬 alpha 是 Reserve Risk(|t|=2.65);底部退位到中游,真冠军是<b>估值/长持盈亏类</b> —— AVIV / MVRV-Z / NUPL / LTH-NUPL(低估区 180d 命中率 79–87%,超额 +41~53%)。<b>证伪"底部=顶部反操作"</b>。</li>
+    <li><b>底部是长周期游戏</b>:命中率随窗口单调暴涨(30d ≈55–64% → 180d ≈80–87%)。<b>短期抄底(30d)几乎无 edge</b>(超额仅 +0~2%),价值全在 90–180d。</li>
+    <li><b>"极度恐惧抄底"是伪命题</b>:恐惧贪婪指数低估区 180d 超额 <b>-30.6%</b>(命中仅 48%,跑输基线)。极恐时多在左侧下跌 —— <b>底部必须右侧确认,不做左侧预测</b>。</li>
+    <li><b>短持(STH)系列全线反向</b>(超额全负),与顶部研究一致,两端皆可剔除。</li>
+    <li><b>统计严谨度天然弱于顶部</b>:低估区非重叠采样后 N&lt;8,子样本 IC 做不出显著性 —— BTC 史上仅 3–4 个大底的结构性限制。底部框架应定位为<b>"长周期参考 + 右侧确认"</b>,而非顶部那种硬 t-stat alpha。</li>
+  </ul>
+</section>
+
+<!-- 1. 方法论 -->
+<h2 class="text-2xl font-bold text-slate-800 border-b-2 pb-1 mb-3" style="border-color:#0053e2">1. 方法论 (两段式)</h2>
+<div class="grid md:grid-cols-2 gap-4 mb-4 text-sm">
+  <div class="bg-white rounded-lg shadow p-4">
+    <h3 class="font-bold text-slate-700 mb-1">陷阱:全样本 IC 镜像</h3>
+    <p class="text-slate-600">单资产全样本 Spearman rank IC 是<b>对称</b>的:<code class="bg-slate-100 px-1">corr(rank(信号),rank(未来收益))</code> 数值与逃顶检验完全相同,仅方向解释相反。单纯翻方向 = 顶部镜像,<b>零新信息</b>。本报告 Part A 仅作方向基线已弃。</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-4 border-l-4" style="border-color:#ffc220">
+    <h3 class="font-bold text-slate-700 mb-1">底部特异:条件分位 IC</h3>
+    <p class="text-slate-600">真问题是"指标处于 <b>expanding 历史低分位(≤20%,极度低估)</b>时,未来是否真反弹?"只在低估子样本上看<b>命中率 / 超额反弹 / 子样本 IC</b>。point-in-time 防未来函数,方向预声明(低→涨),不事后反推。</p>
+  </div>
+</div>
+
+<!-- 2. 主图: 180d 超额排序 -->
+<h2 class="text-2xl font-bold text-slate-800 border-b-2 pb-1 mb-3" style="border-color:#0053e2">2. 低估区 180d 超额反弹排序</h2>
+<p class="text-sm text-slate-600 mb-2">超额 = 低估区(分位≤20%)未来 180d 均收益 − 全样本基线(+33.8%)。&gt;0 才有抄底价值。<span style="color:#0053e2">蓝=链上估值/长持</span> · <span style="color:#16a34a">绿=矿工/其他链上</span> · <span style="color:#9333ea">紫=宏观(存疑)</span> · <span style="color:#dc2626">红=反向(避坑)</span></p>
+<div class="bg-white rounded-lg shadow p-4 mb-6"><div class="chart-box tall"><canvas id="excessChart"></canvas></div></div>
+
+<!-- 3. 命中率随窗口 -->
+<h2 class="text-2xl font-bold text-slate-800 border-b-2 pb-1 mb-3" style="border-color:#0053e2">3. 命中率随持有窗口 (长周期效应)</h2>
+<p class="text-sm text-slate-600 mb-2">代表指标低估区"未来正收益占比"在 30 / 90 / 180 天的变化。优质抄底信号单调爬升至 80%+;反例(恐惧贪婪/STH-NUPL)反而走平或下滑。</p>
+<div class="bg-white rounded-lg shadow p-4 mb-6"><div class="chart-box"><canvas id="hitChart"></canvas></div></div>
+
+<!-- 4. 顶底对照 -->
+<h2 class="text-2xl font-bold text-slate-800 border-b-2 pb-1 mb-3" style="border-color:#0053e2">4. 顶部 vs 底部:冠军换人</h2>
+<div class="overflow-x-auto mb-6">
+<table class="min-w-full bg-white rounded-lg shadow text-sm">
+  <thead style="background:#0053e2" class="text-white">
+    <tr><th class="px-3 py-2 text-left">指标</th><th class="px-3 py-2">顶部 90d RankIC / t</th><th class="px-3 py-2">顶部判定</th><th class="px-3 py-2">底部 180d 超额 / 命中</th><th class="px-3 py-2">底部定位</th></tr>
+  </thead>
+  <tbody class="divide-y divide-slate-100">
+    <tr><td class="px-3 py-2 font-semibold">Reserve Risk</td><td class="px-3 py-2 text-center">-0.429 / -2.65</td><td class="px-3 py-2 text-center font-bold" style="color:#0053e2">顶部唯一硬 alpha</td><td class="px-3 py-2 text-center">+24.7% / 82%</td><td class="px-3 py-2 text-center text-slate-500">中游(退位)</td></tr>
+    <tr><td class="px-3 py-2 font-semibold">MVRV-Z</td><td class="px-3 py-2 text-center">-0.261 / -1.53</td><td class="px-3 py-2 text-center text-slate-500">弱</td><td class="px-3 py-2 text-center font-bold" style="color:#0053e2">+47.7% / 83%</td><td class="px-3 py-2 text-center font-bold" style="color:#0053e2">底部主力</td></tr>
+    <tr><td class="px-3 py-2 font-semibold">LTH-NUPL</td><td class="px-3 py-2 text-center">-0.270 / -1.56</td><td class="px-3 py-2 text-center text-slate-500">弱</td><td class="px-3 py-2 text-center font-bold" style="color:#0053e2">+41.1% / 84%</td><td class="px-3 py-2 text-center font-bold" style="color:#0053e2">底部主力</td></tr>
+    <tr><td class="px-3 py-2 font-semibold">AVIV</td><td class="px-3 py-2 text-center">-0.214 / -1.24</td><td class="px-3 py-2 text-center text-slate-500">弱</td><td class="px-3 py-2 text-center font-bold" style="color:#0053e2">+53.4% / 87%</td><td class="px-3 py-2 text-center font-bold" style="color:#0053e2">底部主力</td></tr>
+    <tr><td class="px-3 py-2 font-semibold">恐惧贪婪</td><td class="px-3 py-2 text-center">-0.028 / -0.16</td><td class="px-3 py-2 text-center text-slate-500">噪音</td><td class="px-3 py-2 text-center font-bold text-red-600">-30.6% / 48%</td><td class="px-3 py-2 text-center text-red-600">反向避坑</td></tr>
+    <tr><td class="px-3 py-2 font-semibold">STH-NUPL</td><td class="px-3 py-2 text-center">+0.024 / +0.13</td><td class="px-3 py-2 text-center text-slate-500">噪音</td><td class="px-3 py-2 text-center text-red-600">-15.0% / 45%</td><td class="px-3 py-2 text-center text-red-600">反向避坑</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- 5. 局限 -->
+<h2 class="text-2xl font-bold text-slate-800 border-b-2 pb-1 mb-3" style="border-color:#0053e2">5. 局限与红线 (机构手册)</h2>
+<ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5 mb-6 bg-white rounded-lg shadow p-4">
+  <li><b>子样本 IC 不显著</b>:低估区非重叠采样 N&lt;8,t-stat 做不出。BTC 史仅 3–4 大底的结构性限制,非代码缺陷。</li>
+  <li><b>命中率/超额为日频重叠计数</b>:看趋势可以,不能当独立同分布样本下硬结论。</li>
+  <li><b>DXY/TNX 超额最高但存疑</b>:DXY 180d 超额 +87% 极可能是样本偏差 + regime 巧合(大底恰逢美元宽松周期),是宏观流动性因果而非 DXY 预测力。最多作背景旁证,不可当独立 alpha。</li>
+  <li><b>Layer 0 风险</b>:链上数据可能被数据源回填修正,真实 live 表现或低于此回测。</li>
+</ul>
+
+<!-- 6. 结论 -->
+<h2 class="text-2xl font-bold text-slate-800 border-b-2 pb-1 mb-3" style="border-color:#0053e2">6. 结论与落地建议</h2>
+<div class="bg-white rounded-lg shadow p-4 text-sm text-slate-700 space-y-2 mb-6">
+  <p><b>值得做,但定位要诚实。</b>底部 alpha 真实(估值类低估区命中 80%+、180d 超额 +40–53%),方向逻辑清晰,但:</p>
+  <p>① <b>主信号换组</b>:Layer A/B 用本次实证的 <b>MVRV-Z / LTH-NUPL / AVIV</b>(估值/长持),<b>而非照抄顶部的 Reserve Risk</b>。</p>
+  <p>② <b>动作右侧化</b>:抄底默认"右侧确认建仓"(Layer C 站上 SMA50 / 周线 MACD 转正 + 放量),不做左侧预测,因抄底错=接飞刀(真亏本金) vs 逃顶错=踏空(仅机会成本)。</p>
+  <p>③ <b>UI 诚实标注</b>:"长周期参考(90–180d)、样本稀少、需右侧确认",降级展示,不与顶部硬 alpha 混淆。</p>
+  <p>④ <b>工程落地</b>:将 topping 抽象为双向"周期研判"框架(逃顶/抄底双 tab,共享 expanding 分位引擎),避免 DRY 违规;补全项目目前"有顶、有中间 regime、缺底"的择时闭环。</p>
+</div>
+
+<footer class="text-xs text-slate-400 border-t pt-3 mb-8">
+  数据源:<code>data/external/onchain/*.csv</code> + <code>data/raw/btc_binance_BTCUSDT_1d.csv</code> ·
+  复现:<code>python -m scripts.research.bottoming_indicator_ic</code> ·
+  原始结果:<code>experiments/research/bottoming_indicator_ic.csv</code> ·
+  纯研究只读,不构成投资建议。
+</footer>
+
+</div>
+
+<script>
+const EXCESS = [
+  ["DXY(宏观,存疑)",87.2,"#9333ea"],["美债10y(宏观,存疑)",59.6,"#9333ea"],
+  ["AVIV估值",53.4,"#0053e2"],["MVRV-Z",47.7,"#0053e2"],["NUPL",41.1,"#0053e2"],
+  ["LTH-NUPL",41.1,"#0053e2"],["Puell矿工",30.5,"#16a34a"],["LTH-MVRV",29.9,"#0053e2"],
+  ["Reserve Risk",24.7,"#16a34a"],["LTH-SOPR",16.1,"#0053e2"],["资金费率",10.6,"#16a34a"],
+  ["CDD",6.1,"#16a34a"],["SOPR",4.6,"#16a34a"],["CDD调整",-7.1,"#dc2626"],
+  ["STH-SOPR",-11.8,"#dc2626"],["STH-MVRV",-13.2,"#dc2626"],["STH-NUPL",-15.0,"#dc2626"],
+  ["恐惧贪婪",-30.6,"#dc2626"]
+];
+new Chart(document.getElementById('excessChart'),{
+  type:'bar',
+  data:{labels:EXCESS.map(d=>d[0]),
+    datasets:[{label:'180d 超额反弹 (%)',data:EXCESS.map(d=>d[1]),
+      backgroundColor:EXCESS.map(d=>d[2])}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>` 超额 ${c.raw>0?'+':''}${c.raw}%`}}},
+    scales:{x:{title:{display:true,text:'超额反弹 vs 全样本基线 (%)'},grid:{color:'#eef2f7'}}}}
+});
+
+const HORIZ=['30d','90d','180d'];
+const HIT={
+  "AVIV估值":[63,65,87],"MVRV-Z":[59,62,83],"LTH-NUPL":[60,65,84],
+  "Reserve Risk":[64,69,82],"恐惧贪婪(反例)":[59,48,48],"STH-NUPL(反例)":[55,47,45]
+};
+const COL={"AVIV估值":"#0053e2","MVRV-Z":"#2563eb","LTH-NUPL":"#0ea5e9",
+  "Reserve Risk":"#16a34a","恐惧贪婪(反例)":"#dc2626","STH-NUPL(反例)":"#f59e0b"};
+new Chart(document.getElementById('hitChart'),{
+  type:'line',
+  data:{labels:HORIZ,datasets:Object.keys(HIT).map(k=>({
+    label:k,data:HIT[k],borderColor:COL[k],backgroundColor:COL[k],
+    borderWidth:k.includes('反例')?2:3,borderDash:k.includes('反例')?[6,4]:[],
+    tension:0.25,pointRadius:4}))},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}%`}}},
+    scales:{y:{title:{display:true,text:'低估区未来正收益占比 (%)'},
+      min:40,max:90,grid:{color:'#eef2f7'}}}}
+});
+</script>
+</body>
+</html>
