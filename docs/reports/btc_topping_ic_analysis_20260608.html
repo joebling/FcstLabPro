@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BTC 周期顶部研判框架 — 单因子 IC 实证分析报告 (2026-06-08)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body{color:#16181a;background:#f4f5f6;scroll-behavior:smooth}
+  .scroll-mt-24{scroll-margin-top:5rem}
+  #toc-aside .toc-stub{display:none}
+  #toc-aside.collapsed{width:2.75rem}
+  #toc-aside.collapsed .toc-full{display:none}
+  #toc-aside.collapsed .toc-stub{display:block}
+  .toc-link{display:block;padding:.3rem .6rem;border-radius:.375rem;font-size:.82rem;color:#46474a;text-decoration:none}
+  .toc-link:hover{background:#eef3ff;color:#0053e2}
+  .toc-link.sub{padding-left:1.4rem;font-size:.78rem;color:#6b6d70}
+  .chart-box{position:relative;height:360px;width:100%}
+  .chart-box.tall{height:440px}
+  table.dt{border-collapse:collapse;width:100%;font-size:.82rem}
+  table.dt th,table.dt td{border:1px solid #e3e5e8;padding:.4rem .55rem;text-align:left}
+  table.dt thead th{background:#eef0f2;font-weight:600;position:sticky;top:0}
+  table.dt tbody tr:nth-child(even){background:#fafbfc}
+  .num{font-variant-numeric:tabular-nums;text-align:right}
+  .badge{display:inline-block;padding:.05rem .45rem;border-radius:.35rem;font-size:.7rem;font-weight:600;white-space:nowrap}
+</style>
+</head>
+<body class="p-4 sm:p-6">
+<div class="max-w-screen-2xl mx-auto">
+
+<header class="mb-5 border-b-2 pb-3" style="border-color:#0053e2">
+  <div class="flex items-center gap-3 mb-1">
+    <span class="inline-block w-2.5 h-7 rounded-sm" style="background:#0053e2"></span>
+    <span class="inline-block w-2.5 h-7 rounded-sm" style="background:#ffc220"></span>
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">BTC 周期顶部研判框架 — 单因子 IC 实证分析报告</h1>
+  </div>
+  <p class="text-sm text-slate-600 ml-7">18 因子非重叠 Rank IC 检验 · 样本 2018–2026 · 配套框架 <code class="bg-slate-100 px-1 rounded">20260605_topping_framework.md v1.1</code> · 生成于 2026-06-08</p>
+</header>
+
+<div class="flex gap-6">
+
+<!-- ============ SIDEBAR TOC ============ -->
+<aside id="toc-aside" class="hidden lg:block w-64 shrink-0 transition-all duration-200">
+  <nav class="toc-full sticky top-4 bg-white rounded-lg shadow p-3 max-h-[calc(100vh-2rem)] overflow-y-auto">
+    <div class="flex justify-between items-center mb-2 px-2 border-b pb-2">
+      <span class="text-xs font-bold tracking-wide text-slate-500">目录</span>
+      <button onclick="document.getElementById('toc-aside').classList.add('collapsed')" class="text-slate-400 hover:text-slate-700 text-sm" title="收起">&laquo;</button>
+    </div>
+    <a class="toc-link" href="#exec">执行摘要</a>
+    <a class="toc-link" href="#s1">1. 研究背景与目标</a>
+    <a class="toc-link" href="#s2">2. 方法论</a>
+    <a class="toc-link sub" href="#s2-1">2.1 单资产 IC 定义</a>
+    <a class="toc-link sub" href="#s2-2">2.2 三道防作弊</a>
+    <a class="toc-link sub" href="#s2-3">2.3 判定门槛</a>
+    <a class="toc-link" href="#s3">3. 单因子 IC 全表 (18 因子)</a>
+    <a class="toc-link sub" href="#s3-1">3.1 90d RankIC 排名</a>
+    <a class="toc-link sub" href="#s3-2">3.2 完整结果表</a>
+    <a class="toc-link" href="#s4">4. 持有人结构发现 (LTH vs STH)</a>
+    <a class="toc-link" href="#s5">5. 三层精英制框架</a>
+    <a class="toc-link" href="#s6">6. 决策规则 (分批撤退)</a>
+    <a class="toc-link" href="#s7">7. 当前快照工作示例</a>
+    <a class="toc-link" href="#s8">8. 局限与覆盖缺口</a>
+    <a class="toc-link" href="#s9">9. 结论与路线图</a>
+  </nav>
+  <div class="toc-stub sticky top-4">
+    <button onclick="document.getElementById('toc-aside').classList.remove('collapsed')" class="bg-white rounded-lg shadow p-2 text-slate-500 hover:text-slate-800" title="展开目录">&raquo;</button>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main class="flex-1 min-w-0">
+
+<!-- EXEC SUMMARY -->
+<section id="exec" class="border-l-4 p-4 mb-6 rounded scroll-mt-24" style="background:#eef3ff;border-color:#0053e2">
+  <h2 class="text-lg font-bold text-slate-800 mb-2">执行摘要</h2>
+  <ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5">
+    <li>对“五维逃顶框架”里 <b>18 个有干净历史数据的指标</b>做了非重叠 Rank IC 检验（样本 2018–2026，方向预先锁定，防未来函数）。</li>
+    <li><b>Reserve Risk 是唯一统计显著的真 alpha</b>：30d/90d 两窗口均 |t|&ge;2（-2.14 / -2.65），是 18 因子里唯一达标者。本轮扩充 8 个新因子<b>未能掀翻它</b>，反而强化了其稀缺地位。</li>
+    <li><b>新发现：持有人结构是分水岭。</b>长期持有者(LTH)族（LTH-MVRV / LTH-SOPR / LTH-NUPL）方向全对、90d |t|≈1.5–1.75，全部落入 Layer B 确认梯队；短期持有者(STH)族（STH-MVRV / STH-NUPL / STH-SOPR）<b>方向反向、是噪音</b>，不可作逃顶信号。</li>
+    <li><b>LTH-MVRV (-0.296) 强于现役 Layer B 的 MVRV-Z (-0.261)</b>，建议升为首选确认信号。</li>
+    <li>情绪/宏观维度（恐贪、资金费率、DXY、美债 10Y）经不起中期检验，部分 90d 反向。</li>
+    <li><b>结论有效边界</b>：仅限“可实证的 18 因子子集”。豆包点名的“本轮最关键变量” ETF 资金流、Altseason、交易所净流入 <b>本地无数据、未检验</b>；合约杠杆率本地仅 4 个月数据，样本不足无法测。</li>
+  </ul>
+</section>
+
+<!-- ===== 1 ===== -->
+<div class="mt-8 mb-3"><h2 id="s1" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">1. 研究背景与目标</h2></div>
+<section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <p class="text-sm text-slate-700 mb-3">圈内“五维逃顶框架”（链上估值 / 机构资金 / 宏观流动性 / 技术面 / 衍生品+情绪）与 30 指标实时面板，作为科普清单很全，作为可交易系统有三处结构性缺陷：</p>
+  <div class="overflow-x-auto">
+  <table class="dt">
+    <thead><tr><th>缺陷</th><th>表现</th><th>后果</th></tr></thead>
+    <tbody>
+      <tr><td class="font-medium">无聚合规则</td><td>各指标只报“完成进度 %”，不说几个命中才动手、权重多少</td><td>沦为占卜清单，事后挑指标自夸（确认偏误）</td></tr>
+      <tr><td class="font-medium">绝对阈值刻舟求剑</td><td>“MVRV-Z 冲 7–10”基于 N=3 历史顶</td><td>市场结构每轮变，绝对水位系统性下移，阈值失效</td></tr>
+      <tr><td class="font-medium">慢/快指标混为一谈</td><td>链上慢变量与情绪快变量平铺并列</td><td>误判“都没命中=顶还远”，实则慢指标是后视镜</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="text-sm text-slate-700 mt-3"><b>本报告目标</b>：用实测 IC / t-stat 重新给指标定权重、定层级，回答“哪些指标真有 alpha，而非事后叙事”。</p>
+</section>
+
+<!-- ===== 2 ===== -->
+<div class="mt-8 mb-3"><h2 id="s2" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">2. 方法论</h2></div>
+<section id="s2-1" class="bg-white p-5 rounded-lg shadow mb-4 scroll-mt-24">
+  <h3 class="text-lg font-bold mb-2">2.1 单资产时序 IC 的诚实声明</h3>
+  <p class="text-sm text-slate-700 mb-3">本文为单资产 (BTC) 时间序列，无横截面。只能用 <code class="bg-slate-100 px-1 rounded">signal[t]</code> 对 <code class="bg-slate-100 px-1 rounded">future_return[t→t+h]</code> 的 Spearman 秩相关：</p>
+  <pre class="bg-slate-900 text-slate-100 text-xs rounded p-3 overflow-x-auto">future_return[t] = price[t+h] / price[t] - 1
+RankIC          = spearman( signal[t], future_return[t] )   # 非重叠采样后
+t_stat          = IC * sqrt(N-2) / sqrt(1 - IC^2)           # N = 非重叠样本数</pre>
+</section>
+<section id="s2-2" class="bg-white p-5 rounded-lg shadow mb-4 scroll-mt-24">
+  <h3 class="text-lg font-bold mb-2">2.2 三道防作弊</h3>
+  <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5">
+    <li><b>非重叠采样</b>：采样步长 = 预测窗口 h（30 或 90 天取一点），避免重叠虚高 t-stat。</li>
+    <li><b>方向锁定</b>：逃顶指标预声明为负 IC（指标越高→未来越跌），不事后反推符号。</li>
+    <li><b>防未来函数</b>：分位用 expanding 扩展窗口，只用 ≤ 当日数据。</li>
+  </ol>
+</section>
+<section id="s2-3" class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <h3 class="text-lg font-bold mb-2">2.3 判定门槛</h3>
+  <div class="flex flex-wrap gap-2 text-xs">
+    <span class="badge" style="background:#fde7e6;color:#a30d00">|RankIC| &lt; 0.02 → 噪音放弃</span>
+    <span class="badge" style="background:#f0f1f2;color:#46474a">|t| &lt; 1.0 → 不稳定 (Regime 依赖)</span>
+    <span class="badge" style="background:#fff3d6;color:#995213">1.0 ≤ |t| &lt; 2.0 → 弱有效</span>
+    <span class="badge" style="background:#e3f1dc;color:#1f6b02">|t| ≥ 2.0 → 显著</span>
+  </div>
+</section>
+
+<!-- ===== 3 ===== -->
+<div class="mt-8 mb-3"><h2 id="s3" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">3. 单因子 IC 全表 (18 因子)</h2></div>
+<section id="s3-1" class="bg-white p-5 rounded-lg shadow mb-4 scroll-mt-24 border-2" style="border-color:#0053e2">
+  <h3 class="text-lg font-bold mb-1">3.1 90 天 RankIC 排名</h3>
+  <p class="text-sm text-slate-600 mb-3">逃顶信号<b>越负越好</b>（指标越高、未来越跌）。蓝=显著(|t|≥2)，金=弱有效(Layer B)，灰=方向对但不显著，红=方向反向(失效)。</p>
+  <div class="chart-box tall"><canvas id="chartIC"></canvas></div>
+  <p class="text-xs text-slate-500 mt-2">注：Reserve Risk 是唯一进入蓝色区(|t|≥2)的因子；全部 LTH 族进入金色梯队；STH 族与情绪/宏观多数转红(反向)。</p>
+</section>
+<section id="s3-2" class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <h3 class="text-lg font-bold mb-3">3.2 完整结果表</h3>
+  <div class="overflow-x-auto max-h-[640px]">
+  <table class="dt" id="fullTable">
+    <thead><tr>
+      <th>指标</th><th>层级建议</th>
+      <th class="num">30d IC</th><th class="num">30d t</th>
+      <th class="num">90d IC</th><th class="num">90d t</th>
+      <th>判定 (90d)</th>
+    </tr></thead>
+    <tbody><!-- filled by JS --></tbody>
+  </table>
+  </div>
+  <p class="text-xs text-slate-500 mt-2">数据源：<code class="bg-slate-100 px-1 rounded">experiments/research/topping_indicator_ic.csv</code>，复现脚本 <code class="bg-slate-100 px-1 rounded">scripts/research/topping_indicator_ic.py</code>。</p>
+</section>
+
+<!-- ===== 4 ===== -->
+<div class="mt-8 mb-3"><h2 id="s4" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">4. 持有人结构发现 (LTH vs STH)</h2></div>
+<section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <p class="text-sm text-slate-700 mb-3">本轮扩充最有价值的结论：<b>同一估值口径下，长期持有者(LTH)指标是逃顶信号，短期持有者(STH)指标是噪音甚至反向。</b>下图对比 MVRV / NUPL / SOPR 三个口径在 LTH 与 STH 上的 90d RankIC：</p>
+  <div class="chart-box"><canvas id="chartHolder"></canvas></div>
+  <div class="grid sm:grid-cols-2 gap-3 mt-4">
+    <div class="border-l-4 rounded p-3" style="background:#e3f1dc;border-color:#2a8703">
+      <div class="font-semibold text-sm mb-1" style="color:#1f6b02">LTH 族：真·聪明钱分发信号</div>
+      <p class="text-xs text-slate-700">LTH-MVRV/SOPR/NUPL 90d 全部负向、|t|≈1.5–1.75，方向锁定全部命中。长期持有者在高位兑现获利，是周期顶部的核心结构特征 → 全部纳入 Layer B 确认。</p>
+    </div>
+    <div class="border-l-4 rounded p-3" style="background:#fde7e6;border-color:#ea1100">
+      <div class="font-semibold text-sm mb-1" style="color:#a30d00">STH 族：噪音 / 反向，淘汰</div>
+      <p class="text-xs text-slate-700">STH-NUPL/SOPR/MVRV 30d 全部反向，STH-SOPR 90d 还 +0.18 反向。短期持有者指标反映“近期接盘的散户”，当逃顶信号用方向是反的，不入决策链。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 5 ===== -->
+<div class="mt-8 mb-3"><h2 id="s5" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">5. 三层精英制框架</h2></div>
+<section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <p class="text-sm text-slate-700 mb-3">实证证伪了“多维等权共振”（等权共振分两窗口都输给单独 Reserve Risk）。正确做法不是民主投票，而是<b>精英制</b>：以最强信号为核心，其余作确认/否决。</p>
+  <div class="overflow-x-auto">
+  <table class="dt">
+    <thead><tr><th>层</th><th>角色</th><th>用什么</th><th>为什么</th></tr></thead>
+    <tbody>
+      <tr><td class="font-medium" style="color:#0053e2">A 主信号</td><td>定危险等级</td><td>Reserve Risk expanding 历史分位（连续值）</td><td>唯一 |t|≥2 的真 alpha；用分位非绝对阈值，防水位漂移</td></tr>
+      <tr><td class="font-medium" style="color:#995213">B 确认信号</td><td>防单信号误报</td><td><b>LTH-MVRV（首选）</b> + LTH-SOPR + LTH-NUPL + MVRV-Z + Puell，≥2 高位=确认</td><td>方向对但 Regime 依赖；LTH 族同源共振，强于散点估值</td></tr>
+      <tr><td class="font-medium text-slate-600">C 触发择时</td><td>防接飞刀</td><td>跌破 SMA50 / 周线 MACD 转负 / 吊灯止损</td><td>快变量补慢指标滞后；仅在 A/B 已拉警报后启用</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="text-xs text-slate-500 mt-3">相比 v1.1 框架的更新：Layer B 首选确认信号由 MVRV-Z 升级为 <b>LTH-MVRV</b>（90d IC -0.296 &gt; -0.261），并补入 LTH-SOPR。</p>
+</section>
+
+<!-- ===== 6 ===== -->
+<div class="mt-8 mb-3"><h2 id="s6" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">6. 决策规则 (分批撤退)</h2></div>
+<section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <div class="overflow-x-auto">
+  <table class="dt">
+    <thead><tr><th>危险等级</th><th>触发条件</th><th>建议动作</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">安全</span></td><td>Reserve Risk &lt; 历史 70 分位</td><td>满仓持有</td></tr>
+      <tr><td><span class="badge" style="background:#fff3d6;color:#995213">警示</span></td><td>RR ∈ [70, 85) 分位</td><td>停止加仓，关注 Layer C</td></tr>
+      <tr><td><span class="badge" style="background:#ffe0c2;color:#9a4a00">危险</span></td><td>RR ≥ 85 分位 <b>且</b> Layer B ≥2 高位</td><td>分批减仓第 1 批（约 30%）</td></tr>
+      <tr><td><span class="badge" style="background:#fde7e6;color:#a30d00">极危</span></td><td>RR ≥ 95 分位 <b>且</b> Layer B ≥3 高位</td><td>减第 2 批 + Layer C 触发即减第 3 批</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="text-sm text-slate-700 mt-3"><b>为什么分批：</b>慢指标给区间不给点，分批把择时误差摊平。假警报只让你少赚，不让你满仓被埋。全部用 expanding 历史分位、阈值/方向事前锁定。</p>
+</section>
+
+<!-- ===== 7 ===== -->
+<div class="mt-8 mb-3"><h2 id="s7" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">7. 当前快照工作示例 (2026-06-05)</h2></div>
+<section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <div class="overflow-x-auto mb-3">
+  <table class="dt">
+    <thead><tr><th>层</th><th>指标</th><th class="num">最新值</th><th class="num">历史分位</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>A 主信号</td><td>Reserve Risk</td><td class="num">0.0018</td><td class="num">25.8%</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">低位</span></td></tr>
+      <tr><td>B 确认</td><td>MVRV-Z</td><td class="num">0.67</td><td class="num">34.6%</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">低位</span></td></tr>
+      <tr><td>B 确认</td><td>LTH-NUPL</td><td class="num">0.33</td><td class="num">24.9%</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">低位</span></td></tr>
+      <tr><td>B 确认</td><td>Puell</td><td class="num">0.80</td><td class="num">26.9%</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">低位</span></td></tr>
+      <tr><td>参考</td><td>恐贪指数</td><td class="num">12</td><td class="num">—</td><td>极度恐惧</td></tr>
+      <tr><td>参考</td><td>BTC 价格</td><td class="num">~$73,700</td><td class="num">—</td><td>距 2025-10 顶 -41%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="border-l-4 rounded p-3 mb-3" style="background:#eef3ff;border-color:#0053e2">
+    <pre class="text-xs text-slate-800 overflow-x-auto">Layer A: Reserve Risk = 25.8 分位 &lt; 70  →  安全区
+Layer B: 0 个指标达 85 分位高位       →  无确认
+Layer C: 未启用 (A/B 未拉警报)
+最终判定: 安全, 建议满仓持有</pre>
+  </div>
+  <p class="text-sm text-slate-700">教育意义：原 30 指标面板当时显示“各指标完成进度 6–50%，逃顶还早”被误读。本框架的正确解读是：<b>价格已从顶跌 41%、恐贪=12，所有逃顶指标回落到低位是因为顶早已过去</b>——“没命中”不等于“顶还没来”。同一批数据，正确框架与错误用法结论相反。</p>
+</section>
+
+<!-- ===== 8 ===== -->
+<div class="mt-8 mb-3"><h2 id="s8" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">8. 局限与覆盖缺口</h2></div>
+<section class="bg-white p-5 rounded-lg shadow mb-4 scroll-mt-24">
+  <h3 class="text-lg font-bold mb-2">8.1 统计局限</h3>
+  <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5">
+    <li><b>样本极少</b>：90 天非重叠采样后 N≈33，即使 Reserve Risk t=2.65，置信区间仍宽。加密只有约 3 轮完整周期。</li>
+    <li><b>Regime 依赖</b>：Layer B 全族 |t|&lt;2，意味着“看市场状态吃饭”，下轮未必复现。</li>
+    <li><b>链上数据回填风险 (Layer 0)</b>：回测可能虚高，live 表现打折扣。</li>
+    <li><b>只测线性单调预测力</b>：IC 不捕捉阈值/形态/非线性，不能完全否定人工共振直觉。</li>
+    <li><b>未含交易成本/滑点/延迟</b>：本框架是信号/仓位层，真实收益需 Layer 5 回测验证。</li>
+  </ol>
+</section>
+<section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <h3 class="text-lg font-bold mb-2">8.2 覆盖缺口（对豆包五维清单）</h3>
+  <div class="border-l-4 rounded p-3 mb-3" style="background:#fff3d6;border-color:#995213">
+    <p class="text-sm" style="color:#7a4210"><b>结论有效边界</b>：本报告仅覆盖“有本地数据的 18 因子子集”。对豆包五维的覆盖是部分且不对称的——重叠的仅约 5 个。在补测下列缺口之前，不对豆包的“机构资金维”下结论。</p>
+  </div>
+  <div class="overflow-x-auto">
+  <table class="dt">
+    <thead><tr><th>缺口指标</th><th>所属维度</th><th>状态</th><th>原因</th></tr></thead>
+    <tbody>
+      <tr><td><b>现货 BTC ETF 净流入/流出</b></td><td>机构资金</td><td><span class="badge" style="background:#fde7e6;color:#a30d00">未测</span></td><td>本地无数据；豆包称“本轮最关键变量”</td></tr>
+      <tr><td>山寨币行情 / Altseason</td><td>衍生品+情绪</td><td><span class="badge" style="background:#fde7e6;color:#a30d00">未测</span></td><td>本地无数据；牛末经典信号</td></tr>
+      <tr><td>交易所存量异动 / 巨鲸入所</td><td>链上估值</td><td><span class="badge" style="background:#fde7e6;color:#a30d00">未测</span></td><td>本地无数据</td></tr>
+      <tr><td>合约杠杆率 (OI / 多空比)</td><td>衍生品+情绪</td><td><span class="badge" style="background:#fff3d6;color:#995213">数据太短</span></td><td>本地仅 2026-02 起约 4 个月，90d 窗口 N≈1</td></tr>
+      <tr><td>RHODL / AHR999</td><td>链上估值</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待补</span></td><td>需接数据源后过 IC 检验</td></tr>
+      <tr><td>Pi 周期 / 200 周均线 / 彩虹图</td><td>技术面</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待补</span></td><td>技术面整体降为 Layer C 择时</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ===== 9 ===== -->
+<div class="mt-8 mb-3"><h2 id="s9" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">9. 结论与路线图</h2></div>
+<section class="border-l-4 p-4 mb-4 rounded scroll-mt-24" style="background:#eef3ff;border-color:#0053e2">
+  <h3 class="text-lg font-bold text-slate-800 mb-2">核心结论</h3>
+  <ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5">
+    <li>在可实证的 18 因子子集内：<b>Reserve Risk 是唯一显著主信号</b>，扩充实验反向确认其稀缺地位。</li>
+    <li><b>持有人结构是分水岭</b>：LTH 族进 Layer B（LTH-MVRV 升为首选确认），STH 族是噪音淘汰。</li>
+    <li>情绪/宏观维度经不起中期检验；豆包的“机构资金/ETF 维”因无数据尚未检验，结论暂留保留。</li>
+    <li>本框架是<b>风险管理工具，不是逃顶神器</b>。任何指标都无法 100% 预判顶部。</li>
+  </ul>
+</section>
+<section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
+  <h3 class="text-lg font-bold mb-3">后续路线图</h3>
+  <div class="overflow-x-auto">
+  <table class="dt">
+    <thead><tr><th>阶段</th><th>产出</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>1. 单因子 IC 检验</td><td>topping_indicator_ic.py + CSV</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">完成</span></td></tr>
+      <tr><td>2. 等权共振证伪</td><td>topping_resonance_ic.py + CSV</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">完成</span></td></tr>
+      <tr><td>3. 因子扩充 (18 因子) + 本报告</td><td>本 HTML 报告</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">完成</span></td></tr>
+      <tr><td>4. 补 ETF 流 / Altseason / 交易所净流入 IC</td><td>接数据源后过 IC 检验</td><td><span class="badge" style="background:#fff3d6;color:#995213">高优先级</span></td></tr>
+      <tr><td>5. 危险分级仪表盘 topping_dashboard.py</td><td>每日自动打分 (RR 分位 + Layer B 计数)</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
+      <tr><td>6. 分批撤退回测</td><td>分批规则 vs 买入持有 vs 单点逃顶 的 Calmar</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer class="text-xs text-slate-500 border-t pt-3 mb-8">
+  本报告为决策记录，所有数字可由 <code class="bg-slate-100 px-1 rounded">scripts/research/</code> 下脚本复现 · 配套框架文档 <code class="bg-slate-100 px-1 rounded">docs/research/20260605_topping_framework.md</code> · FcstLabPro 研究组
+</footer>
+
+</main>
+</div>
+</div>
+
+<script>
+// ====== 数据 (来自 experiments/research/topping_indicator_ic.csv) ======
+const ROWS = [
+  // name, layer, ic30, t30, ic90, t90
+  ["Reserve Risk","A 主信号",-0.214,-2.14,-0.429,-2.65],
+  ["LTH-MVRV","B 确认(首选)",-0.115,-1.16,-0.296,-1.75],
+  ["LTH-SOPR","B 确认",-0.053,-0.53,-0.281,-1.63],
+  ["Puell 倍数","B 确认",-0.041,-0.41,-0.278,-1.63],
+  ["LTH-NUPL","B 确认",-0.119,-1.20,-0.270,-1.56],
+  ["MVRV-Z","B 确认",-0.103,-1.03,-0.261,-1.53],
+  ["NUPL","B 确认",-0.082,-0.82,-0.250,-1.46],
+  ["AVIV 比率","B 候选",-0.068,-0.68,-0.214,-1.24],
+  ["CDD 币天销毁","观察",0.010,0.09,-0.175,-1.01],
+  ["CDD 调整(终端)","观察",0.025,0.25,-0.084,-0.47],
+  ["SOPR","观察",-0.034,-0.34,-0.055,-0.31],
+  ["STH-MVRV","淘汰(反向)",0.043,0.44,-0.035,-0.20],
+  ["恐惧贪婪指数","氛围参考",0.046,0.46,-0.028,-0.16],
+  ["资金费率(均值)","氛围参考",-0.138,-1.23,0.016,0.08],
+  ["STH-NUPL","淘汰(反向)",0.054,0.54,0.024,0.13],
+  ["美债 10Y (TNX)","背景",-0.105,-0.87,0.046,0.21],
+  ["STH-SOPR","淘汰(反向)",0.024,0.24,0.177,1.00],
+  ["DXY 美元指数","背景",-0.008,-0.06,0.226,1.06],
+];
+
+// 颜色规则
+function barColor(ic, t){
+  if(ic > 0) return "#ea1100";               // 方向反向 = 失效
+  if(t <= -2) return "#0053e2";              // 显著 = Walmart blue
+  if(t <= -1) return "#ffc220";              // 弱有效 (Layer B) = spark
+  return "#9aa0a6";                          // 方向对但不显著
+}
+function verdict(ic, t){
+  if(Math.abs(ic) < 0.02) return ["噪音","#f0f1f2","#46474a"];
+  if(ic > 0) return ["反向(失效)","#fde7e6","#a30d00"];
+  if(Math.abs(t) >= 2) return ["显著","#e3f1dc","#1f6b02"];
+  if(Math.abs(t) >= 1) return ["弱有效","#fff3d6","#995213"];
+  return ["不显著","#f0f1f2","#46474a"];
+}
+
+// ====== 表格填充 ======
+(function(){
+  const tb = document.querySelector("#fullTable tbody");
+  ROWS.forEach(r=>{
+    const [name,layer,ic30,t30,ic90,t90] = r;
+    const [vtxt,vbg,vfg] = verdict(ic90,t90);
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td class="font-medium">${name}</td>`+
+      `<td class="text-xs text-slate-600">${layer}</td>`+
+      `<td class="num">${ic30.toFixed(3)}</td><td class="num">${t30.toFixed(2)}</td>`+
+      `<td class="num font-semibold">${ic90.toFixed(3)}</td><td class="num font-semibold">${t90.toFixed(2)}</td>`+
+      `<td><span class="badge" style="background:${vbg};color:${vfg}">${vtxt}</span></td>`;
+    tb.appendChild(tr);
+  });
+})();
+
+// ====== 图1: 90d RankIC 排名 ======
+new Chart(document.getElementById("chartIC"), {
+  type:"bar",
+  data:{
+    labels: ROWS.map(r=>r[0]),
+    datasets:[{
+      label:"90d RankIC",
+      data: ROWS.map(r=>r[4]),
+      backgroundColor: ROWS.map(r=>barColor(r[4],r[5])),
+      borderRadius:3,
+    }]
+  },
+  options:{
+    indexAxis:"y", responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:(c)=>{const r=ROWS[c.dataIndex];return `IC=${r[4].toFixed(3)}  t=${r[5].toFixed(2)}  [${r[1]}]`;}}}
+    },
+    scales:{
+      x:{title:{display:true,text:"90d RankIC (越负越强的逃顶信号)"},grid:{color:"#eceef0"}},
+      y:{ticks:{font:{size:11}}}
+    }
+  }
+});
+
+// ====== 图2: LTH vs STH 持有人结构 ======
+new Chart(document.getElementById("chartHolder"), {
+  type:"bar",
+  data:{
+    labels:["MVRV","NUPL","SOPR"],
+    datasets:[
+      {label:"长期持有者 (LTH)", data:[-0.296,-0.270,-0.281], backgroundColor:"#2a8703", borderRadius:3},
+      {label:"短期持有者 (STH)", data:[-0.035,0.024,0.177], backgroundColor:"#ea1100", borderRadius:3},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{position:"top"},
+      tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: 90d IC = ${c.parsed.y.toFixed(3)}`}},
+      title:{display:true,text:"同一估值口径下 LTH vs STH 的 90d RankIC (越负越好)"}
+    },
+    scales:{ y:{title:{display:true,text:"90d RankIC"},grid:{color:"#eceef0"},
+      suggestedMin:-0.35, suggestedMax:0.25 } }
+  }
+});
+</script>
+</body></html>

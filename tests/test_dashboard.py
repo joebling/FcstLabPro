@@ -50,10 +50,20 @@ def test_models_renders(client):
 
 
 def test_sidebar_nav_present(client):
-    """侧边栏 4 个导航项都在."""
+    """侧边栏 5 个导航项都在."""
     r = client.get("/")
-    for label in ("总览", "信号", "市场", "模型"):
+    for label in ("总览", "信号", "市场", "顶部", "模型"):
         assert label in r.text
+
+
+def test_topping_renders(client):
+    """顶部页: 三层危险分级 + 历史回放图."""
+    r = client.get("/topping")
+    assert r.status_code == 200
+    assert "顶部研判" in r.text
+    assert "当前危险等级" in r.text
+    assert "Layer A" in r.text
+    assert "topHist" in r.text             # 历史点灯回放 canvas
 
 
 def test_model_switch_query(client):

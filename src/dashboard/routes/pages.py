@@ -59,3 +59,12 @@ def models(request: Request, model: str | None = None):
     ctx = _base_ctx(request, "models", model)
     ctx.update(page.build())
     return templates.TemplateResponse(request, "pages/models.html", ctx)
+
+
+@router.get("/topping", response_class=HTMLResponse)
+def topping(request: Request, model: str | None = None):
+    from src.dashboard.app import templates
+    from src.dashboard.pages import topping as page
+    ctx = _base_ctx(request, "topping", model)
+    ctx.update(page.build())
+    return templates.TemplateResponse(request, "pages/topping.html", ctx)

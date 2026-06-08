@@ -31,10 +31,11 @@
 
     <nav class="flex-1 py-3">
       {% set nav = [
-        ('/', '📊', '总览', 'overview'),
-        ('/signals', '📡', '信号', 'signals'),
-        ('/market', '📈', '市场', 'market'),
-        ('/models', '🤖', '模型', 'models'),
+        ('/', '总', '总览', 'overview'),
+        ('/signals', '信', '信号', 'signals'),
+        ('/market', '市', '市场', 'market'),
+        ('/topping', '顶', '顶部', 'topping'),
+        ('/models', '模', '模型', 'models'),
       ] %}
       {% for href, icon, label, key in nav %}
       <a href="{{ href }}"
@@ -44,7 +45,9 @@
                 {% else %}
                   text-slate-600 hover:bg-slate-50 border-l-[3px] border-transparent
                 {% endif %}">
-        <span>{{ icon }}</span><span>{{ label }}</span>
+        <span class="inline-flex items-center justify-center w-5 h-5 rounded text-[11px] font-semibold
+                     {{ 'bg-indigo-600 text-white' if active_page == key else 'bg-slate-100 text-slate-500' }}">{{ icon }}</span>
+        <span>{{ label }}</span>
       </a>
       {% endfor %}
     </nav>
@@ -69,7 +72,7 @@
 
   <!-- 主内容 -->
   <div class="flex-1 flex flex-col min-w-0">
-header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
       <h1 class="text-base font-semibold text-slate-700">{% block page_title %}FcstLabPro{% endblock %}</h1>
       <span class="text-xs text-slate-400">{% block page_sub %}{% endblock %}</span>
     </header>
