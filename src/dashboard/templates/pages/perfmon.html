@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% import "macros.html" as ui %}
+{% block title %}实盘业绩 · FcstLabPro{% endblock %}
+{% block page_title %}实盘业绩监控{% endblock %}
+{% block page_sub %}{{ active_model }} · 监控漂移与衰减, 非 alpha 验证{% endblock %}
+
+{% block content %}
+{% if not has_data %}
+  <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">暂无模型数据。</div>
+{% elif not has_state %}
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 text-amber-800">
+    未找到持仓账本 (${FCST_DATA_DIR}/state/{{ active_model }}_state.json)。
+    生产环境应由每日 pipeline 写入; 本地开发无此文件属正常。
+  </div>
+{% else %}
+
+{# 样本量门控 — 专业监控的灵魂: n 不够就别下结论 #}
+{% if not sample_ok %}
+<div class="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-4">
+  <div class="text-sm font-semibold text-amber-800">样本不足 · 仅供监控, 不可作 alpha 判据</div>
+  <div class="text-xs text-amber-700 mt-1">
+    实盘已完成 <b>{{ n_trades }}</b> 笔, 低于机构可信门槛 ({{ min_sample }} 笔)。
+    点估计胜率/均盈的置信区间极宽, 统计上近乎无意义。
+    判定 alpha 真伪请看「模型」页的 IC / walk-forward (研究态), 此页只用于看「实盘是否偏离回测预期」。
+  </div>
+</div>
+{% endif %}
+
+<!-- KPI 行 -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+  {{ ui.kpi("累计收益", "{:+.1%}".format(total_return),
+       "{} 笔实盘".format(n_trades),
+       "text-emerald-600" if total_return >= 0 else "text-rose-600", "") }}
+  {{ ui.kpi("最大回撤", "{:.1%}".format(max_drawdown), "实盘净值峰谷", "text-rose-600", "") }}
+  {{ ui.kpi("成交笔数", n_trades|string,
+       ("达标" if sample_ok else "< {} 不可信".format(min_sample)),
+       "text-slate-700" if sample_ok else "text-amber-600", "") }}
+  {{ ui.kpi("胜率",
+       ("{:.0%}".format(win_rate) if sample_ok else "{:.0%}*".format(win_rate)),
+       ("" if sample_ok else "*样本不足"),
+       "text-slate-400" if not sample_ok else ("text-emerald-600" if win_rate >= 0.5 else "text-rose-600"), "") }}
+  {{ ui.kpi("均盈/笔",
+       ("{:+.2%}".format(avg_pnl) if sample_ok else "{:+.2%}*".format(avg_pnl)),
+       ("" if sample_ok else "*样本不足"),
+       "text-slate-400" if not sample_ok else ("text-emerald-600" if avg_pnl >= 0 else "text-rose-600"), "") }}
+</div>
+
+<!-- 净值曲线 + 回撤 -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+  <div class="lg:col-span-2">
+    {% call ui.card("实盘净值曲线 + 回撤", "") %}
+    {% if curve.dates %}
+    <div style="height:300px"><canvas id="equityChart"></canvas></div>
+    {% else %}
+    <div class="text-sm text-slate-400 py-8 text-center">尚无已完成交易 (持仓未平或未开仓)</div>
+    {% endif %}
+    {% endcall %}
+  </div>
+  <div>
+    {% call ui.card("退出方式拆解", "") %}
+    {% if exit_stats %}
+    <table class="w-full text-sm">
+      <thead><tr class="text-slate-400 text-left text-xs"><th class="py-1">退出方式</th><th>笔数</th><th>胜率</th></tr></thead>
+      <tbody>
+      {% for k, v in exit_stats.items() %}
+        <tr class="border-t border-slate-50">
+          <td class="py-2 text-slate-700">{{ k }}</td>
+          <td class="text-slate-600">{{ v.count }}</td>
+          <td class="{{ 'text-emerald-600' if (v.wins / v.count) >= 0.5 else 'text-rose-600' }}">{{ "{:.0%}".format(v.wins / v.count) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="text-[11px] text-slate-400 mt-2">看哪种退出在创造价值 (止盈 vs 到期 vs regime强平)</div>
+    {% else %}
+    <div class="text-sm text-slate-400 py-4">尚无交易</div>
+    {% endif %}
+    {% endcall %}
+  </div>
+</div>
+
+<!-- Live vs Backtest 对照 -->
+{% call ui.card("Live vs Backtest 对照 · 衰减警报", "") %}
+{% if backtest %}
+<div class="text-xs text-slate-400 mb-2">回测基准口径: {{ backtest.label }} (回测 {{ backtest.num_trades }} 笔, Sharpe {{ "%.2f"|format(backtest.sharpe) }})</div>
+<table class="w-full text-sm">
+  <thead><tr class="text-slate-400 text-left text-xs">
+    <th class="py-1">指标</th><th>实盘</th><th>回测预期</th><th>差异</th></tr></thead>
+  <tbody>
+  {% for r in cmp_rows %}
+    {% set good = (r.delta is not none) and ((r.delta >= 0) == r.higher_better) %}
+    <tr class="border-t border-slate-50">
+      <td class="py-2 text-slate-700">{{ r.name }}</td>
+      <td class="text-slate-700">{% if r.fmt == 'pct2' %}{{ "{:+.2%}".format(r.live) }}{% else %}{{ "{:.1%}".format(r.live) }}{% endif %}</td>
+      <td class="text-slate-500">{% if r.base is none %}—{% elif r.fmt == 'pct2' %}{{ "{:+.2%}".format(r.base) }}{% else %}{{ "{:.1%}".format(r.base) }}{% endif %}</td>
+      <td class="{{ 'text-emerald-600' if good else 'text-rose-600' }}">
+        {% if r.delta is none %}—{% elif r.fmt == 'pct2' %}{{ "{:+.2%}".format(r.delta) }}{% else %}{{ "{:+.1%}".format(r.delta) }}{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="text-[11px] text-slate-400 mt-3">
+  实盘持续低于回测预期 = 衰减/执行问题信号 (但 n 不足时勿过度解读)。
+  此对照仅作监控, 绝不回流调参 (守机构手册 §2.2 OOS 锁定)。
+</div>
+{% else %}
+<div class="text-sm text-slate-400">无回测基准 (models/production/{{ active_model }}/pnl_metrics.json 缺失)</div>
+{% endif %}
+{% endcall %}
+
+<script id="pm-data" type="application/json">
+{{ {"dates": curve.dates, "equity": curve.equity, "drawdown": curve.drawdown} | tojson }}
+</script>
+<script src="/static/charts.js"></script>
+<script>FcstCharts.renderPerfmon();</script>
+
+{% endif %}
+{% endblock %}

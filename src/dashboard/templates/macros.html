@@ -1,0 +1,57 @@
+{# 可复用 UI 宏 — KPI 卡片 / 卡片容器 / 涨跌着色 #}
+
+{# 普通 KPI 卡 #}
+{% macro kpi(label, value, sub="", color="text-slate-800", icon="") %}
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+  <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
+    {% if icon %}<span>{{ icon }}</span>{% endif %}<span>{{ label }}</span>
+  </div>
+  <div class="text-2xl font-bold mt-2 {{ color }}">{{ value if value is not none else '—' }}</div>
+  {% if sub %}<div class="text-xs text-slate-400 mt-1">{{ sub }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{# 渐变主卡 (最醒目, 用于最新信号) #}
+{% macro kpi_hero(label, value, sub="", icon="") %}
+<div class="rounded-xl shadow-md p-4 text-white bg-gradient-to-br from-indigo-600 to-violet-500">
+  <div class="flex items-center gap-2 text-xs opacity-90 font-medium">
+    {% if icon %}<span>{{ icon }}</span>{% endif %}<span>{{ label }}</span>
+  </div>
+  <div class="text-3xl font-bold mt-2">{{ value if value is not none else '—' }}</div>
+  {% if sub %}<div class="text-xs opacity-80 mt-1">{{ sub }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{# 数据新鲜度徽章 — 绿=新鲜 / 黄=陈旧告警 / 灰=无数据 (WCAG AA 对比) #}
+{# fresh = {as_of, age_days, stale} (见 src/dashboard/data/market._freshness) #}
+{% macro freshness_badge(fresh) %}
+{% if fresh and fresh.as_of %}
+  {% if fresh.stale %}
+  <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-800"
+                title="已 {{ fresh.age_days }} 天未更新 — 非实时, 仅供参考">
+    陈旧 · 截止 {{ fresh.as_of }} · {{ fresh.age_days }}天前
+  </span>
+  {% else %}
+  <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800"
+        title="数据为 {{ fresh.age_days }} 天前">
+    截止 {{ fresh.as_of }}
+  </span>
+  {% endif %}
+{% else %}
+  <span class="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+    无数据
+  </span>
+{% endif %}
+{% endmacro %}
+
+{# 卡片容器 (带标题, 可选 fresh 新鲜度徽章) #}
+{% macro card(title, icon="", fresh=none) %}
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+  <div class="flex items-center justify-between mb-3 gap-2">
+    <h3 class="text-sm font-semibold text-slate-700">
+      {% if icon %}<span class="mr-1">{{ icon }}</span>{% endif %}{{ title }}</h3>
+    {% if fresh is not none %}{{ freshness_badge(fresh) }}{% endif %}
+  </div>
+  {{ caller() }}
+</div>
+{% endmacro %}

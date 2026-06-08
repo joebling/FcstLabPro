@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────────────────
+# FcstLabPro 生产模型唯一真相源 (Active Models — Single Source of Truth)
+# ─────────────────────────────────────────────────────────────────────────
+#
+# 这是生产部署 / 推理唯一应该读取的「现在用哪个模型」配置。
+# 现役脚本 (live_signal / build_signal_json / run_production_pipeline)
+# 都从这里取 artifact_dir + strategy_variant，禁止再硬编码模型名。
+# (⤴️ 旧的 deploy.sh / docker_entrypoint Cloud Run 部署已停用归档, 见 deploy/README.md)
+#
+# 切换模型 = 改这里的 artifact_dir + status，然后 git commit。
+# 回滚 = git revert 那个 commit。
+#
+# 命名约定:
+#   - key 是「角色」(primary / challenger)，不是模型名
+#   - artifact_dir basename == 模型名 (e1-conservative / e8-touch)
+#   - strategy_variant 必须与该模型 manifest.json 的 deployment.variant 一致
+#     (启动时由 src/serving/active_config.py 强校验，不一致直接 fail)
+#
+# Updated: 2026-06-01 | Maintainer: Qiu
+# ─────────────────────────────────────────────────────────────────────────
+
+# 【数据新鲜度门】生产 pipeline (run_production_pipeline.py) 强制校验。
+# 单位 = 天。stale = 该数据源 last_date 落后 OHLCV last_date 的天数。
+# 决策 A: 文件缺失 / 超 SLA 一律 FATAL (不再 ffill 蒙混)。
+# research / backtest 不读这里 — gate 只作用于 live pipeline。
+data_freshness:
+  ohlcv_max_stale_days: 2   # OHLCV 自身相对 "今天(UTC)" 的最大滞后
+  fgi_max_stale_days: 2     # FGI last_date 相对 OHLCV last_date 的最大滞后
+
+# 【primary】生产主跑模型 — E20c directional 剪枝升级版
+primary:
+  artifact_dir: models/production/e20c-conservative-prune
+  role: risk_control
+  strategy_variant: conservative
+  status: live
+  note: >-
+    E20c directional_filtered (终点判定)，28 特征剪枝版。作为 E1 的同标签升级模型晋升生产：
+    Kappa 0.4448 > E1 0.3480，止盈+regime CAGR 18.8% > E1 10.3%，MaxDD 持平 -12.7%。
+    使用边界: 牛市/震荡择时更稳，熊市 recall 低、几乎闭嘴；E1 保留在 models/production/e1-conservative 供 git revert 回滚。
+
+# 【challenger】挑战者模型 — 收益优先 (Return/Sharpe 更高，回撤更大)
+challenger:
+  artifact_dir: models/production/e8-touch
+  role: return_enhancement
+  strategy_variant: conservative
+  status: paper
+  note: >-
+    E8 touch_filtered (路径触达)。当前 paper 观察，未转 live。
+    同配置下 Return/Sharpe 更高，但 MaxDD 更大 (-21.4%)、暴露更高。
+
+# 【candidate】离线候选 — E21b touch 剪枝 (research/shadow, 不部署)
+candidate:
+  artifact_dir: models/production/e21b-touch-prune
+  role: sota_candidate
+  strategy_variant: conservative
+  status: offline_only
+  note: >-
+    v0601 E21b touch_filtered 剪枝版 (81 特征)。分类层显著: Kappa 0.7717 (4-seed CV 0.50%,
+    3.8σ 显著, +1.93% vs E8)，复现 seed=42 bit-exact (metrics+predictions+model sha256)。
+    暂不 promote 原因: PnL 执行层未全线胜出 — 「+止盈」「止盈+regime」变体输给 e8-touch baseline。
+    定位 research/shadow: 等执行规则 (止盈/regime 阈值) 重调后再评估是否转 paper。
+    详见 docs/plans/phase2.5_feature_landscape_v0601.md §6.1 Step 2 + §8.2。

@@ -1,0 +1,75 @@
+experiment:
+  name: v0529_E17_with_external
+  description: 'v0529 E17: 在当前 live baseline (v0529_E1_rename / e1-conservative) 基础上
+    叠加真实外部数据 external_fr (Binance funding rate) + external_macro (宏观因子)。 Phase 2 P1-1，单变量隔离真外部数据净贡献。'
+  tags:
+  - weekly
+  - bear
+  - v0529
+  - phase2
+  - external_data
+  - E17
+  category: weekly
+  hypothesis: 在 E1 (directional_filtered, 已清污) 特征集上额外引入真实 funding rate 与宏观因子, 应带来与价格派生特征「正交」的新信息维度,
+    预期 walk-forward Kappa 相对 baseline E1 (0.3480) 有统计显著提升。若无提升或下降, 说明真外部数据对 21 天空头风控信号无增益
+    (与 E10 真 funding rate 不如模拟版的历史结论呼应)。
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - external_fr
+  - external_macro
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  rsi_window: 14
+  rsi_threshold: 45.0
+  ma_window: 50
+  require_below_ma: true
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42

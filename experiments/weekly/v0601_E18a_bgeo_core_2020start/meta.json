@@ -1,0 +1,32 @@
+{
+  "experiment_id": "v0601_E18a_bgeo_core_2020start",
+  "name": "v0601_E18a_bgeo_core_2020start",
+  "description": "Phase 2.5 E18a 公平版: 2020-01-01 起始, 跟 production E1 同基准对比 LTH/STH 是否真有 alpha",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_1",
+    "external_lth_sth",
+    "bgeometrics",
+    "fair_comparison"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T06:44:10.063135",
+  "git": {
+    "commit": "c4e21ef",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 43.33,
+  "aggregate_metrics": {
+    "accuracy": 0.8769092542677448,
+    "f1_binary": 0.3929098966026588,
+    "precision_binary": 0.3970149253731343,
+    "recall_binary": 0.3888888888888889,
+    "cohen_kappa": 0.32442945943191837
+  }
+}

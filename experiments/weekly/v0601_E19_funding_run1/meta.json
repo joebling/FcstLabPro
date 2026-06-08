@@ -1,0 +1,32 @@
+{
+  "experiment_id": "v0601_E19_funding_run1",
+  "name": "v0601_E19_funding",
+  "description": "Phase 2.5 Wave 2 #2: E1 + Funding Rate (合约类高频信号)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e19",
+    "funding_rate",
+    "derivatives"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:32:54.989669",
+  "git": {
+    "commit": "7399f91",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 36.98,
+  "aggregate_metrics": {
+    "accuracy": 0.8727163821503444,
+    "f1_binary": 0.358974358974359,
+    "precision_binary": 0.3707165109034268,
+    "recall_binary": 0.347953216374269,
+    "cohen_kappa": 0.28839635882785675
+  }
+}

@@ -24,10 +24,25 @@ import smtplib
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+try:
+    from scripts.email_model_semantics import (
+        build_model_semantics_html,
+        model_semantics_text,
+    )
+except ImportError:  # 兼容 `python scripts/send_signal_email.py ...`
+    from email_model_semantics import (  # type: ignore
+        build_model_semantics_html,
+        model_semantics_text,
+    )
+
+# 显式指向仓库根 .env (配置唯一真相源), 不按 cwd 瞎找。
+# override=False: bash 已 source 过的环境变量优先, 避免双源漂移。
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(_REPO_ROOT / ".env", override=False)
 
 # =====================================================================
 # Signal Style Mapping
@@ -312,6 +327,9 @@ def build_html(data: dict) -> str:
             <!-- 模型信息 -->
             {_build_model_info(data)}
 
+            <!-- 模型语义 -->
+            {build_model_semantics_html(data)}
+
             <!-- 免责声明 -->
             {_build_disclaimer(data)}
         </div>
@@ -380,6 +398,9 @@ def build_plain_text(data: dict) -> str:
         f"模型: {m.get('name', 'N/A')} {m.get('version', '')}",
         f"  {m.get('type', 'N/A')} | {m.get('features', 'N/A')}特征 | Kappa={m.get('kappa', 'N/A')}",
         f"  CAGR={bt.get('cagr', 'N/A')} | MaxDD={bt.get('max_dd', 'N/A')} | PF={bt.get('pf', 'N/A')}",
+    ]
+    lines += model_semantics_text(data)
+    lines += [
         "═" * 40,
         "⚠️ 不构成投资建议",
     ]
@@ -420,8 +441,11 @@ def send_email(signal_path: str) -> bool:
 
     # 构建邮件
     msg = MIMEMultipart("alternative")
+    # 同日重跑 (第≥第2次) 加记号, 一眼辨识是重复信号还是当日首发
+    run_count = data.get("run_count_today", 1)
+    rerun_tag = f"[重跑#{run_count}] " if run_count and run_count > 1 else ""
     msg["Subject"] = (
-        f"[BTC] {date[5:] if len(date) > 5 else date} "
+        f"{rerun_tag}[BTC] {date[5:] if len(date) > 5 else date} "
         f"{style['emoji']} {style['label']} | "
         f"${price:,.0f} | {model_name} {model_ver}"
     )

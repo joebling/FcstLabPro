@@ -1,0 +1,79 @@
+experiment:
+  name: v0601_E19_funding
+  description: 'Phase 2.5 Wave 2 #2: E1 + Funding Rate (合约类高频信号)'
+  hypothesis: |
+    Funding Rate (永续合约资金费率) 是衍生品市场最直接的"多空力量平衡"信号,
+    8 小时一次的高频特性 + zscore_90/extreme 阈值, 能捕捉短期 (T=21) 多空拥挤反转.
+    现有 funding_rate_BTCUSDT.csv (2019-09-10 起, 2372 行) 完整覆盖 2020+ baseline,
+    无需 NaN-aware / 同窗 baseline. 门槛 Kappa ≥ 0.3654 (E1 × 1.05).
+  tags:
+  - weekly
+  - bear
+  - v0601
+  - phase_2_5
+  - wave_2
+  - e19
+  - funding_rate
+  - derivatives
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2020-01-01'
+  end: '2025-12-31'
+  expected_sha256: '004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858'
+  expected_effective_rows: 2192
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - external_fr    # ← E19-FUNDING 新增 (~15 funding rate 特征)
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  rsi_window: 14
+  rsi_threshold: 45.0
+  ma_window: 50
+  require_below_ma: true
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42

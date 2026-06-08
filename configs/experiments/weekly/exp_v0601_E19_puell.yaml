@@ -1,0 +1,81 @@
+experiment:
+  name: v0601_E19_puell
+  description: 'Phase 2.5 Wave 2 #1: E1 + Puell Multiple (单指标 short-horizon 派生)'
+  hypothesis: |
+    Puell Multiple (Charles Edwards 经典周期 indicator) 提供与现有 129 特征
+    独立的"挖矿盈利周期"信号. 长历史 (2012-2025, 14 年, L1: cov 99.5%, stale 2d)
+    + short-horizon 派生 (§4 #6) 后应避免 E18a 慢变量陷阱.
+    门槛: Kappa OOS ≥ E1 × 1.05 = 0.3654 (E1 真复现 baseline = 0.348046).
+  tags:
+  - weekly
+  - bear
+  - v0601
+  - phase_2_5
+  - wave_2
+  - e19
+  - puell
+  - bgeometrics
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  # ⚠️ 锁定 2020-01-01 (lesson_0601 + phase2.5 §3 铁律)
+  start: '2020-01-01'
+  end: '2025-12-31'
+  # 数据治理防御 (phase2.5 §3)
+  expected_sha256: '004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858'
+  expected_effective_rows: 2192
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - external_puell    # ← E19-PUELL 新增 (5 short-horizon 特征)
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  rsi_window: 14
+  rsi_threshold: 45.0
+  ma_window: 50
+  require_below_ma: true
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42

@@ -1,7 +1,14 @@
 # Data (now tracked in git)
-# data/raw/*.csv
+# data/raw/*.csv  — 训练基准, tracked, sha 锁定 (勿取消注释)
 # data/raw/*.parquet
 # data/external/
+
+# Live/实时下载数据 — 可变, 绝不进 git (lesson_0602: 防实时数据覆盖基准被commit回来)
+data/live/
+
+# crypto-market-data 转出的展示 CSV — 再生数据 (由 sync_market_data 从 sibling repo 重建),
+# 不进 git: 免 churn + 免跟 git pull 打架 (同 data/live 理念)
+data/external/cmd_*.csv
 
 # Experiments outputs (keep configs, ignore large files)
 experiments/**/model.joblib
@@ -45,8 +52,13 @@ logs/
 
 # Signals (generated output)
 signals/
+data/signals/
+data/live/monitoring/
 
 # Environment / Secrets
 .env
 .env.*
 !.env.example
+
+# 临时备份目录 (本地应急还原用, 不进库 — git 本身即版本备份)
+experiments/_backup_*/

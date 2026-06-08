@@ -1,6 +1,8 @@
 # Weekly Bear 实验总结
 
-> 最后更新: 2026-03-08 | 当前 SOTA: **E16b** (SG 仅 close 平滑)
+> 最后更新: 2026-05-29 | 当前 SOTA: **E16b** (SG 仅 close 平滑)
+>
+> 归档说明: 旧实验目录已移动到 `experiments/archive/`，`weekly/` 仅保留生产源、当前候选、复现验证与文档。
 
 ## 实验总览
 
@@ -20,10 +22,10 @@
 | E12  | touch + FR + macro | — | — | — | — | — | 已归档 |
 | E13  | touch pruned light | — | — | — | — | — | 已归档 |
 | E14  | touch pruned heavy | — | — | — | — | — | 已归档 |
-| E15  | SG 全列 (w=11, p=3) | 0.9053 | 0.7767 | 0.7635 | 0.7905 | 0.7167 | 平滑 volume 有害 |
-| E16a | SG 价格列 (w=7, p=2) | 0.9189 | 0.8116 | 0.7643 | 0.8652 | 0.7602 | 高 Recall |
+| E15  | SG 全列 (w=11, p=3) | 0.9053 | 0.7767 | 0.7635 | 0.7905 | 0.7167 | 已归档 |
+| E16a | SG 价格列 (w=7, p=2) | 0.9189 | 0.8116 | 0.7643 | 0.8652 | 0.7602 | 已归档 |
 | **E16b** | **SG 仅 close (w=11, p=2)** | **0.9178** | **0.8176** | **0.7995** | **0.8366** | **0.7646** | **⭐ 新 SOTA** |
-| E16c | SG 全列 (w=21, p=3) | 0.8920 | 0.7515 | 0.7481 | 0.7549 | 0.6825 | 过度平滑 |
+| E16c | SG 全列 (w=21, p=3) | 0.8920 | 0.7515 | 0.7481 | 0.7549 | 0.6825 | 已归档 |
 
 ## 当前最佳: E16b
 
@@ -66,12 +68,14 @@
 
 ```
 experiments/weekly/
-├── _docs/                    # 历史分析文档 (v0303~v0305)
-├── consensus_E1_E8/          # E1+E8 共识模型
-├── weekly_bear_v0305_E1~E14/ # v0305 实验系列
-├── weekly_bear_v0308_E15/    # v0308 SG 平滑实验
-├── weekly_bear_v0308_E16a/   # v0308 SG 消融: 价格列
-├── weekly_bear_v0308_E16b/   # v0308 SG 消融: 仅 close ⭐
-├── weekly_bear_v0308_E16c/   # v0308 SG 消融: 强平滑
-└── SUMMARY.md                # ← 你正在看的这个文件
+├── _docs/                                # 历史分析文档
+├── consensus_E1_E8/                      # E1+E8 共识模型
+├── v0529_E1_endfix/                      # E1 最新复现验证
+├── v0529_E8_endfix/                      # E8 最新复现验证
+├── weekly_bear_v0305_E1_decontam/        # 生产主模型源实验
+├── weekly_bear_v0305_E8_touch_label/     # challenger 源实验
+├── weekly_bear_v0308_E16b_savgol_close_only/ # SOTA 候选
+└── SUMMARY.md                            # ← 你正在看的这个文件
 ```
+
+已归档目录位于 `experiments/archive/`，包括 E2-E7、E9-E16a/E16c、E10-E14 与 v0301 空复查目录。

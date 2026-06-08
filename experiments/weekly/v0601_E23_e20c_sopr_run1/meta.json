@@ -1,0 +1,33 @@
+{
+  "experiment_id": "v0601_E23_e20c_sopr_run1",
+  "name": "v0601_E23_e20c_sopr",
+  "description": "Phase 2.5 Wave 3 #2: E20c (28 核心剪枝) + SOPR/CDD 家族 (15 short-horizon 派生). Wave 3 第二炮. 区别于 E22-PUELL (与价格动量共线已证伪), SOPR/CDD 是行为维度信号, 理论正交度更高.",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_3",
+    "e23",
+    "sopr",
+    "cdd",
+    "e20c_based"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-02T06:47:19.805439",
+  "git": {
+    "commit": "dea4e33",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 13.58,
+  "aggregate_metrics": {
+    "accuracy": 0.8808026355196167,
+    "f1_binary": 0.4790575916230366,
+    "precision_binary": 0.43364928909952605,
+    "recall_binary": 0.5350877192982456,
+    "cohen_kappa": 0.41259169676813645
+  }
+}

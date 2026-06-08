@@ -1,0 +1,59 @@
+{# 信号实现明细表 — 接收 batches (list). 信号 → T 天后真实结果. #}
+{% set rows = batches %}
+{% set _rets = rows | selectattr('avg_realized_return', 'ne', none)
+                    | map(attribute='avg_realized_return') | map('abs') | list %}
+{% set mx_ret = (_rets | max) if _rets else 0 %}
+
+<div class="overflow-x-auto" style="max-height:55vh">
+  <table class="w-full text-xs">
+    <thead>
+      <tr class="text-slate-600 border-b text-right bg-slate-50 sticky top-0">
+        <th class="py-2 px-2 text-left font-semibold">信号日期</th>
+        <th class="py-2 px-2 font-semibold">信号数</th>
+        <th class="py-2 px-2 font-semibold">BUY</th>
+        <th class="py-2 px-2 font-semibold">SILENT</th>
+        <th class="py-2 px-2 font-semibold text-emerald-600"
+            title="该批次 BUY 信号涨的比例 (成熟后)">命中率</th>
+        <th class="py-2 px-2 font-semibold"
+            title="T 天持有的平均实现收益; 条形∝绝对值">实现收益</th>
+        <th class="py-2 px-2 font-semibold text-left">Model Hash</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr class="border-b last:border-0 hover:bg-slate-50 text-right">
+        <td class="py-1.5 px-2 font-mono text-left">{{ r.score_date }}</td>
+        <td class="py-1.5 px-2">{{ r.n_signals }}</td>
+        <td class="py-1.5 px-2 font-semibold text-indigo-600">{{ r.n_buy }}</td>
+        <td class="py-1.5 px-2 text-slate-400">{{ r.n_silent }}</td>
+
+        {% if r.status == 'PENDING' %}
+        <td class="py-1.5 px-2 text-center text-slate-400"
+            title="标签未成熟 (信号距今 < T+1 天)">⏳</td>
+        {% elif r.hit_rate is none %}
+        <td class="py-1.5 px-2 text-center text-slate-400" title="本批无 BUY 信号">—</td>
+        {% else %}
+        <td class="py-1.5 px-2 font-semibold
+            {{ 'text-emerald-600' if r.hit_rate >= 55 else ('text-amber-600' if r.hit_rate >= 45 else 'text-rose-500') }}">
+          {{ r.hit_rate }}%</td>
+        {% endif %}
+
+        {% if r.status == 'PENDING' %}
+        <td class="py-1.5 px-2 text-center text-slate-400">⏳</td>
+        {% elif r.avg_realized_return is none %}
+        <td class="py-1.5 px-2 text-center text-slate-400">—</td>
+        {% else %}
+        <td class="py-1.5 px-2 rd-bar {{ 'text-emerald-600' if r.avg_realized_return > 0 else 'text-rose-500' }}"
+            style="--bar:{{ ((r.avg_realized_return|abs / mx_ret * 100) | round(0,'floor')) if mx_ret else 0 }}%;
+                   --bar-color:{{ '#a7f3d0' if r.avg_realized_return > 0 else '#fecdd3' }};">
+          {{ '%+.2f'|format(r.avg_realized_return) }}%</td>
+        {% endif %}
+
+        <td class="py-1.5 px-2 font-mono text-slate-400 text-left">{{ r.model_hash[:8] }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="py-6 text-center text-slate-500">无数据</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

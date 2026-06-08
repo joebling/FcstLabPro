@@ -1,0 +1,33 @@
+{
+  "experiment_id": "v0601_E21b_repro_seed123_run1",
+  "name": "v0601_E21b_repro_seed123",
+  "description": "E21b 复现性验证 — seed=123 (原 seed=42 → kappa 0.7695)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e21",
+    "prune",
+    "touch",
+    "reproducibility"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:50:25.696692",
+  "git": {
+    "commit": "949ebd9",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 123,
+  "status": "completed",
+  "duration_seconds": 19.8,
+  "aggregate_metrics": {
+    "accuracy": 0.9299191374663073,
+    "f1_binary": 0.812199036918138,
+    "precision_binary": 0.7968503937007874,
+    "recall_binary": 0.8281505728314239,
+    "cohen_kappa": 0.769140627770043
+  }
+}

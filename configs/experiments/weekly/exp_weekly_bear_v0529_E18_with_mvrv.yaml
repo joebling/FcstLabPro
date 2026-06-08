@@ -1,0 +1,80 @@
+experiment:
+  name: v0529_E18_with_mvrv
+  description: >-
+    v0529 E18: 在当前 live baseline (v0529_E1_rename / e1-conservative) 基础上
+    叠加 MVRV 链上估值特征 (external_mvrv, 12 个)。Phase 2 P1-4。
+    注意: 故意 NOT 继承 E17 — E17 已证伪 fr/macro 有害, MVRV 单独隔离测净贡献。
+  hypothesis: >-
+    MVRV 是链上慢变量, 与价格行为低相关 (正交于 E1 的价格派生特征),
+    能识别整个减半周期 (历史顶部 3-4.7, 底部 <1)。对 21 天空头风控信号 (E1),
+    顶部/警戒区特征应提供真正独立的择时信息, 预期 walk-forward Kappa 相对
+    baseline E1 (0.3480) 有统计显著提升。若无提升, 说明 21 天窗口太短,
+    无法承接 MVRV 的周期级信号 (需配合 regime 模块, 见 Phase 4 P3-5)。
+  tags:
+  - weekly
+  - bear
+  - v0529
+  - phase2
+  - mvrv
+  - onchain
+  - E18
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2025-12-31'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - external_mvrv
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  rsi_window: 14
+  rsi_threshold: 45.0
+  ma_window: 50
+  require_below_ma: true
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42

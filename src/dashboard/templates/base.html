@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}FcstLabPro{% endblock %}</title>
+  <!-- Tailwind: 预编译静态 CSS (替代生产禁用的 Play CDN, 避免浏览器内 JIT 阻塞首屏)。
+       改样式/改模板 class 后需重新构建: 见 src/dashboard/tailwind.config.js 头部注释。 -->
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+<div class="flex min-h-screen">
+
+  <!-- 侧边栏 -->
+  <aside class="w-56 bg-white border-r border-slate-200 flex flex-col shrink-0">
+    <div class="px-5 py-4 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">⚡</span>
+        <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+          FcstLabPro</span>
+      </div>
+      <div class="text-[10px] text-slate-400 mt-0.5 tracking-wide">BTC 信号预测系统</div>
+    </div>
+
+    <nav class="flex-1 py-3">
+      {% set nav = [
+        ('/', '总', '总览', 'overview'),
+        ('/signals', '信', '信号', 'signals'),
+        ('/market', '市', '市场', 'market'),
+        ('/topping', '顶', '顶部', 'topping'),
+        ('/perfmon', '盘', '实盘', 'perfmon'),
+        ('/models', '模', '模型', 'models'),
+      ] %}
+      {% for href, icon, label, key in nav %}
+      <a href="{{ href }}"
+         class="flex items-center gap-3 px-5 py-2.5 text-sm transition
+                {% if active_page == key %}
+                  text-indigo-600 font-semibold bg-indigo-50 border-l-[3px] border-indigo-600
+                {% else %}
+                  text-slate-600 hover:bg-slate-50 border-l-[3px] border-transparent
+                {% endif %}">
+        <span class="inline-flex items-center justify-center w-5 h-5 rounded text-[11px] font-semibold
+                     {{ 'bg-indigo-600 text-white' if active_page == key else 'bg-slate-100 text-slate-500' }}">{{ icon }}</span>
+        <span>{{ label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+
+    {% if models %}
+    <div class="px-5 py-4 border-t border-slate-100">
+      <label class="text-[10px] text-slate-400 uppercase tracking-wide">当前模型</label>
+      <select name="model" onchange="location.search='?model='+this.value"
+              class="mt-1 w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs bg-white
+                     focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        {% for m in models %}
+        <option value="{{ m }}" {{ 'selected' if m == active_model else '' }}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="px-5 py-3 text-[10px] text-slate-300 border-t border-slate-100">
+      © 2026 FcstLabPro · 只读展示
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+      <h1 class="text-base font-semibold text-slate-700">{% block page_title %}FcstLabPro{% endblock %}</h1>
+      <span class="text-xs text-slate-400">{% block page_sub %}{% endblock %}</span>
+    </header>
+    <main class="flex-1 p-6 overflow-x-hidden">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+</div>
+</body>
+</html>

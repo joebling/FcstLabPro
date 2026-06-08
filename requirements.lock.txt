@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────────────────────────────────
+# FcstLabPro 复现性锁定文件 (Reproducibility Lock)
+#
+# 用途: 锁定能 bit-exact 复现 E1/E8 生产基线的依赖版本。
+#
+# 背景 (2026-05-29): 曾发现 E1 Kappa 漂移；复核后确认直接根因是
+#   1) data/raw 活动 CSV 被 append 了新数据
+#   2) 旧 loader 未执行 config.data.start/end, 导致训练窗口扩大
+#
+# 依赖锁的定位: 防御性复现治理。已实测在固定数据窗口后，当前 Py3.9+
+# LightGBM 4.6 与本锁文件 Py3.10+LightGBM 4.3 对 E1/E8 指标 bit-exact。
+# 但生产/研究仍使用本锁文件，避免未来库行为变化引入隐性漂移。
+#
+# 用本文件锁定的版本 + baseline_snapshot/ 冻结数据 + config 数据边界 = bit-exact 复现。
+#
+# 安装:
+#   uv venv --python 3.10 .venv
+#   VIRTUAL_ENV=.venv uv pip install -r requirements.lock.txt \
+#     --index-url https://pypi.ci.artifacts.walmart.com/artifactory/api/pypi/external-pypi/simple \
+#     --allow-insecure-host pypi.ci.artifacts.walmart.com
+#
+# 验证:
+#   .venv/bin/python scripts/verify_reproducibility.py
+#
+# ⚠️ 改动任何这里的版本后, 必须重跑 verify_reproducibility.py 确认仍 bit-exact。
+# ─────────────────────────────────────────────────────────────────────────
+joblib==1.5.3
+lightgbm==4.3.0
+numpy==1.26.4
+pandas==2.2.1
+python-dateutil==2.9.0.post0
+pytz==2026.2
+pyyaml==6.0.3
+scikit-learn==1.4.1.post1
+scipy==1.15.3
+six==1.17.0
+tabulate==0.10.0
+threadpoolctl==3.6.0
+tzdata==2026.2

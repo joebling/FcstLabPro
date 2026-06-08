@@ -1,14 +1,16 @@
 # Production Models Summary
 
-**更新时间**: 2026-03-05
+**更新时间**: 2026-06-01
 **回测区间**: 2022-09-26 ~ 2026-01-25 (1218 个交易日)
 **基准**: BTC/USDT 买入持有 Return +350.8%, MaxDD -32.0%
 
 ## 0. 上线结论摘要
 
-- **默认推荐**：生产主跑 🛡️ **E1（止盈+regime）**，原因：**MaxDD 更低（-12.7%）**，更贴合风控预算。
-- **收益增强备选**：💰 **E8（止盈+regime）** 可并行 paper 观察；它在同配置下 **Return/Sharpe 更高**，但 **回撤更大（-21.4%）且暴露更高**。
-- **关键结论**：E1 vs E8 的本质差异只有 **标签定义（终点 vs 路径触达）**；模型/特征/参数一致。
+- **当前生产主跑**：🛡️ **E20c（directional 剪枝 28 特征，止盈+regime）**，已于 2026-06-01 晋升为 primary live。
+- **晋升理由**：E20c 是 E1 同标签升级版，Kappa **0.4448 > 0.3480**，保守变体 CAGR **18.8% > 10.3%**，MaxDD **持平 -12.7%**。
+- **回滚基线**：E1 仍保留在 `models/production/e1-conservative/`；如需回滚，`git revert` E20c 晋升/active 切换 commit。
+- **收益增强备选**：💰 **E8（止盈+regime）** 继续 paper 观察；它是 touch 标签，不与 directional 分类指标直接横比。
+- **关键边界**：E20c 在牛市/震荡择时更稳；熊市 recall 低、几乎闭嘴，不是全 regime 反弹猎手。
 - **上线监控建议**：重点盯 `signals/day`、`exposure`、`rolling win-rate(30 trades)`、`live MaxDD`，以及预测概率分布漂移（均值/方差）。
 
 ---
@@ -166,11 +168,12 @@ features:
 | technical | ~49 | Binance OHLCV | high/low_50d_dist, BB, MACD |
 | volume | ~28 | Binance OHLCV | OBV |
 | flow | ~27 | Binance OHLCV | trades_sma |
-| market_structure | ~23 | Binance OHLCV | **funding_rate_14** (Top1) |
+| market_structure | ~23 | Binance OHLCV | **price_mom_smooth_14** (Top1) |
 | external_fgi | ~11 | FGI CSV | ext_fgi_ma30 |
 
-> ℹ️ `funding_rate_14` 是 **模拟** funding rate（= 14天收益率均值 × 100），
-> 本质是中期动量指标，不是真实的 Binance 永续合约资金费率。
+> ℹ️ `price_mom_smooth_14`（原误导名 funding_rate_14）本质是中期动量指标
+> （= 14天收益率均值 × 100），不是真实的 Binance 永续合约资金费率。
+> 2026-05-29 Phase1 清污已重命名为诚实名。
 > 实验 E10 已验证：真实资金费率反而不如这个模拟版有效。
 
 ---

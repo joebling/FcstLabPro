@@ -1,0 +1,31 @@
+{
+  "experiment_id": "v0601_E20d_prune_mid_run1",
+  "name": "v0601_E20d_prune_mid",
+  "description": "Phase 2.5 Wave 2: 中间梯度 — 删 67 个 importance<10 (留 62)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e20",
+    "prune"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:40:26.558146",
+  "git": {
+    "commit": "c88d918",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 16.59,
+  "aggregate_metrics": {
+    "accuracy": 0.8820005989817311,
+    "f1_binary": 0.43874643874643876,
+    "precision_binary": 0.42777777777777776,
+    "recall_binary": 0.4502923976608187,
+    "cohen_kappa": 0.3728644854600527
+  }
+}

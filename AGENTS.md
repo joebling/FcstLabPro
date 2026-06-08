@@ -110,8 +110,11 @@ python scripts/promote_model.py \
 git add models/production/{production_name}/
 git commit -m "promote: {production_name} from {exp_name}"
 
-# 3. 部署 (MODEL_NAME 环境变量切换模型)
-MODEL_NAME={production_name} ./deploy/deploy.sh
+# 3. 部署 (现役=VPS: 改 active.yaml 的 primary.artifact_dir + git commit)
+#    VPS 定时脚本 deploy/vps/run_daily_nodock.sh 自动读 active.yaml
+#    ⤴️ Cloud Run (MODEL_NAME ./deploy/deploy.sh) 已于 2026-06-02 停用并归档
+git add models/production/active.yaml
+git commit -m "switch: primary → {production_name}"
 ```
 
 **晋升产物** (`models/production/{name}/`):

@@ -18,6 +18,7 @@ from src.labels.registry import get_label_strategy
 from src.evaluation.backtest import run_walk_forward
 from src.evaluation.metrics import compute_classification_report, compute_confusion_matrix
 from src.experiment.config import load_experiment_config, apply_overrides, save_config
+from src.experiment.validation import validate_experiment_config
 from src.experiment.tracker import (
     generate_experiment_id, create_experiment_dir,
     build_meta, save_meta, update_registry,
@@ -82,6 +83,9 @@ def run_experiment(
     if overrides:
         config = apply_overrides(config, overrides)
 
+    # 硬校验: Non-overlapping / purge / walk-forward / seed (机构手册 §2)
+    validate_experiment_config(config)
+
     experiment_id = generate_experiment_id(config, overwrite=overwrite)
     category = config.get("experiment", {}).get("category", "default")
     exp_dir = create_experiment_dir(experiment_id, category=category, overwrite=overwrite)
@@ -103,7 +107,14 @@ def run_experiment(
         data_path = data_cfg.get("path")
         if data_path is None:
             raise ValueError("请在配置中指定 data.path 或先下载数据")
-        df = load_csv(data_path)
+        df = load_csv(
+            data_path,
+            start=data_cfg.get("start"),
+            end=data_cfg.get("end"),
+            expected_sha256=data_cfg.get("expected_sha256"),
+            expected_effective_rows=data_cfg.get("expected_effective_rows"),
+            strict_sha=True,  # 训练/复现路径硬阀门: 基准被改直接 raise (lesson_0602)
+        )
 
         # ========== 3. 特征工程 ==========
         feat_cfg = config["features"]
@@ -268,12 +279,19 @@ def run_experiment(
         else:
             logger.info("并行模式跳过模型保存")
 
-        # 6e. 预测结果
-        pred_df = pd.DataFrame({
+        # 6e. 预测结果 (含日期, 已去重 — 手册 §2.1 非重叠)
+        # all_test_idx 是 df (对齐后) 的行索引, 映射回日期便于下游对齐 regime/价格。
+        pred_cols = {
             "y_true": bt_result.all_y_true,
             "y_pred": bt_result.all_y_pred,
-        })
-        pred_df.to_csv(exp_dir / "predictions.csv", index=False)
+        }
+        if bt_result.all_test_idx is not None:
+            pred_dates = df.index[bt_result.all_test_idx]
+            pred_df = pd.DataFrame(pred_cols, index=pred_dates)
+            pred_df.index.name = "date"
+            pred_df.to_csv(exp_dir / "predictions.csv")
+        else:
+            pd.DataFrame(pred_cols).to_csv(exp_dir / "predictions.csv", index=False)
 
         # ========== 7. 生成报告 ==========
         cls_report = compute_classification_report(bt_result.all_y_true, bt_result.all_y_pred)

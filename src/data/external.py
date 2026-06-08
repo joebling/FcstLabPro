@@ -105,6 +105,7 @@ def download_macro_factors(
     start: str = "2018-01-01",
     end: str | None = None,
     cache: bool = True,
+    output_path: "Path | str | None" = None,
 ) -> pd.DataFrame:
     """下载宏观因子数据（通过 Yahoo Finance）.
 
@@ -116,6 +117,10 @@ def download_macro_factors(
         时间范围
     cache : bool
         是否使用/更新缓存
+    output_path : Path | str | None
+        落盘路径。None = 默认 data/external/macro_factors.csv (研究基准, tracked)。
+        市场页 sync 传 cmd_macro.csv (gitignored), 避免原地改写 tracked 基准
+        → VPS 不再跟 git pull 打架。
 
     Returns
     -------
@@ -125,13 +130,13 @@ def download_macro_factors(
     import yfinance as yf
 
     _ensure_cache_dir()
-    cache_path = CACHE_DIR / "macro_factors.csv"
+    target = Path(output_path) if output_path else CACHE_DIR / "macro_factors.csv"
 
-    if cache and cache_path.exists():
-        mtime = datetime.fromtimestamp(cache_path.stat().st_mtime)
+    if cache and target.exists():
+        mtime = datetime.fromtimestamp(target.stat().st_mtime)
         if datetime.now() - mtime < timedelta(hours=12):
-            logger.info(f"使用缓存宏观数据: {cache_path}")
-            return pd.read_csv(cache_path, parse_dates=["date"], index_col="date")
+            logger.info(f"使用缓存宏观数据: {target}")
+            return pd.read_csv(target, parse_dates=["date"], index_col="date")
 
     if symbols is None:
         symbols = list(MACRO_SYMBOLS.keys())
@@ -166,8 +171,8 @@ def download_macro_factors(
     df = df.sort_index()
 
     # 始终保存下载的数据
-    df.to_csv(cache_path)
-    logger.info(f"宏观数据已保存: {cache_path}")
+    df.to_csv(target)
+    logger.info(f"宏观数据已保存: {target}")
 
     logger.info(f"宏观因子下载完成: {len(df)} 行, {len(df.columns)} 列")
     return df

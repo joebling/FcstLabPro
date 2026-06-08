@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -22,6 +23,16 @@ from pathlib import Path
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+
+def _extract_version(exp_id: str) -> str:
+    """从实验 ID 提取版本号, 兼容 v0601_xxx 与 xxx_v0601_xxx."""
+    match = re.search(r"(?:^|_)v(\d{4})(?:_|$)", exp_id or "")
+    if match:
+        return f"v{match.group(1)}"
+    return "v0305"
 
 
 def _parse_model_info(manifest: dict, variant: str) -> dict:
@@ -44,9 +55,7 @@ def _parse_model_info(manifest: dict, variant: str) -> dict:
 
     # 版本: 从实验名提取
     exp_id = manifest.get("source_experiment", {}).get("id", "")
-    version = "v0305"  # default
-    if "_v" in exp_id:
-        version = "v" + exp_id.split("_v")[-1][:4]
+    version = _extract_version(exp_id)
 
     # 特征数: "129 (after decontamination)" → 129
     feat_count_raw = str(manifest.get("features", {}).get("count", "129"))
@@ -58,6 +67,7 @@ def _parse_model_info(manifest: dict, variant: str) -> dict:
 
     return {
         "name": display_name,
+        "raw_name": raw_name,
         "version": version,
         "type": model_type,
         "label": strategy.get("label", "N/A"),
@@ -142,8 +152,10 @@ def build_signal_json(
     with open(model_dir / "manifest.json") as f:
         manifest = json.load(f)
 
-    # 读取价格
-    dp = data_path or Path("data/raw/btc_binance_BTCUSDT_1d.csv")
+    # 读取价格: 默认走 live 实时数据 (与推理/freshness gate 同源, lesson_0602)。
+    from src.serving.paths import LIVE_OHLCV_PATH
+
+    dp = data_path or LIVE_OHLCV_PATH
     if not dp.is_absolute():
         dp = PROJECT_ROOT / dp
     df = pd.read_csv(str(dp), index_col=0).sort_index()
@@ -183,6 +195,7 @@ def build_signal_json(
         "reason": state.get("last_reason", "无"),
         "regime": state.get("last_regime", "未知"),
         "regime_detail": state.get("last_regime_detail", ""),
+        "run_count_today": state.get("run_count_today", 1),  # 今日第几次运行
         "position": position,
         "history": history,
         "model": model_info,

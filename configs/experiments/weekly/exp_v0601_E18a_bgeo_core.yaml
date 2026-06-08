@@ -1,0 +1,82 @@
+experiment:
+  name: v0601_E18a_bgeo_core
+  description: 'Phase 2.5 Wave 1: E1 + BGeometrics LTH/STH 6 核心指标 (36 衍生特征)'
+  hypothesis: |
+    BGeometrics 6 个 LTH/STH 链上原生指标 (mvrv/nupl/sopr × lth/sth)
+    提供与现有 124 特征独立的"持有者行为分化"信息维度,
+    对 Bear 模型 (空头风控) 的周期识别能力有显著提升.
+    预期 Kappa OOS ≥ E1 × 1.05.
+  tags:
+  - weekly
+  - bear
+  - v0601
+  - phase_2_5
+  - wave_1
+  - external_lth_sth
+  - bgeometrics
+  category: weekly
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  # ⚠️ 锁定 2020-01-01 (参考 docs/lessons/lesson_0601_data_governance_regime_shift.md)
+  # 原因: 加 2018-2019 会引发 regime shift negative transfer, Kappa 降 -19%
+  start: '2020-01-01'
+  end: '2025-12-31'
+  # 数据治理防御 (lesson_0601 P0): 检查 csv sha256 + effective rows
+  # 不一致 仅 WARN 不阻塞, 避免 production E1 那样被默默漂移
+  expected_sha256: '004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858'
+  expected_effective_rows: 2192    # 2020-01-01 起 ~ 2025-12-31, 参考 production E1 manifest
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  - external_lth_sth_core    # ← E18a 新增 (36 特征)
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+label:
+  strategy: directional_filtered
+  T: 21
+  X: 0.04
+  rsi_window: 14
+  rsi_threshold: 45.0
+  ma_window: 50
+  require_below_ma: true
+model:
+  type: lightgbm
+  params:
+    n_estimators: 100
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    n_jobs: 1
+    auto_scale_pos_weight: true
+evaluation:
+  method: walk_forward
+  init_train: 800
+  oos_window: 63
+  step: 21
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  purge_gap: 21
+seed: 42

@@ -1,0 +1,32 @@
+{
+  "experiment_id": "v0601_E20c_prune_core_run1",
+  "name": "v0601_E20c_prune_core",
+  "description": "Phase 2.5 Wave 2: 激进剪枝 — 只留 28 个 importance>=20 的核心特征 (删 101)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e20",
+    "prune"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:40:15.189632",
+  "git": {
+    "commit": "c88d918",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 8.43,
+  "aggregate_metrics": {
+    "accuracy": 0.8857142857142857,
+    "f1_binary": 0.49230769230769234,
+    "precision_binary": 0.4444444444444444,
+    "recall_binary": 0.5517241379310345,
+    "cohen_kappa": 0.4287576997437166,
+    "_note": "去重版 (非重叠 OOS, 1155 唯一日期)。原重叠版 kappa=0.4448 (3339 行)。模型未变, 仅聚合口径修正。"
+  }
+}

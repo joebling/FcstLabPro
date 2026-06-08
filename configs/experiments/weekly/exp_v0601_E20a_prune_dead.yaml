@@ -1,0 +1,85 @@
+data:
+  end: '2025-12-31'
+  expected_effective_rows: 2192
+  expected_sha256: 004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858
+  interval: 1d
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+  source: binance
+  start: '2020-01-01'
+  symbol: BTCUSDT
+evaluation:
+  init_train: 800
+  method: walk_forward
+  metrics:
+  - accuracy
+  - f1_binary
+  - precision_binary
+  - recall_binary
+  - cohen_kappa
+  oos_window: 63
+  purge_gap: 21
+  step: 21
+experiment:
+  name: v0601_E20a_prune_dead
+  description: 'Phase 2.5 Wave 2 #3: E1 剪枝实验 a — 仅删 6 个 importance=0 的死特征'
+  hypothesis: '验证假设: LightGBM 自身能否忽略 importance=0 的死特征?
+
+    如果 kappa 不变 → LightGBM 内部已忽略, 死特征无害
+
+    如果 kappa 提升 → tie-break 受死特征影响, 后续剪枝有意义
+
+    如果 kappa 下降 → 死特征通过 colsample_bytree 抽样提供了正则化'
+  tags:
+  - weekly
+  - bear
+  - v0601
+  - phase_2_5
+  - wave_2
+  - e20
+  - prune
+  category: weekly
+features:
+  drop_features:
+  - rsi_*
+  - price_vs_sma_*
+  - sma_cross_10_50
+  - sma_cross_50_200
+  - avg_trade_size_ma_10
+  - avg_trade_size_ma_20
+  - ext_fgi_extreme_fear
+  - ext_fgi_extreme_greed
+  - qvol_ratio_10
+  - volume_density_ma_5
+  drop_na_method: ffill_then_drop
+  scaling: standard
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+label:
+  T: 21
+  X: 0.04
+  ma_window: 50
+  require_below_ma: true
+  rsi_threshold: 45.0
+  rsi_window: 14
+  strategy: directional_filtered
+model:
+  params:
+    auto_scale_pos_weight: true
+    colsample_bytree: 0.8
+    learning_rate: 0.05
+    max_depth: 6
+    min_child_samples: 20
+    n_estimators: 100
+    n_jobs: 1
+    num_leaves: 31
+    random_state: 42
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    subsample: 0.8
+    verbose: -1
+  type: lightgbm
+seed: 42

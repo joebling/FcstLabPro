@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "n_features": 17,
+  "feature_cols": [
+    "macd",
+    "bb_pctb_20",
+    "return_3d",
+    "return_14d",
+    "return_21d",
+    "high_14d_dist",
+    "high_50d_dist",
+    "low_50d_dist",
+    "obv",
+    "obv_sma_10",
+    "price_vs_vwap_20",
+    "vol_volatility_10",
+    "vol_volatility_20",
+    "trades_sma_5",
+    "price_mom_smooth_14",
+    "cvd_ma_7",
+    "buy_pressure_ma_20"
+  ],
+  "sha256": "3d393682d11e5089c6aac99a04e8e6990724c4cbc5bda1a10041c3e9c335ef0d",
+  "generated_by": "src.experiment.runner.run_experiment"
+}

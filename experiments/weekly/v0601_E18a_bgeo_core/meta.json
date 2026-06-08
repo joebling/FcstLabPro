@@ -1,0 +1,31 @@
+{
+  "experiment_id": "v0601_E18a_bgeo_core",
+  "name": "v0601_E18a_bgeo_core",
+  "description": "Phase 2.5 Wave 1: E1 + BGeometrics LTH/STH 6 核心指标 (36 衍生特征)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_1",
+    "external_lth_sth",
+    "bgeometrics"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T06:59:48.037465",
+  "git": {
+    "commit": "728392b",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 44.22,
+  "aggregate_metrics": {
+    "accuracy": 0.8769092542677448,
+    "f1_binary": 0.3929098966026588,
+    "precision_binary": 0.3970149253731343,
+    "recall_binary": 0.3888888888888889,
+    "cohen_kappa": 0.32442945943191837
+  }
+}

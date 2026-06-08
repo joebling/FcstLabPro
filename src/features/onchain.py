@@ -1,15 +1,27 @@
 """链上指标特征集 — 基于价格历史模拟链上行为.
 
-在没有真实链上数据源时，使用价格/成交量行为模拟
-MVRV、SOPR、活跃地址、矿工流出等链上指标的代理特征。
+⚠️ 废弃警告: 本模块所有特征均为 OHLCV 衡生的**代理**，非真实链上数据。
+   mvrv / lth_sopr / sth_sopr / nupl_proxy 等名字具误导性 — 它们只是
+   close 的各种变换，与真正的 UTXO/链上估值无关。
+   生产模型 (E1/E8) 未启用本特征集。Phase 2 将接入 CoinMetrics 真 MVRV,
+   到时本模块应被真数据替代。详见 docs/plans/feature_engineering_roadmap.md。
 """
 
 from __future__ import annotations
+
+import warnings
 
 import numpy as np
 import pandas as pd
 
 from src.features.registry import register_feature_set
+
+warnings.warn(
+    "src.features.onchain 的特征均为 OHLCV 代理 (mvrv/sopr/nupl 等名不副实),"
+    " 非真实链上数据。生产模型未启用。Phase 2 将用 CoinMetrics 真 MVRV 替代。",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @register_feature_set("onchain")

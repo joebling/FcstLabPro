@@ -1,0 +1,31 @@
+{
+  "experiment_id": "v0601_E20a_prune_dead_run1",
+  "name": "v0601_E20a_prune_dead",
+  "description": "Phase 2.5 Wave 2 #3: E1 剪枝实验 a — 仅删 6 个 importance=0 的死特征",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e20",
+    "prune"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:38:32.797328",
+  "git": {
+    "commit": "c88d918",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 32.21,
+  "aggregate_metrics": {
+    "accuracy": 0.8736148547469302,
+    "f1_binary": 0.39886039886039887,
+    "precision_binary": 0.3888888888888889,
+    "recall_binary": 0.4093567251461988,
+    "cohen_kappa": 0.3282964793506149
+  }
+}

@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# =============================================================================
+# FcstLabPro VPS 市场展示数据同步 —— 独立 best-effort 任务 (与信号 pipeline 解耦)
+#
+# 编排逻辑在 scripts/sync_market_data.py:
+#   funding / 持仓量 / taker买卖比 ← crypto-market-data (GitHub, 不被 Binance 451 封)
+#   宏观 ← Yahoo Finance (yfinance, 未被封)
+#   每源独立 try/except。
+#
+# 衍生品数据来源 crypto-market-data 仓库 (与 FcstLabPro 同级 clone), 本脚本
+# 会先 git pull 它拿到最新 JSON, 再由 sync 转成 data/external/cmd_*.csv。
+#
+# 这些**不是**模型特征 (模型只吃 OHLCV+FGI), 故本任务与信号完全隔离:
+# 它挂了只影响市场图, 信号毫发无伤。
+#
+# 调度: 建议每 6 小时 (覆盖 funding 8h 结算 + 美股收盘后刷 macro + 瞬时失败自恢复)。
+#   crontab 示例 (仓库在 ~/FcstLabPro, 与 run_daily_nodock.sh 同目录):
+#     0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data_$(date +\%Y\%m\%d).log 2>&1
+#   (路径以你实际 git clone 位置为准; 脚本内部用 BASH_SOURCE 自算 REPO_DIR, 不依赖绝对路径)
+#
+# git 冲突: 无。本任务只写 gitignored 的 cmd_*.csv (含 cmd_macro.csv),
+#   不碰 tracked 文件 → VPS git pull 直接一把过, 无需手动 checkout。
+# =============================================================================
+set -uo pipefail  # 不用 -e: best-effort, 单源失败不该让整脚本崩
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+VENV_PYTHON="${REPO_DIR}/.venv/bin/python"
+ENV_FILE="${REPO_DIR}/.env"
+
+echo "=============================================="
+echo " FcstLabPro 市场数据同步 — $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+echo "=============================================="
+
+# ── 前置检查 ──────────────────────────────────────────────────────────────
+if [ ! -f "${VENV_PYTHON}" ]; then
+    echo " 虚拟环境不存在: ${VENV_PYTHON}"
+    exit 1
+fi
+
+# ── 加载环境变量 (若有) ────────────────────────────────────────────────────
+if [ -f "${ENV_FILE}" ]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "${ENV_FILE}"
+    set +a
+fi
+
+export PYTHONPATH="${REPO_DIR}:${PYTHONPATH:-}"
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+
+# ── 先拉最新衍生品数据 (crypto-market-data, best-effort) ─────────────────────
+# 默认与 FcstLabPro 同级; CRYPTO_MARKET_DATA_DIR 可覆盖。pull 失败仅用旧 JSON。
+CMD_DIR="${CRYPTO_MARKET_DATA_DIR:-${REPO_DIR}/../crypto-market-data}"
+if [ -d "${CMD_DIR}/.git" ]; then
+    echo ">>> git pull crypto-market-data ..."
+    git -C "${CMD_DIR}" pull --ff-only 2>&1 || echo " crypto-market-data pull 失败, 用本地旧 JSON"
+else
+    echo " 未找到 crypto-market-data 仓库 (${CMD_DIR}); funding/OI/taker 将无法刷新"
+fi
+
+# ── 点火 ───────────────────────────────────────────────────────────────────
+"${VENV_PYTHON}" "${REPO_DIR}/scripts/sync_market_data.py"
+RC=$?
+
+if [ "${RC}" -ne 0 ]; then
+    echo " 部分市场数据源同步失败 (退出码 ${RC}) — 市场图可能未全部刷新, 信号不受影响"
+fi
+exit "${RC}"

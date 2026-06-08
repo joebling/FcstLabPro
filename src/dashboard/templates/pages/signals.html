@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% import "macros.html" as ui %}
+{% block title %}信号 · FcstLabPro{% endblock %}
+{% block page_title %}📡 信号{% endblock %}
+{% block page_sub %}{{ active_model }}{% endblock %}
+
+{% block content %}
+{% if not has_data %}
+  <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">暂无数据。</div>
+{% else %}
+
+{% set sig = latest.get('signal') %}
+{% set is_buy = sig == 'BUY' %}
+{% set sig_grad = ('from-emerald-600 to-teal-500' if sig == 'BUY'
+   else 'from-rose-600 to-red-500' if sig == 'SELL'
+   else 'from-amber-500 to-orange-500' if sig == 'HOLD'
+   else 'from-slate-600 to-slate-500') %}
+
+<!-- 当前信号大卡 (按信号类型变色) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+  <div class="rounded-xl shadow-md p-5 text-white bg-gradient-to-br {{ sig_grad }}">
+    <div class="text-xs opacity-90">最新信号 · {{ latest.get('date', '') }}</div>
+    <div class="text-4xl font-bold mt-2">{{ sig or '—' }}</div>
+    <div class="text-sm opacity-90 mt-3">价格 ${{ "{:,.0f}".format(latest.get('price', 0)) }}</div>
+    <div class="text-xs opacity-80 mt-1">{{ latest.get('regime', '') }}</div>
+    <div class="text-xs opacity-75 mt-2">{{ latest.get('reason', '') }}</div>
+  </div>
+
+  <div class="lg:col-span-2">
+    {% call ui.card("信号质量 · 命中率/实现收益时序 (理论 T=21 回填)", "") %}
+    <div class="text-[11px] text-slate-400 mb-2">衡量信号预测力(研究态), 非实盘业绩 — 实盘看「实盘」页</div>
+    <div style="height:240px"><canvas id="sigChart"></canvas></div>
+    {% endcall %}
+  </div>
+</div>
+
+<!-- 双模型对比 -->
+{% if paper %}
+{% call ui.card("双模型对比 (paper · " ~ paper.get('date', '') ~ ")", "🤖") %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+  {% for name, m in paper.get('models', {}).items() %}
+  <div class="rounded-lg border border-slate-200 p-3">
+    <div class="flex items-center justify-between">
+      <span class="font-semibold text-slate-700">{{ name }}</span>
+      <span class="text-xs px-2 py-0.5 rounded-full
+            {{ 'bg-emerald-100 text-emerald-700' if m.signal == 'BUY'
+               else 'bg-rose-100 text-rose-700' if m.signal == 'SELL'
+               else 'bg-amber-100 text-amber-700' if m.signal == 'HOLD'
+               else 'bg-slate-100 text-slate-500' }}">
+        {{ m.signal }}</span>
+    </div>
+    <div class="text-xs text-slate-500 mt-2 space-y-0.5">
+      <div>概率: {{ "%.3f"|format(m.get('probability', 0)) }}</div>
+      <div>regime: {{ m.get('regime', '—') }}</div>
+      <div>{{ m.get('reason', '') }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<div class="text-xs text-slate-400 mt-2">
+  共识: {{ '✅ 一致' if paper.get('consensus') else '❌ 分歧' }}
+</div>
+{% endcall %}
+{% endif %}
+
+<!-- 信号实现明细表 -->
+<div class="mt-4">
+{% call ui.card("信号实现明细 (近 30 条)", "📋") %}
+{% include "partials/signal_table.html" %}
+{% endcall %}
+</div>
+
+<script id="sig-data" type="application/json">{{ {"batches": batches} | tojson }}</script>
+<script src="/static/charts.js"></script>
+<script>FcstCharts.renderSignals();</script>
+
+{% endif %}
+{% endblock %}

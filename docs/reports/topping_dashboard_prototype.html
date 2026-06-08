@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BTC 顶部危险监控 Dashboard — 设计原型 (MOCK)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body{color:#16181a;background:#f4f5f6}
+  .card{background:#fff;border-radius:.6rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .chart-box{position:relative;height:380px;width:100%}
+  table.dt{border-collapse:collapse;width:100%;font-size:.82rem}
+  table.dt th,table.dt td{border:1px solid #e3e5e8;padding:.4rem .55rem;text-align:left}
+  table.dt thead th{background:#eef0f2;font-weight:600}
+  .num{font-variant-numeric:tabular-nums;text-align:right}
+  .chip{display:inline-block;padding:.1rem .5rem;border-radius:.35rem;font-size:.72rem;font-weight:600;white-space:nowrap}
+  .scn-btn{padding:.4rem .9rem;border-radius:.45rem;font-size:.82rem;font-weight:600;border:1px solid #d6d8da;background:#fff;cursor:pointer}
+  .scn-btn.active{color:#fff;border-color:transparent}
+  .lc-card{opacity:1;transition:opacity .2s}
+  .lc-card.muted{opacity:.4}
+</style>
+</head>
+<body class="p-4 sm:p-6">
+<div class="max-w-screen-xl mx-auto">
+
+<!-- MOCK banner -->
+<div class="border-l-4 rounded p-3 mb-4 text-sm" style="background:#fff3d6;border-color:#995213;color:#7a4210">
+  <b>设计原型 · MOCK 数据</b> — 本页用于评审 dashboard 布局与交互，所有数字均为示意，非实时读数。落地后由 <code class="bg-white/60 px-1 rounded">scripts/research/topping_dashboard.py</code> 接 <code class="bg-white/60 px-1 rounded">data/external/</code> 真实数据每日重生成。
+</div>
+
+<header class="mb-4 flex flex-wrap items-end justify-between gap-3 border-b-2 pb-3" style="border-color:#0053e2">
+  <div>
+    <div class="flex items-center gap-3 mb-1">
+      <span class="inline-block w-2.5 h-7 rounded-sm" style="background:#0053e2"></span>
+      <span class="inline-block w-2.5 h-7 rounded-sm" style="background:#ffc220"></span>
+      <h1 class="text-2xl font-bold text-slate-900">BTC 周期顶部危险监控</h1>
+    </div>
+    <p class="text-sm text-slate-600 ml-7">三层精英制 · Reserve Risk 主信号 + LTH 族确认 + 技术面择时 · 配套 <code class="bg-slate-100 px-1 rounded">topping_framework v1.1</code></p>
+  </div>
+  <div class="text-xs text-slate-500 text-right">
+    <div>快照日 (示意): <b>2026-06-05</b></div>
+    <div>BTC ~$73,700 · 距 2025-10 顶 -41%</div>
+  </div>
+</header>
+
+<!-- 场景切换器 (仅原型演示) -->
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <span class="text-xs text-slate-500 mr-1">原型场景预览:</span>
+  <button class="scn-btn" data-scn="safe">安全 (当前真实)</button>
+  <button class="scn-btn" data-scn="warn">警示</button>
+  <button class="scn-btn" data-scn="danger">危险</button>
+  <button class="scn-btn" data-scn="crit">极危</button>
+</div>
+
+<!-- HERO 状态 + 行动 -->
+<section id="hero" class="card p-5 mb-5 border-2" style="border-color:#2a8703">
+  <div class="grid md:grid-cols-3 gap-5 items-center">
+    <div class="flex items-center gap-4">
+      <div id="hero-light" class="w-20 h-20 rounded-full flex items-center justify-center shrink-0" style="background:#2a8703">
+        <span id="hero-light-txt" class="text-white text-2xl font-bold">安全</span>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500">当前危险等级</div>
+        <div id="hero-level" class="text-2xl font-bold" style="color:#1f6b02">安全</div>
+      </div>
+    </div>
+    <div class="md:col-span-1">
+      <div class="text-xs text-slate-500 mb-1">建议动作</div>
+      <div id="hero-action" class="text-lg font-semibold text-slate-800">满仓持有</div>
+    </div>
+    <div class="md:text-right">
+      <div class="text-xs text-slate-500 mb-1">目标仓位</div>
+      <div class="flex md:justify-end items-baseline gap-1">
+        <span id="hero-target" class="text-4xl font-bold" style="color:#1f6b02">100</span>
+        <span class="text-lg text-slate-500">%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 三层 + 状态机 网格 -->
+<div class="grid lg:grid-cols-3 gap-5 mb-5">
+
+  <!-- Layer A -->
+  <section class="card p-4">
+    <h3 class="font-bold text-sm mb-1" style="color:#0053e2">Layer A · 主信号 (Reserve Risk)</h3>
+    <p class="text-xs text-slate-500 mb-3">expanding 历史分位决定基础危险档</p>
+    <div class="flex items-baseline gap-2 mb-2">
+      <span id="rr-pct" class="text-4xl font-bold text-slate-800">25.8</span>
+      <span class="text-sm text-slate-500">分位</span>
+    </div>
+    <!-- gauge -->
+    <div class="relative h-5 rounded-full overflow-hidden mb-1" style="background:linear-gradient(90deg,#e3f1dc 0% 70%,#fff3d6 70% 85%,#ffe0c2 85% 95%,#fde7e6 95% 100%)">
+      <div id="rr-marker" class="absolute top-0 h-5 w-1.5 bg-slate-900" style="left:25.8%"></div>
+    </div>
+    <div class="flex justify-between text-[10px] text-slate-400"><span>0</span><span>70</span><span>85</span><span>95</span><span>100</span></div>
+    <p class="text-xs text-slate-500 mt-3">阈线: 70 停加仓 · 85 减第1批 · 95 极危</p>
+  </section>
+
+  <!-- Layer B -->
+  <section class="card p-4">
+    <h3 class="font-bold text-sm mb-1" style="color:#995213">Layer B · 确认信号 (LTH 族)</h3>
+    <p class="text-xs text-slate-500 mb-3">≥85 分位计数: <b id="lb-count">0</b> / 5 (门槛 ≥2 确认 / ≥3 极危)</p>
+    <div id="lb-grid" class="space-y-1.5"></div>
+  </section>
+
+  <!-- Layer C -->
+  <section id="lc-section" class="card p-4 lc-card muted">
+    <h3 class="font-bold text-sm mb-1 text-slate-600">Layer C · 触发择时</h3>
+    <p class="text-xs text-slate-500 mb-3" id="lc-note">仅在 A/B 拉警报后激活 (当前未激活)</p>
+    <div id="lc-grid" class="space-y-1.5"></div>
+  </section>
+</div>
+
+<!-- 分批状态机 -->
+<section class="card p-4 mb-5">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="font-bold text-sm text-slate-800">分批撤退状态机</h3>
+    <span class="text-xs text-slate-500">已减 <b id="sm-sold">0</b>/3 批 · 剩余仓位 <b id="sm-pos">100%</b></span>
+  </div>
+  <div id="sm-grid" class="grid sm:grid-cols-3 gap-3 mb-3"></div>
+  <div class="text-xs text-slate-500" id="sm-log">最近触发: —</div>
+  <p class="text-[11px] text-slate-400 mt-2">状态持久化避免重复提示「减第1批」; 阈值边缘加滞后 (hysteresis) 防反复横跳。</p>
+</section>
+
+<!-- 历史回放 -->
+<section class="card p-4 mb-5">
+  <h3 class="font-bold text-sm text-slate-800 mb-1">历史顶部点灯回放 (验证)</h3>
+  <p class="text-xs text-slate-500 mb-3">RR 分位曲线 + 四档背景色带 + 价格叠加; 红点 = 规则在历史顶部当时是否拉警报。用于检验「这套规则在过去的顶到底亮没亮灯」。</p>
+  <div class="chart-box"><canvas id="chartHist"></canvas></div>
+</section>
+
+<!-- 明细表 -->
+<section class="card p-4 mb-6">
+  <h3 class="font-bold text-sm text-slate-800 mb-3">指标明细 (当前快照)</h3>
+  <div class="overflow-x-auto">
+    <table class="dt" id="detailTable">
+      <thead><tr><th>层</th><th>指标</th><th class="num">当前值</th><th class="num">历史分位</th><th>状态</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="text-xs text-slate-500 border-t pt-3 mb-8">
+  设计原型 · 配套实证报告 <code class="bg-slate-100 px-1 rounded">docs/reports/btc_topping_ic_analysis_20260608.html</code> · Layer 0 提醒: 链上数据可能被回填修正, live 表现或低于回测, 留安全边距 · FcstLabPro 研究组
+</footer>
+
+</div>
+
+<script>
+// ============ MOCK 场景数据 ============
+const LB_NAMES = ["LTH-MVRV","LTH-SOPR","LTH-NUPL","MVRV-Z","Puell"];
+const LC_NAMES = ["跌破 SMA50","周线 MACD 转负","吊灯止损触发"];
+
+const SCN = {
+  safe:  {label:"安全", c:"#2a8703", cText:"#1f6b02", rr:25.8, action:"满仓持有", target:100,
+          lb:[30,22,25,35,27], lc:[false,false,false], lcActive:false, sold:0, lastLog:"—"},
+  warn:  {label:"警示", c:"#ffc220", cText:"#995213", rr:78.0, action:"停止加仓，开始盯 Layer C", target:100,
+          lb:[64,58,55,66,52], lc:[false,false,false], lcActive:true, sold:0, lastLog:"RR 进入 [70,85)，转警示 (示意 2025-08)"},
+  danger:{label:"危险", c:"#ee7203", cText:"#9a4a00", rr:88.0, action:"分批减仓第 1 批 (~30%)", target:70,
+          lb:[90,87,72,86,70], lc:[true,false,false], lcActive:true, sold:1, lastLog:"RR≥85 且 LayerB 2 高位，减第1批 (示意 2025-09 @ $112k)"},
+  crit:  {label:"极危", c:"#ea1100", cText:"#a30d00", rr:96.0, action:"减第 2 批 + Layer C 触发即清第 3 批", target:30,
+          lb:[97,94,89,92,83], lc:[true,true,false], lcActive:true, sold:2, lastLog:"RR≥95 且 LayerB 4 高位 + SMA50 破位，减第2批 (示意 2025-10 @ $121k)"},
+};
+const BATCHES = [{name:"第1批",pct:30},{name:"第2批",pct:30},{name:"第3批",pct:40}];
+
+// ============ 渲染 ============
+function highChip(pct){
+  if(pct>=95) return ['极高','#fde7e6','#a30d00'];
+  if(pct>=85) return ['高位','#ffe0c2','#9a4a00'];
+  if(pct>=70) return ['偏高','#fff3d6','#995213'];
+  return ['低位','#e3f1dc','#1f6b02'];
+}
+
+function render(key){
+  const s = SCN[key];
+  // hero
+  document.getElementById('hero').style.borderColor = s.c;
+  const hl = document.getElementById('hero-light'); hl.style.background = s.c;
+  document.getElementById('hero-light-txt').textContent = s.label;
+  const lvl = document.getElementById('hero-level'); lvl.textContent = s.label; lvl.style.color = s.cText;
+  document.getElementById('hero-action').textContent = s.action;
+  const tg = document.getElementById('hero-target'); tg.textContent = s.target; tg.style.color = s.cText;
+  // Layer A
+  document.getElementById('rr-pct').textContent = s.rr.toFixed(1);
+  document.getElementById('rr-marker').style.left = s.rr + '%';
+  // Layer B
+  const hi = s.lb.filter(p=>p>=85).length;
+  document.getElementById('lb-count').textContent = hi;
+  const lbg = document.getElementById('lb-grid'); lbg.innerHTML='';
+  LB_NAMES.forEach((n,i)=>{
+    const [t,bg,fg]=highChip(s.lb[i]);
+    lbg.innerHTML += `<div class="flex items-center justify-between text-sm">
+      <span class="text-slate-700">${n}${i===0?' <span class="text-[10px] text-slate-400">(首选)</span>':''}</span>
+      <span class="flex items-center gap-2"><span class="num text-slate-500 text-xs">${s.lb[i].toFixed(0)}分位</span>
+      <span class="chip" style="background:${bg};color:${fg}">${t}</span></span></div>`;
+  });
+  // Layer C
+  const lcSec = document.getElementById('lc-section');
+  lcSec.classList.toggle('muted', !s.lcActive);
+  document.getElementById('lc-note').textContent = s.lcActive ? '已激活 (A/B 已拉警报)' : '仅在 A/B 拉警报后激活 (当前未激活)';
+  const lcg = document.getElementById('lc-grid'); lcg.innerHTML='';
+  LC_NAMES.forEach((n,i)=>{
+    const fired = s.lc[i];
+    const [bg,fg,t] = fired ? ['#fde7e6','#a30d00','已触发'] : ['#f0f1f2','#46474a','未触发'];
+    lcg.innerHTML += `<div class="flex items-center justify-between text-sm">
+      <span class="text-slate-700">${n}</span>
+      <span class="chip" style="background:${bg};color:${fg}">${t}</span></div>`;
+  });
+  // 状态机
+  document.getElementById('sm-sold').textContent = s.sold;
+  const pos = 100 - BATCHES.slice(0,s.sold).reduce((a,b)=>a+b.pct,0);
+  document.getElementById('sm-pos').textContent = pos+'%';
+  const smg = document.getElementById('sm-grid'); smg.innerHTML='';
+  BATCHES.forEach((b,i)=>{
+    const done = i < s.sold;
+    const [bg,fg,t] = done ? ['#e3f1dc','#1f6b02','已执行'] : ['#f0f1f2','#46474a','待触发'];
+    smg.innerHTML += `<div class="border rounded p-2" style="border-color:${done?'#2a8703':'#e3e5e8'}">
+      <div class="flex items-center justify-between"><span class="font-semibold text-sm">${b.name}</span>
+      <span class="chip" style="background:${bg};color:${fg}">${t}</span></div>
+      <div class="text-xs text-slate-500 mt-1">减仓 ${b.pct}%</div></div>`;
+  });
+  document.getElementById('sm-log').textContent = '最近触发: ' + s.lastLog;
+  // 明细表
+  const tb = document.querySelector('#detailTable tbody'); tb.innerHTML='';
+  tb.innerHTML += detailRow('A', 'Reserve Risk', s.rr.toFixed(3)+' (示意)', s.rr);
+  LB_NAMES.forEach((n,i)=> tb.innerHTML += detailRow('B', n, '—', s.lb[i]));
+  // 按钮高亮
+  document.querySelectorAll('.scn-btn').forEach(btn=>{
+    const on = btn.dataset.scn===key;
+    btn.classList.toggle('active', on);
+    btn.style.background = on ? s.c : '#fff';
+  });
+}
+function detailRow(layer,name,val,pct){
+  const [t,bg,fg]=highChip(pct);
+  return `<tr><td>${layer}</td><td class="font-medium">${name}</td><td class="num">${val}</td>
+    <td class="num">${pct.toFixed(1)}%</td><td><span class="chip" style="background:${bg};color:${fg}">${t}</span></td></tr>`;
+}
+
+// ============ 历史回放图 (MOCK 月度序列) ============
+const HIST_LABELS = ["2018","2018-H2","2019","2019-H2","2020","2020-H2","2021-04","2021-H2","2021-11","2022","2022-H2","2023","2023-H2","2024","2024-H2","2025-H1","2025-10","2026-H1"];
+const HIST_PRICE = [11000,6400,3700,9500,7300,11500,64000,38000,69000,30000,16500,23000,34000,52000,68000,95000,124000,73700];
+const HIST_RRPCT = [62,28,12,40,30,55,88,60,95,35,10,30,45,66,80,90,93,26];
+// 顶部点灯事件 (RR>=85 拉警报的月份)
+const TOP_FIRE = HIST_RRPCT.map((p,i)=> p>=85 ? p : null);
+
+const ctx = document.getElementById('chartHist');
+new Chart(ctx, {
+  data:{
+    labels: HIST_LABELS,
+    datasets:[
+      {type:'line', label:'RR 历史分位', yAxisID:'yPct', data:HIST_RRPCT, borderColor:'#0053e2',
+       backgroundColor:'rgba(0,83,226,.08)', fill:true, tension:.3, pointRadius:2, borderWidth:2},
+      {type:'scatter', label:'顶部点灯 (RR≥85 警报)', yAxisID:'yPct', data:TOP_FIRE,
+       backgroundColor:'#ea1100', pointRadius:7, pointStyle:'triangle'},
+      {type:'line', label:'BTC 价格 (右轴)', yAxisID:'yPrice', data:HIST_PRICE, borderColor:'#9aa0a6',
+       borderDash:[4,3], fill:false, tension:.3, pointRadius:0, borderWidth:1.5},
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{
+      legend:{position:'top', labels:{font:{size:11}}},
+      tooltip:{callbacks:{label:(c)=>{
+        if(c.dataset.label.startsWith('顶部')) return c.parsed.y!=null?`顶部点灯: RR ${c.parsed.y} 分位 (警报)`:'';
+        if(c.dataset.yAxisID==='yPrice') return `价格: $${c.parsed.y.toLocaleString()}`;
+        return `RR 分位: ${c.parsed.y}`;
+      }}}
+    },
+    scales:{
+      yPct:{position:'left', min:0, max:100, title:{display:true,text:'RR 历史分位'},
+        grid:{color:(c)=> [70,85,95].includes(c.tick.value)?'#e2a900':'#f0f1f2'}},
+      yPrice:{position:'right', title:{display:true,text:'BTC 价格 (USD)'}, grid:{display:false}},
+      x:{ticks:{font:{size:10}}}
+    }
+  }
+});
+
+// init
+render('safe');
+document.querySelectorAll('.scn-btn').forEach(b=> b.addEventListener('click', ()=>render(b.dataset.scn)));
+</script>
+</body></html>

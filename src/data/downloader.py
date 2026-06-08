@@ -8,7 +8,6 @@ from pathlib import Path
 from datetime import datetime
 
 import pandas as pd
-import requests
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,8 @@ def _binance_base_urls() -> list[str]:
 
 def _get_binance_klines(params: dict, base_urls: list[str]) -> tuple[list, str]:
     """Fetch klines from the first Binance endpoint that works."""
+    import requests  # lazy: 纯函数/守卫逻辑不该被网络库拖累
+
     errors: list[str] = []
     for base_url in base_urls:
         url = f"{base_url}{_BINANCE_KLINES_ENDPOINT}"
@@ -63,12 +64,31 @@ def _get_binance_klines(params: dict, base_urls: list[str]) -> tuple[list, str]:
     raise requests.HTTPError("所有 Binance Klines 端点均失败: " + "; ".join(errors))
 
 
+def _guard_raw_overwrite(output_path: Path, allow_overwrite_raw: bool) -> None:
+    """防护: 拒绝将下载数据覆盖 data/raw/ 下的不可变训练基准.
+
+    依据 lesson_0602: VPS --download 曾把实时数据写进 data/raw/ 基准文件,
+    静默覆盖导致复现链断裂。实时下载一律写 data/live/, 基准只读。
+    确需重建基准时显式传 allow_overwrite_raw=True。
+    """
+    parts = output_path.resolve().parts
+    in_raw = "data" in parts and "raw" in parts and parts.index("raw") == parts.index("data") + 1
+    if in_raw and output_path.exists() and not allow_overwrite_raw:
+        raise PermissionError(
+            f"🔴 拒绝覆盖训练基准: {output_path}\n"
+            "    data/raw/ 是不可变基准 (sha 锁定), 实时下载请写 data/live/.\n"
+            "    确需重建基准: download_binance_klines(..., allow_overwrite_raw=True)\n"
+            "    参考: docs/lessons/lesson_0602_download_overwrite_baseline.md"
+        )
+
+
 def download_binance_klines(
     symbol: str = "BTCUSDT",
     interval: str = "1d",
     start: str = "2018-01-01",
     end: str | None = None,
     output_path: str | Path | None = None,
+    allow_overwrite_raw: bool = False,
 ) -> pd.DataFrame:
     """从 Binance API 下载 K 线数据.
 
@@ -142,6 +162,7 @@ def download_binance_klines(
 
     if output_path:
         output_path = Path(output_path)
+        _guard_raw_overwrite(output_path, allow_overwrite_raw)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output_path)
         logger.info(f"数据已保存至 {output_path}, 共 {len(df)} 条")

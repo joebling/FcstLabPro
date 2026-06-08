@@ -1,21 +1,26 @@
 experiment:
-  name: v0305_E8_touch_label
-  description: 'v0305 E8: touch_filtered 标签 (路径依赖, 对标 E1 参数)'
+  name: v0529_E8_rename
+  description: 'v0529 E8: market_structure 伪外部特征重命名 (Phase1 清污, 纯重命名不改算法)'
   tags:
   - weekly
   - bear
-  - v0305
-  - touch_label
+  - v0529
+  - phase1
   - decontamination
-  - label_alignment
+  - rename
   category: weekly
+  hypothesis: 将 funding_rate_*/open_interest_*/stablecoin_inflow_proxy 重命名为 price_mom_smooth_*/volume_cumsum_*/down_volume_proxy
+    后, 分类指标应与 production E8 (v0305_E8_touch_label) 保持一致 (理想 bit-exact), 因为只改列名不改数值。若漂移则说明列序对
+    LightGBM tie-break 有影响。
 data:
   source: binance
   symbol: BTCUSDT
   interval: 1d
-  start: '2018-01-01'
+  start: '2020-01-01'
   end: '2025-12-31'
   path: data/raw/btc_binance_BTCUSDT_1d.csv
+  expected_sha256: '004bf0706559e0a79a4361c9a0db27d5acb07d72556499df0e081879017c7858'
+  expected_effective_rows: 2192
 features:
   sets:
   - technical

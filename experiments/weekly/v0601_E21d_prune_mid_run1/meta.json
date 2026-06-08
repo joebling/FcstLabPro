@@ -1,0 +1,32 @@
+{
+  "experiment_id": "v0601_E21d_prune_mid_run1",
+  "name": "v0601_E21d_prune_mid",
+  "description": "Phase 2.5 Wave 2 (E8 系剪枝): imp<10 删 (留 44)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e21",
+    "prune",
+    "touch"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:48:00.527304",
+  "git": {
+    "commit": "c3881aa",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 11.99,
+  "aggregate_metrics": {
+    "accuracy": 0.927822701407607,
+    "f1_binary": 0.8133230054221534,
+    "precision_binary": 0.7720588235294118,
+    "recall_binary": 0.8592471358428805,
+    "cohen_kappa": 0.7687439883276925
+  }
+}

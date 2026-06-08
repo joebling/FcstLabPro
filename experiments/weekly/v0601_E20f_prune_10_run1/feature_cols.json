@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "n_features": 2,
+  "feature_cols": [
+    "volatility_20d",
+    "price_mom_smooth_14"
+  ],
+  "sha256": "0a8fc753d7093426ebe1b54e3e4792dc9e8d6c1a9a6722efc940f7d9304bd36a",
+  "generated_by": "src.experiment.runner.run_experiment"
+}

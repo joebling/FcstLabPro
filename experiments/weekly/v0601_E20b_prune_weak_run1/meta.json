@@ -1,0 +1,31 @@
+{
+  "experiment_id": "v0601_E20b_prune_weak_run1",
+  "name": "v0601_E20b_prune_weak",
+  "description": "Phase 2.5 Wave 2 #4: E1 剪枝实验 b — 删 44 个 importance<5 的弱特征 (含 6 死)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e20",
+    "prune"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:39:07.913205",
+  "git": {
+    "commit": "c88d918",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 21.78,
+  "aggregate_metrics": {
+    "accuracy": 0.8796046720575023,
+    "f1_binary": 0.42406876790830944,
+    "precision_binary": 0.4157303370786517,
+    "recall_binary": 0.4327485380116959,
+    "cohen_kappa": 0.3568748868056334
+  }
+}

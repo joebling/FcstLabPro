@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-05-29T07:09:56.489707+00:00",
+  "raw_ohlcv": {
+    "path": "data/raw/btc_binance_BTCUSDT_1d.csv",
+    "sha256": "2b0aa34ca187bc240658855b6f08d8c6c78c3f1db792fa34993730a74cc65679",
+    "rows": 2341,
+    "start": "2020-01-01",
+    "end": "2026-05-29"
+  },
+  "effective_ohlcv": {
+    "path": "data/raw/btc_binance_BTCUSDT_1d.csv",
+    "rows": 2192,
+    "start": "2020-01-01",
+    "end": "2025-12-31",
+    "filter_start": "2018-01-01",
+    "filter_end": "2025-12-31"
+  },
+  "external_sources": {
+    "fear_greed_index": {
+      "status": "embedded_in_pipeline",
+      "verified": false
+    }
+  },
+  "freshness_sla_days": 1
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""E1 策略线上推理脚本.
+"""FcstLabPro 生产模型线上推理脚本.
 
 每日运行一次，输出买入/持有/平仓/静默信号。
 
@@ -24,7 +24,7 @@ import json
 import logging
 import sys
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import joblib
@@ -35,6 +35,12 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# 训推共用的特征契约 (Phase 3): build + 列序校验逻辑收敛于此
+from src.serving.feature_contract import (  # noqa: E402
+    build_feature_frame,
+    validate_feature_cols,
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -42,9 +48,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("live_signal")
 
-# ----- 默认路径 -----
-DEFAULT_MODEL = PROJECT_ROOT / "models/production/e1-conservative/model.joblib"
-DEFAULT_CONFIG = PROJECT_ROOT / "models/production/e1-conservative/config.yaml"
+# ----- 默认路径 (从 active.yaml 解析, 不再硬编码模型名) -----
+# 历史上这里写死 e1-conservative；现在统一走 src/serving/active_config。
+# 仍保留 --model/--config 显式覆盖 (docker_entrypoint 在用)。
 DEFAULT_STATE = PROJECT_ROOT / "data/live/signal_state.json"
 
 
@@ -61,6 +67,7 @@ class PositionState:
     days_held: int = 0
     last_signal_date: str | None = None
     last_signal: str | None = None
+    run_count_today: int = 0  # 今日已运行次数 (同日重跑计数, 跨日重置)
     last_reason: str | None = None
     last_regime: str | None = None
     last_regime_detail: str | None = None
@@ -85,18 +92,36 @@ class PositionState:
 # =====================================================================
 
 def fetch_latest_data(config: dict) -> pd.DataFrame:
-    """拉取最新数据，确保足够的历史窗口用于计算特征."""
-    from src.data.loader import load_csv
+    """拉取最新数据，确保足够的历史窗口用于计算特征.
 
-    # 优先用本地数据 (离线环境 / Binance API 不可用)
+    读取优先级 (lesson_0602 整改收尾):
+      1. data/live/ 实时下载落点 — 生产 pipeline stage 1 刚写的新数据
+      2. config 里的 data/raw/ 基准 — 离线/未跑下载时的兑底 (可能过期)
+      3. 在线拉取 Binance
+
+    为什么不直接用 config 的 data/raw/: 那是 sha 锁定的训练基准, 生产不会
+    更新它 (downloader 拒绝覆盖)。live 链必须吃 data/live/ 的新数据,
+    否则就是「下载写 live, 推理读 raw」的路径分裂 (这正是 freshness gate 报警的根因)。
+    """
+    from src.data.loader import load_csv
+    from src.serving.paths import LIVE_OHLCV_PATH
+
+    # 1. 优先用 data/live/ 实时数据 (生产 pipeline 刚下载的)
+    if LIVE_OHLCV_PATH.exists():
+        logger.info(f"使用实时数据 (data/live): {LIVE_OHLCV_PATH}")
+        df = load_csv(str(LIVE_OHLCV_PATH))
+        logger.info(f"数据加载完成: {len(df)} 行, {df.index[0].date()} ~ {df.index[-1].date()}")
+        return df
+
+    # 2. 回退 config 里的本地基准 (离线环境 / Binance API 不可用)
     local_path = config["data"].get("path")
     if local_path and Path(PROJECT_ROOT / local_path).exists():
-        logger.info(f"使用本地数据: {local_path}")
+        logger.info(f"使用本地基准数据: {local_path}")
         df = load_csv(str(PROJECT_ROOT / local_path))
         logger.info(f"数据加载完成: {len(df)} 行, {df.index[0].date()} ~ {df.index[-1].date()}")
         return df
 
-    # 尝试在线拉取
+    # 3. 尝试在线拉取
     try:
         from src.data.downloader import download_binance_klines
         end_date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -110,84 +135,6 @@ def fetch_latest_data(config: dict) -> pd.DataFrame:
     except Exception as e:
         logger.error(f"数据拉取失败: {e}")
         raise
-
-
-def prepare_features(df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[str]]:
-    """构建特征，返回 (df, feature_cols)."""
-    from src.features.builder import build_features, get_feature_columns
-
-    feat_cfg = config["features"]
-    df = build_features(
-        df,
-        feature_sets=feat_cfg["sets"],
-        drop_na_method=feat_cfg.get("drop_na_method", "ffill_then_drop"),
-        drop_features=feat_cfg.get("drop_features"),
-    )
-    feature_cols = get_feature_columns(df)
-    return df, feature_cols
-
-
-def validate_feature_cols(
-    feature_cols: list[str],
-    model_path: Path,
-) -> None:
-    """校验推理时的 feature_cols 与训练时保存的 feature_cols.json 逐位一致.
-
-    背景：model.joblib (LightGBM) 内部只记 `Column_0..N` 占位符，不会在
-    推理时按名重排。如果 train↔serve 之间列序静默变动，推理会拿错输入
-    不报错。这里是唯一的可靠闸门。
-
-    Parameters
-    ----------
-    feature_cols : list[str]
-        本次推理的列顺序 (来自 `get_feature_columns(df)`)
-    model_path : Path
-        model.joblib 路径，同目录下期望有 feature_cols.json
-
-    Raises
-    ------
-    ValueError
-        feature_cols.json 存在但与本次推理不一致时抛出。
-    """
-    fc_path = model_path.parent / "feature_cols.json"
-    if not fc_path.exists():
-        logger.warning(
-            "⚠️  %s 不存在 — 跳过列序校验。老模型未随带此文件，"
-            "推理与训练的列对齐仅靠「`build_features` 输出顺序未变」的默契。"
-            "请在下次 promote 时生成该文件。详见 docs/specs/data_pipeline.md §10。",
-            fc_path,
-        )
-        return
-
-    with open(fc_path) as f:
-        doc = json.load(f)
-    expected = doc.get("feature_cols", [])
-
-    if len(feature_cols) != len(expected):
-        raise ValueError(
-            f"特征数量不匹配: 训练时 {len(expected)} 列, 推理时 {len(feature_cols)} 列. "
-            f"有人改了 src/features/* 但未重新 promote? 参考 {fc_path}"
-        )
-
-    if list(feature_cols) != list(expected):
-        # 找到首个不一致位置, 方便排障
-        diffs = [
-            (i, e, a) for i, (e, a) in enumerate(zip(expected, feature_cols))
-            if e != a
-        ]
-        preview = "; ".join(
-            f"index {i}: expected={e!r}, actual={a!r}" for i, e, a in diffs[:3]
-        )
-        raise ValueError(
-            f"特征顺序不匹配 (共 {len(diffs)} 处不同). "
-            f"前 3 处: {preview}. "
-            f"训练时快照: {fc_path}"
-        )
-
-    logger.info(
-        "✅ 特征列序校验通过 (%d 列, sha256=%s)",
-        len(feature_cols), doc.get("sha256", "")[:12],
-    )
 
 
 # =====================================================================
@@ -210,6 +157,17 @@ def is_bear_market(prices: pd.Series, window: int = 63, threshold: float = -0.10
 # =====================================================================
 # Signal Logic
 # =====================================================================
+
+def _days_held(entry_date: str | None, today: str) -> int:
+    """持仓天数 = 日历差 (today - entry_date), 而非「跑了几次」的累加。
+
+    这是同日重跑幂等性的基石: 一天内跑 N 次, (today-entry).days 不变,
+    不再出现「跑 3 次就以为过了 3 天」的 bug。entry_date 缺失返回 0。
+    """
+    if not entry_date:
+        return 0
+    return (date.fromisoformat(today) - date.fromisoformat(entry_date)).days
+
 
 def generate_signal(
     model,
@@ -262,7 +220,7 @@ def generate_signal(
 
     # --- Step 2: 如果已持仓，检查退出条件 ---
     if state.in_position:
-        days = state.days_held + 1
+        days = _days_held(state.entry_date, meta["date"])
         pnl = (current_price - state.entry_price) / state.entry_price
 
         # 止盈触发
@@ -280,7 +238,10 @@ def generate_signal(
         return "HOLD", meta
 
     # --- Step 3: 模型预测 ---
-    X_today = df[feature_cols].iloc[[-1]].values
+    # 保留 DataFrame (含列名), 让 LightGBM 双保险校验列名一致:
+    # 上游 validate_feature_cols() 已校过顺序, 这里不转 .values 能消除
+    # "X does not have valid feature names" 警告 + 防未来重构静默错位。
+    X_today = df[feature_cols].iloc[[-1]]
     y_pred = int(model.predict(X_today)[0])
     meta["model_pred"] = y_pred
 
@@ -301,11 +262,12 @@ SIGNAL_EMOJI = {
 }
 
 
-def print_signal(signal: str, meta: dict, state: PositionState) -> None:
+def print_signal(signal: str, meta: dict, state: PositionState, model_name: str) -> None:
     """Pretty-print the signal."""
     emoji = SIGNAL_EMOJI.get(signal, "❓")
+    display_name = model_name.replace("-", " ").title()
     print("\n" + "=" * 60)
-    print(f"  {emoji}  E1 策略信号: {signal}")
+    print(f"  {emoji}  {display_name} 策略信号: {signal}")
     print("=" * 60)
     print(f"  日期:     {meta['date']}")
     print(f"  价格:     ${meta['price']:,.2f}")
@@ -315,65 +277,120 @@ def print_signal(signal: str, meta: dict, state: PositionState) -> None:
         pnl = (meta["price"] - state.entry_price) / state.entry_price
         print(f"  买入价:   ${state.entry_price:,.2f} ({state.entry_date})")
         print(f"  浮盈:     {pnl:+.2%}")
-        print(f"  持仓:     {state.days_held + 1} 天")
+        print(f"  持仓:     {_days_held(state.entry_date, meta['date'])} 天")
     print("=" * 60)
 
 
 # =====================================================================
-# Main
+# Reusable core (pipeline + CLI 共用, 消除 main 里的过程式重复)
 # =====================================================================
 
-def main():
-    parser = argparse.ArgumentParser(description="E1 策略线上信号")
-    parser.add_argument("--model", default=str(DEFAULT_MODEL), help="模型文件")
-    parser.add_argument("--config", default=str(DEFAULT_CONFIG), help="实验配置")
-    parser.add_argument("--state", default=str(DEFAULT_STATE), help="状态文件")
-    parser.add_argument("--take-profit", action="store_true", help="启用止盈 (稳健版)")
-    parser.add_argument("--regime-switch", action="store_true", help="启用 regime 开关 (保守版)")
-    parser.add_argument("--dry-run", action="store_true", help="干跑模式，不更新状态")
-    args = parser.parse_args()
+def run_signal(
+    model_path: Path,
+    config_path: Path,
+    *,
+    state_path: Path,
+    use_tp: bool,
+    use_regime: bool,
+    dry_run: bool = False,
+    ledger_mode: str = "live",
+) -> tuple[str, dict]:
+    """完整跑一次信号: 加载→拉数→特征→校验→信号→落状态→账本.
 
-    # 加载配置
-    with open(args.config) as f:
+    pipeline (run_production_pipeline) 与 CLI main() 都走这里, 保证行为一致。
+    """
+    with open(config_path) as f:
         config = yaml.safe_load(f)
 
-    # 加载模型
-    logger.info(f"加载模型: {args.model}")
-    model = joblib.load(args.model)
+    logger.info(f"加载模型: {model_path}")
+    model = joblib.load(model_path)
 
-    # 加载状态
-    state_path = Path(args.state)
     state = PositionState.load(state_path)
     if state.in_position:
         logger.info(f"当前持仓: 买入于 {state.entry_date} @ ${state.entry_price:,.2f}, "
                     f"已持有 {state.days_held} 天")
 
-    # 拉取数据
     df = fetch_latest_data(config)
-
-    # 构建特征
-    df, feature_cols = prepare_features(df, config)
+    df, feature_cols = build_feature_frame(df, config)
     logger.info(f"特征构建完成: {len(feature_cols)} 个特征")
+    validate_feature_cols(feature_cols, model_path)
 
-    # 校验特征列序与训练时一致 (P0 安全门) — 见 docs/specs/data_pipeline.md §10
-    validate_feature_cols(feature_cols, Path(args.model))
-
-    # 生成信号
     variant = "基础"
-    if args.take_profit and args.regime_switch:
+    if use_tp and use_regime:
         variant = "止盈+regime"
-    elif args.take_profit:
+    elif use_tp:
         variant = "+止盈"
-    elif args.regime_switch:
+    elif use_regime:
         variant = "+regime"
     logger.info(f"策略变体: {variant}")
 
     signal, meta = generate_signal(
         model=model, df=df, feature_cols=feature_cols, state=state,
-        config=config, use_tp=args.take_profit, use_regime=args.regime_switch,
+        config=config, use_tp=use_tp, use_regime=use_regime,
     )
 
-    # 更新状态
+    # 同日重跑计数: 今日第几次跑 (跨日重置)。
+    # 策略: 重跑仍发邮件 (你能确认每次跑都成功), 但标上「第 N 次」记号;
+    # 持仓天数按日期算 (不受次数影响), 重跑多少次都不会虚增天数。
+    is_rerun = bool(state.last_signal_date == meta["date"])
+    if is_rerun:
+        state.run_count_today += 1
+    else:
+        state.run_count_today = 1
+    meta["is_rerun"] = is_rerun
+    meta["run_count_today"] = state.run_count_today
+    if is_rerun:
+        logger.info(
+            f"ℹ️ 今日 ({meta['date']}) 第 {state.run_count_today} 次运行 "
+            f"(重跑, 持仓天数不受影响)。"
+        )
+
+    _apply_signal_to_state(state, signal, meta)
+    print_signal(signal, meta, state, model_path.parent.name)
+
+    if not dry_run:
+        state.save(state_path)
+        logger.info(f"状态已保存: {state_path}")
+    else:
+        logger.info("干跑模式，未保存状态")
+
+    _record_to_ledger(
+        signal=signal, meta=meta, model_path=model_path,
+        df=df, feature_cols=feature_cols,
+        ledger_mode="dry-run" if dry_run else ledger_mode,
+    )
+    return signal, meta
+
+
+def run_for_model(
+    model,
+    *,
+    state_path: Path,
+    ledger_mode: str = "live",
+    dry_run: bool = False,
+) -> tuple[str, dict]:
+    """按 ActiveModel (active.yaml 槽位) 跑信号. variant flags 从 model 解析.
+
+    pipeline 的 4.signals stage 用这个: 模型路径/配置/variant 全部来自 active.yaml,
+    无需手工拼 CLI flags。
+    """
+    flags = set(model.cli_flags)
+    return run_signal(
+        model.model_path, model.config_path,
+        state_path=state_path,
+        use_tp="--take-profit" in flags,
+        use_regime="--regime-switch" in flags,
+        dry_run=dry_run,
+        ledger_mode=ledger_mode,
+    )
+
+
+def _apply_signal_to_state(state: PositionState, signal: str, meta: dict) -> None:
+    """根据信号更新持仓状态 (BUY 建仓 / SELL 平仓 / HOLD 计天).
+
+    days_held 一律由日期差派生 (today - entry_date), 不再 += 累加。
+    保证同一天重跑多次不会虚增天数 (幂等)。
+    """
     today_str = meta["date"]
     if signal == "BUY" and not state.in_position:
         state.in_position = True
@@ -388,7 +405,7 @@ def main():
             "entry_price": state.entry_price,
             "exit_price": meta["price"],
             "pnl": round(pnl, 4),
-            "days_held": state.days_held + 1,
+            "days_held": _days_held(state.entry_date, today_str),
             "reason": meta["reason"],
         })
         state.in_position = False
@@ -396,7 +413,7 @@ def main():
         state.entry_price = None
         state.days_held = 0
     elif signal == "HOLD":
-        state.days_held += 1
+        state.days_held = _days_held(state.entry_date, today_str)
 
     state.last_signal_date = today_str
     state.last_signal = signal
@@ -404,18 +421,88 @@ def main():
     state.last_regime = meta.get("regime", "未知")
     state.last_regime_detail = meta.get("regime_detail", "")
 
-    # 输出
-    print_signal(signal, meta, state)
 
-    # 保存状态
-    if not args.dry_run:
-        state.save(state_path)
-        logger.info(f"状态已保存: {state_path}")
+# =====================================================================
+# Main
+# =====================================================================
+
+def main():
+    parser = argparse.ArgumentParser(description="FcstLabPro 线上信号")
+    parser.add_argument("--model", default=None,
+                        help="模型文件 (不传则从 active.yaml 解析)")
+    parser.add_argument("--config", default=None,
+                        help="实验配置 (不传则从 active.yaml 解析)")
+    parser.add_argument("--model-slot", default=None,
+                        help="active.yaml 槽位名或模型名 (primary/challenger/e1-conservative)，"
+                             "默认 primary。仅在未显式传 --model 时生效")
+    parser.add_argument("--state", default=str(DEFAULT_STATE), help="状态文件")
+    parser.add_argument("--take-profit", action="store_true", help="启用止盈 (稳健版)")
+    parser.add_argument("--regime-switch", action="store_true", help="启用 regime 开关 (保守版)")
+    parser.add_argument("--dry-run", action="store_true", help="干跑模式，不更新状态")
+    parser.add_argument("--ledger-mode", default="live",
+                        choices=["live", "shadow", "dry-run"],
+                        help="信号账本写入模式 (live=写live+archive, shadow=只archive)")
+    args = parser.parse_args()
+
+    # 解析模型路径: 显式 --model 优先, 否则从 active.yaml
+    if args.model and args.config:
+        model_path = Path(args.model)
+        config_path = Path(args.config)
     else:
-        logger.info("干跑模式，未保存状态")
+        from src.serving import resolve_model
+        active = resolve_model(args.model_slot)
+        model_path = Path(args.model) if args.model else active.model_path
+        config_path = Path(args.config) if args.config else active.config_path
+        logger.info(f"从 active.yaml 解析模型: {active.slot}={active.name} "
+                    f"(variant={active.strategy_variant}, status={active.status})")
 
-    # 返回信号以供外部集成
+    # 全部过程收敛到 run_signal (pipeline 与 CLI 共用, 消除 DRY 违规)
+    signal, meta = run_signal(
+        model_path, config_path,
+        state_path=Path(args.state),
+        use_tp=args.take_profit,
+        use_regime=args.regime_switch,
+        dry_run=args.dry_run,
+        ledger_mode=args.ledger_mode,
+    )
     return signal, meta
+
+
+def _record_to_ledger(signal, meta, model_path, df, feature_cols, ledger_mode):
+    """把信号写入 live/shadow/archive 账本 + 生成监控产物."""
+    from src.serving.signal_ledger import record_signal, write_monitoring
+
+    model_dir = model_path.parent
+    model_name = model_dir.name
+
+    # 模型谱系: hash 从 manifest, variant 从 active.yaml, fc_sha 从 feature_cols.json
+    model_hash = variant = fc_sha = None
+    manifest_p = model_dir / "manifest.json"
+    if manifest_p.exists():
+        mf = json.loads(manifest_p.read_text())
+        model_hash = mf.get("model", {}).get("sha256_prefix")
+        variant = mf.get("deployment", {}).get("variant")
+    fc_p = model_dir / "feature_cols.json"
+    if fc_p.exists():
+        fc_sha = json.loads(fc_p.read_text()).get("sha256")
+
+    data_last = meta.get("date", "")
+    try:
+        record_signal(
+            {"date": data_last, "price": meta.get("price"),
+             "signal": signal, "regime": meta.get("regime"),
+             "reason": meta.get("reason")},
+            model_name=model_name, model_hash=model_hash or "unknown",
+            variant=variant or "unknown", input_data_end=data_last,
+            mode=ledger_mode, feature_cols_sha256=fc_sha,
+        )
+        write_monitoring(
+            model_name=model_name, n_rows=len(df),
+            data_last_date=data_last, signal=signal,
+            probability=meta.get("probability"),
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"信号账本写入失败 (不阻断信号): {e}")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,13 @@
-"""市场结构特征集 — 模拟资金面/微观结构信号.
+"""市场结构特征集 — 基于 OHLCV 派生的微观结构代理信号.
 
 基于 Binance Kline 可直接获得的字段（quote_volume, trades, taker_buy 等）
-以及价格行为衍生的资金面代理指标。
+以及价格行为衡生的代理指标。
+
+⚠️ 命名说明：本模块所有特征均为 OHLCV 衡生品，不含任何真实衔生品市场数据。
+真实 funding rate / open interest 请看 src/features/external.py 的 ext_* 特征集。
+历史上曾用 funding_rate_* / open_interest_* / stablecoin_inflow_proxy 命名，
+已于 v0529 重命名为 price_mom_smooth_* / volume_cumsum_* / down_volume_proxy
+以消除误导 (见 docs/reviews/cr_0522_feature_engineering.md §P0-1)。
 """
 
 from __future__ import annotations
@@ -14,10 +20,10 @@ from src.features.registry import register_feature_set
 
 @register_feature_set("market_structure")
 def build_market_structure_features(df: pd.DataFrame) -> pd.DataFrame:
-    """构建市场结构/资金面特征.
+    """构建市场结构/微观结构代理特征.
 
-    包含：模拟资金费率、未平仓量代理、CVD、稳定币流入代理、
-    主动买入比率、单笔平均成交额、量价背离等。
+    包含：价格动量平滑、成交量累积、CVD、下跌成交额代理、
+    主动买入比率、单笔平均成交额、量价背离等。均为 OHLCV 衡生品。
     """
     df = df.copy()
     close = df["close"]
@@ -26,13 +32,15 @@ def build_market_structure_features(df: pd.DataFrame) -> pd.DataFrame:
     low = df["low"]
     op = df["open"]
 
-    # ========== 模拟资金费率（基于价格动量） ==========
+    # ========== 价格动量平滑器 (原误导性命名 funding_rate, 实为 close 动量) ==========
+    # ⚠️ 这不是真实资金费率。真实 funding rate 看 external.py 的 ext_funding_rate_*。
     for w in [7, 14, 24]:
-        df[f"funding_rate_{w}"] = close.pct_change().rolling(w).mean() * 100
+        df[f"price_mom_smooth_{w}"] = close.pct_change().rolling(w).mean() * 100
 
-    # ========== 模拟未平仓合约（基于成交量累积） ==========
+    # ========== 成交量累积 (原误导性命名 open_interest, 实为 volume 滚动求和) ==========
+    # ⚠️ 这不是真实未平仓量。
     for w in [7, 14, 24]:
-        df[f"open_interest_{w}"] = volume.rolling(w).sum()
+        df[f"volume_cumsum_{w}"] = volume.rolling(w).sum()
 
     # ========== CVD (Cumulative Volume Delta) ==========
     # 用 close vs open 判断买卖方向
@@ -43,10 +51,11 @@ def build_market_structure_features(df: pd.DataFrame) -> pd.DataFrame:
         df[f"cvd_ma_{w}"] = df["cvd"].rolling(w).mean()
         df[f"cvd_change_{w}"] = df["cvd"].pct_change(w)
 
-    # ========== 模拟稳定币流入（价格下跌时的成交额代理） ==========
+    # ========== 下跌成交额代理 (原误导性命名 stablecoin_inflow, 实为 跳价×量) ==========
+    # ⚠️ 这不是真实稳定币流入。
     price_change_7 = close.pct_change(7)
     vol_avg_7 = volume.rolling(7).mean()
-    df["stablecoin_inflow_proxy"] = -price_change_7 * vol_avg_7
+    df["down_volume_proxy"] = -price_change_7 * vol_avg_7
 
     # ========== 主动买入比率（Buy Pressure Proxy） ==========
     # 基于 K 线形态：(close - low) / (high - low) 作为买入压力代理

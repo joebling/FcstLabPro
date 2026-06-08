@@ -1,0 +1,32 @@
+{
+  "experiment_id": "v0601_E20c_repro_seed456_run1",
+  "name": "v0601_E20c_repro_seed456",
+  "description": "E20c 复现性验证 — seed=456 (原 seed=42 → kappa 0.4448)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0601",
+    "phase_2_5",
+    "wave_2",
+    "e20",
+    "prune",
+    "reproducibility"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T08:44:04.142707",
+  "git": {
+    "commit": "b155524",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 456,
+  "status": "completed",
+  "duration_seconds": 8.4,
+  "aggregate_metrics": {
+    "accuracy": 0.8817011081162025,
+    "f1_binary": 0.49809402795425667,
+    "precision_binary": 0.4404494382022472,
+    "recall_binary": 0.5730994152046783,
+    "cohen_kappa": 0.43234155959358067
+  }
+}

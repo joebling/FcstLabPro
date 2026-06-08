@@ -98,12 +98,12 @@
     "volume_density",
     "volume_density_sma_5",
     "volume_density_sma_10",
-    "funding_rate_7",
-    "funding_rate_14",
-    "funding_rate_24",
-    "open_interest_7",
-    "open_interest_14",
-    "open_interest_24",
+    "price_mom_smooth_7",
+    "price_mom_smooth_14",
+    "price_mom_smooth_24",
+    "volume_cumsum_7",
+    "volume_cumsum_14",
+    "volume_cumsum_24",
     "cvd",
     "cvd_ma_7",
     "cvd_change_7",
@@ -111,7 +111,7 @@
     "cvd_change_14",
     "cvd_ma_21",
     "cvd_change_21",
-    "stablecoin_inflow_proxy",
+    "down_volume_proxy",
     "buy_pressure",
     "buy_pressure_ma_5",
     "buy_pressure_ma_10",
@@ -132,7 +132,6 @@
     "ext_fgi_extreme_greed",
     "ext_fgi_price_divergence"
   ],
-  "sha256": "761edbd4b124736ff1943edebccd7d146c7e495152632330e9812216090bf4f4",
-  "generated_by": "scripts.bootstrap_feature_cols",
-  "note": "重建自当前 src/features/* 代码 + config.yaml，非原训练快照"
+  "sha256": "9a4967ac2a06a1987506cf9649759891254613171857345837914fe19fa17dbc",
+  "generated_by": "src.experiment.runner.run_experiment"
 }

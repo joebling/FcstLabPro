@@ -32,6 +32,7 @@ class FoldResult:
     y_pred: np.ndarray
     y_proba: np.ndarray | None = None
     feature_importance: np.ndarray | None = None
+    test_idx: np.ndarray | None = None  # 全局行索引 (用于去重)
 
 
 @dataclass
@@ -41,7 +42,25 @@ class BacktestResult:
     aggregate_metrics: dict[str, float] = field(default_factory=dict)
     all_y_true: np.ndarray | None = None
     all_y_pred: np.ndarray | None = None
+    all_test_idx: np.ndarray | None = None  # 每个预测的全局行索引 (可能重复)
     last_model: BaseModel | None = None
+
+
+def _dedup_by_index(test_idx, y_true, y_pred):
+    """按全局行索引去重, 每个索引保留首次 (最早 fold) 预测。
+
+    walk-forward 重叠 (oos_window>step) 时同一天会被多个 fold 预测。
+    聚合指标必须用非重叠样本 (手册 §2.1), 否则同一样本被计多次。
+    返回 (uniq_idx, y_true_dedup, y_pred_dedup), 按索引升序。
+    """
+    test_idx = np.asarray(test_idx)
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    # 稳定排序: 索引升序, 同索引保留原顺序 (最早 fold 在前)
+    order = np.argsort(test_idx, kind="stable")
+    si, st, sp = test_idx[order], y_true[order], y_pred[order]
+    keep = np.concatenate(([True], si[1:] != si[:-1]))
+    return si[keep], st[keep], sp[keep]
 
 
 def run_walk_forward(
@@ -122,6 +141,7 @@ def run_walk_forward(
 
     all_y_true = []
     all_y_pred = []
+    all_test_idx = []
     importance_sum = None
 
     for fold in folds:
@@ -209,6 +229,12 @@ def run_walk_forward(
             else:
                 importance_sum += fi
 
+        # 计算全局行索引 (用于下游去重/对齐日期)。
+        # walk-forward 重叠 (oos_window>step) 时同一索引会出现多次。
+        _test_idx = np.arange(fold.test_start, fold.test_end)
+        if len(_test_idx) > len(y_test):  # 序列模型截断对齐
+            _test_idx = _test_idx[len(_test_idx) - len(y_test):]
+
         fold_result = FoldResult(
             fold_id=fold.fold_id,
             train_size=fold.train_end - fold.train_start,
@@ -218,23 +244,30 @@ def run_walk_forward(
             y_pred=y_pred,
             y_proba=y_proba,
             feature_importance=fi,
+            test_idx=_test_idx,
         )
         result.folds.append(fold_result)
         all_y_true.append(y_test)
         all_y_pred.append(y_pred)
+        all_test_idx.append(_test_idx)
 
         logger.info(f"Fold {fold.fold_id}: "
                      f"train={fold_result.train_size}, test={fold_result.test_size}, "
                      f"acc={metrics.get('accuracy', 0):.4f}")
 
-    # 汇总
-    result.all_y_true = np.concatenate(all_y_true)
-    result.all_y_pred = np.concatenate(all_y_pred)
+    # 汇总 (按手册 §2.1: 聚合指标用非重叠样本, 重叠预测去重)
+    _idx_all = np.concatenate(all_test_idx)
+    _yt_all = np.concatenate(all_y_true)
+    _yp_all = np.concatenate(all_y_pred)
+    uniq_idx, yt_dedup, yp_dedup = _dedup_by_index(_idx_all, _yt_all, _yp_all)
+    result.all_y_true = yt_dedup
+    result.all_y_pred = yp_dedup
+    result.all_test_idx = uniq_idx
     result.aggregate_metrics = compute_metrics(result.all_y_true, result.all_y_pred, metric_names)
     result.last_model = model  # 最后一个 fold 的模型
 
     logger.info(f"Walk-Forward 完成: {len(folds)} folds, "
-                f"总样本={len(result.all_y_true)}, "
+                f"去重样本={len(result.all_y_true)} (原始 {len(_yt_all)}), "
                 f"总体 acc={result.aggregate_metrics.get('accuracy', 0):.4f}")
 
     return result
@@ -327,15 +360,21 @@ def _run_parallel(
     # 按 fold_id 排序
     all_fold_results.sort(key=lambda x: x.fold_id)
 
-    # 汇总
+    # 汇总 (手册 §2.1: 聚合用非重叠样本, 重叠预测去重)
+    # 从排序后的 folds 重建 (不依赖完成顺序, 保证索引对齐)
     result = BacktestResult()
     result.folds = all_fold_results
-    result.all_y_true = np.concatenate(all_y_true)
-    result.all_y_pred = np.concatenate(all_y_pred)
+    _idx_all = np.concatenate([f.test_idx for f in all_fold_results])
+    _yt_all = np.concatenate([f.y_true for f in all_fold_results])
+    _yp_all = np.concatenate([f.y_pred for f in all_fold_results])
+    uniq_idx, yt_dedup, yp_dedup = _dedup_by_index(_idx_all, _yt_all, _yp_all)
+    result.all_y_true = yt_dedup
+    result.all_y_pred = yp_dedup
+    result.all_test_idx = uniq_idx
     result.aggregate_metrics = compute_metrics(result.all_y_true, result.all_y_pred, metric_names)
 
     logger.info(f"并行 Walk-Forward 完成: {len(all_fold_results)} folds, "
-                f"总样本={len(result.all_y_true)}, "
+                f"去重样本={len(result.all_y_true)} (原始 {len(_yt_all)}), "
                 f"总体 acc={result.aggregate_metrics.get('accuracy', 0):.4f}")
 
     # 合并 fold 结果到 CSV
@@ -458,6 +497,10 @@ def _execute_single_fold(
             preds_df["y_proba"] = y_proba
         preds_df.to_csv(fold_dir / "predictions.csv", index=False)
 
+    _test_idx = np.arange(fold.test_start, fold.test_end)
+    if len(_test_idx) > len(y_test):  # 序列模型截断对齐
+        _test_idx = _test_idx[len(_test_idx) - len(y_test):]
+
     return FoldResult(
         fold_id=fold.fold_id,
         train_size=fold.train_end - fold.train_start,
@@ -467,6 +510,7 @@ def _execute_single_fold(
         y_pred=y_pred,
         y_proba=y_proba,
         feature_importance=fi,
+        test_idx=_test_idx,
     )
 
 

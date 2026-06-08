@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* in-cell data bar — 抄 RiskDetect: --bar 宽度 ∝ 列内幅度 */
+.rd-bar {
+  position: relative;
+  font-weight: 600;
+}
+.rd-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--bar, 0%);
+  background: var(--bar-color, #e2e8f0);
+  opacity: 0.45;
+  z-index: 1;
+}
+.rd-bar > * {
+  position: relative;
+  z-index: 1;
+}

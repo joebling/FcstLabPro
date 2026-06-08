@@ -1,0 +1,29 @@
+{
+  "experiment_id": "v0305_E1_decontam",
+  "name": "v0305_E1_decontam",
+  "description": "v0305 E1: directional_filtered 去污染 (移除 rsi/sma 特征)",
+  "tags": [
+    "weekly",
+    "bear",
+    "v0305",
+    "decontamination",
+    "directional_filtered"
+  ],
+  "category": "weekly",
+  "created_at": "2026-06-01T06:58:23.938405",
+  "git": {
+    "commit": "728392b",
+    "branch": "feat/model-governance-overhaul",
+    "dirty": true
+  },
+  "seed": 42,
+  "status": "completed",
+  "duration_seconds": 56.67,
+  "aggregate_metrics": {
+    "accuracy": 0.8497474747474747,
+    "f1_binary": 0.3233143785540211,
+    "precision_binary": 0.2822695035460993,
+    "recall_binary": 0.37832699619771865,
+    "cohen_kappa": 0.24081062580264612
+  }
+}
