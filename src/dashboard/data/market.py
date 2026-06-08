@@ -40,10 +40,10 @@ def _series(df: pd.DataFrame | None, col: str, days: int) -> dict:
 
 
 def price_series(days: int = 180) -> dict:
-    """OHLCV 收盘价 + 成交量 (复用 performance 的 loader)."""
-    from src.performance.backfill import load_ohlcv
+    """OHLCV 收盘价 + 成交量 (优先 data/live/ 实时落点, 缺失回退 data/raw/)."""
+    from src.dashboard.data import load_display_ohlcv
     try:
-        df = load_ohlcv()
+        df, _ = load_display_ohlcv()
     except (OSError, ValueError):
         return {"dates": [], "close": [], "volume": []}
     tail = df.tail(days)

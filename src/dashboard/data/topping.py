@@ -56,8 +56,8 @@ def _latest_pct(s: pd.Series | None) -> float | None:
 def _layer_c() -> list[dict]:
     """Layer C 技术面触发 (SMA50 破位 / 周线 MACD 转负 / 吊灯止损)."""
     try:
-        from src.performance.backfill import load_ohlcv
-        df = load_ohlcv()
+        from src.dashboard.data import load_display_ohlcv
+        df, _ = load_display_ohlcv()
     except (OSError, ValueError, ImportError):
         return [{"name": n, "fired": None} for n in
                 ("跌破 SMA50", "周线 MACD 转负", "吊灯止损触发")]
@@ -131,8 +131,8 @@ def build(hist_points: int = 120) -> dict:
         step = max(1, len(rr_pct_series) // hist_points)
         sampled = rr_pct_series.iloc[::step]
         try:
-            from src.performance.backfill import load_ohlcv
-            price = load_ohlcv()["close"]
+            from src.dashboard.data import load_display_ohlcv
+            price = load_display_ohlcv()[0]["close"]
         except (OSError, ValueError, ImportError):
             price = pd.Series(dtype=float)
         for d, p in sampled.items():
