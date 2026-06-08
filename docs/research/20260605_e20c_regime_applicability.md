@@ -4,8 +4,9 @@
 > **日期**: 2026-06-05
 > **作者**: FcstLabPro 研究 (sam 协助)
 > **触发**: 生产信号显示 "非熊市" 与体感不符, 引出对 regime 判断 + e20c 适用性的系统排查
-> **结论**: 维持现有 regime 不变 (老 regime 回测最优); e20c 牛市/震荡可用、熊市是盲区 (已被 regime 开关正确屏蔽)
+> **结论**: 维持现有 regime 不变 (老 regime 在 e20c overlay 候选中回测最优); e20c 牛市/震荡可用、熊市是盲区 (已被 regime 开关在确认熊市后屏蔽)
 > **复现脚本**: `scripts/research/regime_analysis.py` / `regime_backtest.py` / `e20c_uptrend_behavior.py` / `regime_kappa_dedup.py`
+> **依赖提示**: `regime_analysis.py` 需 `matplotlib>=3.7` (已在 requirements.txt/pyproject.toml 声明) 才能出图; 若 venv 未同步请先 `uv pip install matplotlib`。其余脚本无画图依赖。
 
 ---
 
@@ -50,7 +51,8 @@
 | 新多维 (risk_off+neutral) | 9.0 | 0.59 | -17.2 | 0.52 | 13.6 |
 | 买入持有 | 62.2 | 1.26 | -32.0 | 1.94 | 100 |
 
-**结论**: 老 regime 赢。它把 MaxDD 从 -24.7% 砍到 -12.5% (Calmar 1.70 最优)。
+**结论**: 老 regime 赢 (在 e20c overlay 候选方案中)。它把 MaxDD 从 -24.7% 砍到 -12.5% (在 overlay 方案中 Calmar 1.70 最优)。
+注: 买入持有 Calmar 1.94 仅作 benchmark, 它不带 regime overlay, 不参与 overlay 策略排名。
 多维 regime 直觉好但回测输 — 它在阴跌 (trend<0 但没暴跌) 时就空仓, 反而错过了
 e20c 最擅长的超卖反弹。**漂亮的失败实验: 证明直觉化 regime 不如朴素的, 省下上线翻车的钱。**
 
@@ -76,10 +78,16 @@ e20c 入场门槛 = 价格<SMA50 **且** RSI<45 (即必须 "先回调" 才出手
 
 代码: `scripts/analyze_regime_kappa.py` (原版) / `scripts/research/regime_kappa_dedup.py` (去重修正版)
 
-#### 🔴 发现原脚本方法论瑕疵
+#### 🔴 发现原脚本方法论璵疵
 原 walk-forward 用 `oos_window=63, step=21` → 测试窗口重叠, **同一日期被预测 ~2.89 次**
 (3339 行预测 / 1155 唯一日期)。原脚本未去重直接按 regime 拆分, 虚高了部分 regime 的 Kappa。
-**违反手册 §2.1 非重叠规则**。
+
+> ⚠️ **口径澄清 (重要)**: 本次修复解决的是 **fold-level 同日重复计数** 问题,
+> 修复后为 **unique-date OOS 口径** (每个日期只保留一次预测)。
+> 它 **不等价于** 手册 §2.1 要求的 **T=21 label-level non-overlapping sampling**
+> (验证: dedup 后 predictions.csv 仍是 1155 行 / 1155 唯一日期, 日期间隔全为 1 天,
+> 即仍是每日 OOS 样本, 而非每 21 天采样一次)。
+> 若用于严格机构级统计验证, 仍需增加 `sampling_step=21` 或额外做 21 日间隔抽样敏感性分析。
 
 #### 去重前后对比
 
@@ -108,7 +116,7 @@ e20c 入场门槛 = 价格<SMA50 **且** RSI<45 (即必须 "先回调" 才出手
 
 **e20c 不是 "只会抄底的守门员"** (这是研究中途的错误判断, 已被数据纠正)。
 它在牛市+震荡都能打, 唯独熊市是盲区 —— 而现有生产配置 (e20c + regime 开关) 正好用
-"63天≤-10% 熊市静默" 精准屏蔽了这个盲区, 这也是 2.1 回测里老 regime 最优 (Calmar 1.70) 的根因。
+"63天≤-10% 熊市静默" 在确认熊市后屏蔽了这个盲区 (注: 是后视镜式屏蔽, 非逃顶, 详 §3.5), 这也是 2.1 回测里老 regime 在 overlay 候选中最优 (Calmar 1.70) 的根因。
 
 ---
 
@@ -147,7 +155,7 @@ e20c 入场门槛 = 价格<SMA50 **且** RSI<45 (即必须 "先回调" 才出手
 
 | # | 决策 | 依据 |
 |---|------|------|
-| 1 | **维持现有 regime 不变** | 老 regime 回测 Calmar 1.70 最优, 多维 regime 证伪 |
+| 1 | **维持现有 regime 不变** | 老 regime 在 e20c overlay 候选中回测 Calmar 1.70 最优, 多维 regime 证伪 |
 | 2 | **不改 e20c 生产配置** | 牛市/震荡可用, 熊市已被 regime 屏蔽 |
 | 3 | 以后引用 regime Kappa 用**去重版** | 原脚本重叠 2.89x 虚高数值 |
 | 4 | (可选) 未来若要提升, 方向是 **vol targeting** 或 **趋势跟随互补模型**, 而非继续折腾 regime 开关 | 手册 §4.1 Regime-Specific 理念 |
@@ -159,7 +167,11 @@ e20c 入场门槛 = 价格<SMA50 **且** RSI<45 (即必须 "先回调" 才出手
 ### 5.1 根因
 `src/evaluation/backtest.py` 聚合 `all_y_true/all_y_pred` 时无脑拼接所有 fold,
 walk-forward 重叠 (`oos_window=63, step=21` → 63/21=3) 导致同一日期被计 ~2.89 次。
-`runner.py` 存 predictions.csv 时又丢了日期列, 下游只能反推。双重违反手册 §2.1。
+`runner.py` 存 predictions.csv 时又丢了日期列, 下游只能反推。
+
+> ⚠️ **口径澄清**: 此处修复解决的是 **fold-level 同日重复计数** (汇总口径问题),
+> 修复后为 unique-date OOS。这 **不等价于** 手册 §2.1 的 T=21 label-level
+> non-overlapping sampling (详 §2.3 口径澄清注)。严格机构级统计仍需额外做 21 日采样。
 
 ### 5.2 修复
 - `backtest.py`: 新增 `_dedup_by_index()` 辅助函数, 串行/并行两条路径聚合时
