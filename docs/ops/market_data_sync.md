@@ -64,11 +64,22 @@ git checkout -- data/external/*.csv && git pull
 
 ## 已知限制 (诚实告知)
 
+- ** Binance 期货 451 地域封锁 (2026-06-08 VPS 实测)**：
+  funding / OI / 多空比全走 `fapi.binance.com` (衡生品接口)，部分地区 (含当前 VPS)
+  被 Binance 返回 **451 Unavailable For Legal Reasons**。期货**无公开镜像**
+  (`data-api.binance.vision` 仅现货)，`BINANCE_BASE_URL` fallback 也只救现货 klines。
+  → 这三个在该 VPS 上拿不到，保持陈旧，市场页诚实标「陈旧」徽章。
+  - **影响面小**：这仁是**纯展示**，生产模型 E1/E8 只吃 FGI，不碰它们。
+  - **待办 (跟进任务)**：若要 funding/OI/LS 实时，换成不被封的交易所
+    —— 首选 **Bybit** (`api.bybit.com`，免费无 key，三个都有)，列名映射到
+    `funding_rate_mean` / `long_short_ratio` / `open_interest_usd`，标注数据源。
 - **OI / 多空比的历史无法回补**：Binance 接口只给最近 ~30 天。
   从部署当天起 `merge_and_save` 逐日累积，中间的历史洞补不了 —— 数据源硬限制，非 bug。
-- funding / macro 无此问题，重跑即拉回全量历史。
+- funding / macro 无此问题，重跑即拉回全量历史 (前提是接口可达)。
 - 市场页每个面板有「数据截止 {date}」徽章 + 超 4 天黄字告警（纵深防御），
   万一某源静默死了，一眼可见图旧没旧。
+- 任务成功判定用 `_is_fresh` (最新日期超 4 天即判失败)，
+  识破 "API 失败→回退旧缓存" 的假成功。
 
 ## 相关文件
 
