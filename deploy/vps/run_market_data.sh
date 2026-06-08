@@ -10,7 +10,7 @@
 #
 # 调度: 建议每 6 小时 (覆盖 funding 8h 结算 + 美股收盘后刷 macro + 瞬时失败自恢复)。
 #   crontab 示例 (仓库在 ~/FcstLabPro, 与 run_daily_nodock.sh 同目录):
-#     0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data.log 2>&1
+#     0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data_$(date +\%Y\%m\%d).log 2>&1
 #   (路径以你实际 git clone 位置为准; 脚本内部用 BASH_SOURCE 自算 REPO_DIR, 不依赖绝对路径)
 #
 # git 冲突治理 (data/external 是 tracked, 本任务会原地改写 CSV):

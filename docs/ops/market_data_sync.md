@@ -39,9 +39,12 @@ deploy/vps/run_market_data.sh
 每小时纯属浪费 + Yahoo 限流风险。**每 6 小时**是甜点：自恢复瞬时失败 +
 覆盖 funding 结算 + 美股收盘后刷到 macro。
 
+> **`setup_vps_nodock.sh` 已自动注册这条 cron**（与信号 cron 一起，幂等去重）。
+> 下面的手写行仅供参考 / 手动调整时用。
+
 ```cron
 # crontab -e  (仓库克隆在 ~/FcstLabPro = /root/FcstLabPro; 与 run_daily_nodock.sh 同目录)
-0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data.log 2>&1
+0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data_$(date +%Y%m%d).log 2>&1
 ```
 
 > 路径说明: `~/FcstLabPro` = 代码仓库 (git clone 位置, 含 shell 脚本);
