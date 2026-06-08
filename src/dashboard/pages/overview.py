@@ -7,7 +7,7 @@ from __future__ import annotations
 import calendar as _cal
 from datetime import date
 
-from src.dashboard.data import signals, market
+from src.dashboard.data import signals, market, ledger
 from src.performance import service
 
 
@@ -38,11 +38,15 @@ def build(model_name: str | None) -> dict:
         chg_pct = round((closes[-1] / closes[-2] - 1) * 100, 2)
     price_date = dates[-1] if dates else None
 
-    # performance 汇总 (命中率/IC)
+    # performance 汇总 (理论 T=21 信号质量 IC/命中)
     try:
         summary, _ = service.get_summary(model_name)
     except Exception:
         summary = {}
+
+    # 生产持仓账本 (与邮件同源): 当前持仓 + regime + 真实交易战绩
+    position = ledger.position(model_name)
+    trades = ledger.trade_history(model_name)
 
     # 当月信号日历
     today = date.today()
@@ -65,6 +69,8 @@ def build(model_name: str | None) -> dict:
         "price_date": price_date,
         "chg_pct": chg_pct,
         "summary": summary,
+        "position": position,
+        "trades": trades,
         "distribution": dist,
         "calendar": calendar,
         "calendar_grid": _calendar_grid(today.year, today.month),

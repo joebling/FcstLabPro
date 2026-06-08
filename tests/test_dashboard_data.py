@@ -78,3 +78,32 @@ def test_active_models_structure():
 def test_freshness_gate():
     fg = models.freshness_gate()
     assert isinstance(fg, dict)   # 真实 active.yaml 有 data_freshness
+
+
+# ---------- ledger (生产持仓账本) ----------
+
+def test_ledger_missing_state_graceful(monkeypatch, tmp_path):
+    """无 state 文件 → 返回稳定空结构, 不崩."""
+    from src.dashboard.data import ledger
+    monkeypatch.setattr(ledger, "STATE_DIR", tmp_path)
+    pos = ledger.position("nope")
+    assert pos["has_state"] is False and pos["in_position"] is False
+    assert ledger.trade_history("nope")["total_trades"] == 0
+
+
+def test_ledger_reads_real_trades(monkeypatch, tmp_path):
+    """读真实 state → 持仓/regime/战绩与邮件同源 (复用 _parse_history)."""
+    from src.dashboard.data import ledger
+    monkeypatch.setattr(ledger, "STATE_DIR", tmp_path)
+    (tmp_path / "m_state.json").write_text(json.dumps({
+        "in_position": False, "last_signal": "SELL", "last_regime": "熊市",
+        "last_reason": "regime=熊市, 强制平仓", "last_regime_detail": "63d=-11.8%",
+        "history": [{"entry_date": "2026-06-05", "exit_date": "2026-06-07",
+                     "entry_price": 63200.0, "exit_price": 60865.64,
+                     "pnl": -0.037, "days_held": 2, "reason": "regime=熊市, 强制平仓"}],
+    }, ensure_ascii=False))
+    pos = ledger.position("m")
+    assert pos["last_signal"] == "SELL" and pos["regime"] == "熊市"
+    h = ledger.trade_history("m")
+    assert h["total_trades"] == 1 and h["win_rate"] == 0.0
+    assert h["recent"][0]["pnl"] == "-3.7%"

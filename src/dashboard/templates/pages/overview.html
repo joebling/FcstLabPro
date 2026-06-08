@@ -37,6 +37,73 @@
        "信号样本", "text-slate-700", "⏳") }}
 </div>
 
+{# ── 持仓研判 (与每日邮件同源: 生产持仓账本) ── #}
+{% set ps = position.last_signal %}
+{% set sig_cls = ('bg-emerald-50 border-emerald-200 text-emerald-700' if ps == 'BUY'
+   else 'bg-rose-50 border-rose-200 text-rose-700' if ps == 'SELL'
+   else 'bg-amber-50 border-amber-200 text-amber-700' if ps == 'HOLD'
+   else 'bg-slate-50 border-slate-200 text-slate-600') %}
+{% set is_bear = '熊' in (position.regime or '') %}
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-sm font-semibold text-slate-700">持仓研判 · 与每日邮件同源</h3>
+    {% if not position.has_state %}<span class="text-xs text-slate-400">本地无账本 (生产在 ${FCST_DATA_DIR}/state)</span>{% endif %}
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <!-- 最新信号 -->
+    <div class="rounded-lg border p-3 {{ sig_cls }}">
+      <div class="text-xs opacity-70 font-medium">最新信号</div>
+      <div class="text-2xl font-bold mt-1">{{ ps or '—' }}</div>
+      <div class="text-xs mt-1 opacity-80">{{ position.last_reason or '' }}</div>
+      <div class="text-[11px] mt-1 opacity-60">{{ position.last_signal_date or '' }}</div>
+    </div>
+    <!-- 市场状态 regime -->
+    <div class="rounded-lg border border-slate-200 p-3">
+      <div class="text-xs text-slate-500 font-medium">市场状态</div>
+      <div class="text-2xl font-bold mt-1 {{ 'text-rose-600' if is_bear else 'text-emerald-600' }}">{{ position.regime or '—' }}</div>
+      <div class="text-xs text-slate-400 mt-1">{{ position.regime_detail or '' }}</div>
+    </div>
+    <!-- 当前持仓 -->
+    <div class="rounded-lg border border-slate-200 p-3">
+      <div class="text-xs text-slate-500 font-medium">当前持仓</div>
+      {% if position.in_position %}
+      <div class="text-2xl font-bold mt-1 text-indigo-600">持仓中</div>
+      <div class="text-xs text-slate-400 mt-1">{{ position.entry_date }} 开仓 @ ${{ "{:,.0f}".format(position.entry_price) if position.entry_price else '?' }} · 第 {{ position.days_held }} 天</div>
+      {% else %}
+      <div class="text-2xl font-bold mt-1 text-slate-500">空仓</div>
+      <div class="text-xs text-slate-400 mt-1">无持仓</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 真实交易战绩 -->
+  <div class="mt-4 pt-3 border-t border-slate-100">
+    <div class="flex items-center gap-6 text-sm mb-2">
+      <span class="text-slate-500">真实战绩</span>
+      <span class="text-slate-700">已完成 <b>{{ trades.total_trades }}</b> 笔</span>
+      <span class="text-slate-700">胜率 <b class="{{ 'text-emerald-600' if (trades.win_rate or 0) >= 0.5 else 'text-rose-600' }}">{{ "{:.0%}".format(trades.win_rate) }}</b></span>
+      <span class="text-slate-700">均盈 <b class="{{ 'text-emerald-600' if (trades.avg_pnl or 0) >= 0 else 'text-rose-600' }}">{{ "{:+.2%}".format(trades.avg_pnl) }}</b></span>
+    </div>
+    {% if trades.recent %}
+    <table class="w-full text-xs">
+      <thead><tr class="text-slate-400 text-left"><th class="py-1">区间</th><th>收益</th><th>退出原因</th></tr></thead>
+      <tbody>
+      {% for t in trades.recent %}
+        {% set win = not t.pnl.startswith('-') %}
+        <tr class="border-t border-slate-50">
+          <td class="py-1 text-slate-600">{{ t.entry }} → {{ t.exit }}</td>
+          <td class="{{ 'text-emerald-600' if win else 'text-rose-600' }} font-medium">{{ t.pnl }}</td>
+          <td class="text-slate-500">{{ t.reason }} {{ '' if win else '' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-xs text-slate-400">尚无已完成交易 (持仓未平或未开仓)</div>
+    {% endif %}
+  </div>
+</div>
+
 <!-- 图表网格 -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
   <div class="lg:col-span-2">
