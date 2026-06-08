@@ -8,7 +8,7 @@ from __future__ import annotations
 import yaml
 
 from src.performance.aggregate import build_batches, build_summary
-from src.performance.backfill import load_ohlcv
+from src.performance.backfill import load_live_ohlcv
 from src.performance.cache import cached_with_meta
 from src.serving.active_config import resolve_model
 
@@ -24,7 +24,7 @@ def get_batches(model_name: str) -> tuple[list[dict], float]:
     """批次表 (实时算 + 缓存). 返回 (rows, computed_at_epoch)."""
     def _compute():
         T = _label_T(model_name)
-        return build_batches(model_name, label_T=T, ohlcv=load_ohlcv())
+        return build_batches(model_name, label_T=T, ohlcv=load_live_ohlcv())
     return cached_with_meta(f"batches_{model_name}", _compute)
 
 
@@ -32,5 +32,5 @@ def get_summary(model_name: str) -> tuple[dict, float]:
     """汇总 KPI (实时算 + 缓存). 返回 (summary, computed_at_epoch)."""
     def _compute():
         T = _label_T(model_name)
-        return build_summary(model_name, label_T=T, ohlcv=load_ohlcv())
+        return build_summary(model_name, label_T=T, ohlcv=load_live_ohlcv())
     return cached_with_meta(f"summary_{model_name}", _compute)

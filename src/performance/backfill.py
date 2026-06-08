@@ -38,6 +38,18 @@ def load_ohlcv(path: Path | None = None) -> pd.DataFrame:
     return df.set_index("date").sort_index()
 
 
+def load_live_ohlcv() -> pd.DataFrame:
+    """优先 data/live/ (实时下载落点), 缺失回退 data/raw/ 基准 (lesson_0602).
+
+    live 链 (dashboard 展示 / 信号实现结果回填) 应读 data/live/ — 那是每日
+    pipeline 的实时下载落点。读冻结的 data/raw/ 会让近期信号查不到出场日价
+    而被误判 PENDING / 价格陈旧。本地开发 / 全新 checkout 没 live (.gitignore)
+    时回退 baseline, 保证不崩。
+    """
+    from src.serving.paths import LIVE_OHLCV_PATH
+    return load_ohlcv(LIVE_OHLCV_PATH if Path(LIVE_OHLCV_PATH).exists() else OHLCV_PATH)
+
+
 def _slim(rec: dict) -> dict:
     """从 archive 记录提取展示/审计需要的精简字段."""
     prov = rec.get("provenance", {})
