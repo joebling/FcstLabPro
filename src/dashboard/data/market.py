@@ -108,8 +108,8 @@ def open_interest_series(days: int = 180) -> dict:
 
 
 def macro_series(days: int = 180) -> dict[str, dict]:
-    """宏观因子 (DXY/VIX/纳指/标普/黄金/美债)."""
-    df = _load_csv("macro_factors.csv")
+    """宏观因子 (DXY/VIX/纳指/标普/黄金/美债) — 源: cmd_macro.csv (yfinance, sync 刷新)。"""
+    df = _load_csv("cmd_macro.csv")
     last = df.index[-1] if df is not None and not df.empty else None
     return {
         "dxy": _series(df, "dxy_close", days),

@@ -18,9 +18,8 @@
 #     0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data_$(date +\%Y\%m\%d).log 2>&1
 #   (路径以你实际 git clone 位置为准; 脚本内部用 BASH_SOURCE 自算 REPO_DIR, 不依赖绝对路径)
 #
-# git 冲突治理 (data/external 是 tracked, 本任务会原地改写 CSV):
-#   拉代码前先丢弃本地再生数据, 再 pull (反正下次 sync 自动重灌):
-#     cd ~/FcstLabPro && git checkout -- data/external/*.csv && git pull
+# git 冲突: 无。本任务只写 gitignored 的 cmd_*.csv (含 cmd_macro.csv),
+#   不碰 tracked 文件 → VPS git pull 直接一把过, 无需手动 checkout。
 # =============================================================================
 set -uo pipefail  # 不用 -e: best-effort, 单源失败不该让整脚本崩
 

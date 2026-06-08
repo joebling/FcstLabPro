@@ -12,7 +12,7 @@
 | 资金费率 | crypto-market-data (GitHub) | `data/external/cmd_funding.csv` | 全市场聚合, 2022-12起 |
 | 持仓量 | crypto-market-data (GitHub) | `data/external/cmd_open_interest.csv` | 全市场聚合 USD |
 | taker买卖比 | crypto-market-data (GitHub) | `data/external/cmd_taker_ratio.csv` | **非**多空账户比 |
-| 宏观 | Yahoo Finance (yfinance) | `data/external/macro_factors.csv` | 全量历史 (2018起), 覆盖自愈 |
+| 宏观 | Yahoo Finance (yfinance) | `data/external/cmd_macro.csv` | 全量历史 (2018起), 覆盖自愈 |
 
 > **为什么不用 Binance 期货?** funding/OI/多空比原走 `fapi.binance.com`,
 > 但部分地区 (含本 VPS) 被 Binance **451 地域封锁**衍生品, 且期货**无公开镜像**
@@ -77,14 +77,15 @@ deploy/vps/run_market_data.sh
 
 ## git 冲突治理
 
-- `cmd_*.csv` (funding/OI/taker) 已 **gitignored** (再生展示数据, 同 data/live 理念),
-  不进 git → 不会跟 `git pull` 打架。
-- `macro_factors.csv` 仍 **git-tracked** (兼任研究特征输入), 本 job 会改写它。
-  拉代码前先丢弃再 pull (下次 sync 自动重灌):
+**本 job 不再写任何 git-tracked 文件 → VPS `git pull` 直接一把过, 无需手动 checkout。**
 
-```bash
-git checkout -- data/external/macro_factors.csv && git pull
-```
+- 全部刷新输出都落在 gitignored 的 `data/external/cmd_*.csv`
+  (funding/OI/taker **+ macro=`cmd_macro.csv`**), 同 data/live 理念, 不进 git。
+- tracked 的 `macro_factors.csv` / `funding_rate_BTCUSDT.csv` 等冻结为**研究基准**
+  (复现可靠), sync 永不原地改写它们。
+
+> 历史遗留: 若 VPS 工作区还有早期 sync 对 `macro_factors.csv` 的本地改写,
+> 只需最后一次 `git checkout -- data/external/macro_factors.csv` 清干净, 之后永远不再需要。
 
 ## 已知限制 (诚实告知)
 

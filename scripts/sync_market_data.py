@@ -80,9 +80,14 @@ def _refresh_taker_ratio() -> bool:
 
 
 def _refresh_macro() -> bool:
-    """宏观 — 全量历史自愈 (cache=False)。yfinance 未被封, 继续直连。"""
+    """宏观 — yfinance 未被封, 继续直连。
+
+    写 gitignored 的 cmd_macro.csv (不碰 tracked 的 macro_factors.csv 研究基准),
+    跟 funding/OI/taker 一致 → VPS git pull 不再需手动 checkout。
+    """
     from src.data.external import download_macro_factors
-    return _is_fresh(download_macro_factors(cache=False))
+    out = PROJECT_ROOT / "data" / "external" / "cmd_macro.csv"
+    return _is_fresh(download_macro_factors(cache=False, output_path=out))
 
 
 # 源名 → 刷新函数 (单一注册表, 加新源只改这里)
