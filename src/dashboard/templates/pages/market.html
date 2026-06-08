@@ -24,21 +24,27 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
   {% call ui.card("BTC 价格 (近 180 天)", "📈") %}
+  {{ ui.freshness_badge(price) }}
   <div style="height:240px"><canvas id="mktPrice"></canvas></div>
   {% endcall %}
   {% call ui.card("恐惧贪婪指数", "😱") %}
+  {{ ui.freshness_badge(fgi) }}
   <div style="height:240px"><canvas id="mktFgi"></canvas></div>
   {% endcall %}
   {% call ui.card("资金费率", "💸") %}
+  {{ ui.freshness_badge(funding) }}
   <div style="height:240px"><canvas id="mktFunding"></canvas></div>
   {% endcall %}
   {% call ui.card("多空比", "⚖️") %}
+  {{ ui.freshness_badge(long_short) }}
   <div style="height:240px"><canvas id="mktLs"></canvas></div>
   {% endcall %}
   {% call ui.card("持仓量 (USD)", "📊") %}
+  {{ ui.freshness_badge(open_interest) }}
   <div style="height:240px"><canvas id="mktOi"></canvas></div>
   {% endcall %}
   {% call ui.card("宏观因子 (DXY / VIX / Gold)", "🌍") %}
+  {{ ui.freshness_badge(macro) }}
   <div style="height:240px"><canvas id="mktMacro"></canvas></div>
   {% endcall %}
 </div>

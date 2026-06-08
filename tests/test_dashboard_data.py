@@ -62,7 +62,18 @@ def test_market_series_structure():
 
 def test_market_missing_file(monkeypatch, tmp_path):
     monkeypatch.setattr(market, "EXTERNAL_DIR", tmp_path)
-    assert market.funding_series() == {"dates": [], "series": []}
+    fs = market.funding_series()
+    assert fs["dates"] == [] and fs["series"] == []
+    # 缺文件 → 标记陈旧 (新鲜度纵深防御)
+    assert fs["stale"] is True and fs["as_of"] is None
+
+
+def test_market_freshness_keys():
+    """每个 series 必带 as_of/age_days/stale (模板新鲜度徽章依赖)."""
+    for s in (market.funding_series(), market.long_short_series(),
+              market.open_interest_series(), market.price_series(),
+              market.fgi_series(), market.macro_series()):
+        assert {"as_of", "age_days", "stale"} <= set(s)
 
 
 # ---------- models ----------
