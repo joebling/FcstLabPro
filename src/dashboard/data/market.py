@@ -88,18 +88,23 @@ def fgi_series(days: int = 180) -> dict:
 
 
 def funding_series(days: int = 180) -> dict:
-    """资金费率 (mean)."""
-    return _series(_load_csv("funding_rate_BTCUSDT.csv"), "funding_rate_mean", days)
+    """资金费率 (mean) — 源: crypto-market-data (全市场聚合)。"""
+    return _series(_load_csv("cmd_funding.csv"), "funding_rate_mean", days)
 
 
-def long_short_series(days: int = 180) -> dict:
-    """多空比."""
-    return _series(_load_csv("long_short_ratio_BTCUSDT.csv"), "long_short_ratio", days)
+def taker_ratio_series(days: int = 180) -> dict:
+    """taker 买卖比 — 源: crypto-market-data。
+
+    注: 这是 taker buy/sell ratio (成交主动买/卖), **不是**多空账户比;
+    >1 主动买占优, <1 主动卖占优。历史原函名 long_short_series,
+    现据实改名/换源 (Binance 多空账户比被 451 封)。
+    """
+    return _series(_load_csv("cmd_taker_ratio.csv"), "taker_buy_sell_ratio", days)
 
 
 def open_interest_series(days: int = 180) -> dict:
-    """持仓量 (USD)."""
-    return _series(_load_csv("open_interest_BTCUSDT.csv"), "open_interest_usd", days)
+    """持仓量 (USD) — 源: crypto-market-data (全市场聚合)。"""
+    return _series(_load_csv("cmd_open_interest.csv"), "open_interest_usd", days)
 
 
 def macro_series(days: int = 180) -> dict[str, dict]:

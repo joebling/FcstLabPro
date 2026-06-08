@@ -14,9 +14,9 @@
   {{ ui.kpi("最新资金费率",
        ("%.4f%%"|format((funding.series[-1] or 0) * 100)) if funding.series else "—",
        "正=多头付费", "text-slate-700", "💸") }}
-  {{ ui.kpi("最新多空比",
+  {{ ui.kpi("taker买卖比",
        ("%.2f"|format(long_short.series[-1])) if long_short.series else "—",
-       ">1 多头占优", "text-slate-700", "⚖️") }}
+       ">1 主动买占优", "text-slate-700", "⚖️") }}
   {{ ui.kpi("BTC 价格",
        ("$" ~ "{:,.0f}".format(price.close[-1])) if price.close else "—",
        "近 180 天", "text-indigo-600", "₿") }}
@@ -35,7 +35,7 @@
   {{ ui.freshness_badge(funding) }}
   <div style="height:240px"><canvas id="mktFunding"></canvas></div>
   {% endcall %}
-  {% call ui.card("多空比", "⚖️") %}
+  {% call ui.card("taker买卖比", "⚖️") %}
   {{ ui.freshness_badge(long_short) }}
   <div style="height:240px"><canvas id="mktLs"></canvas></div>
   {% endcall %}
@@ -55,5 +55,13 @@
 </script>
 <script src="/static/charts.js"></script>
 <script>FcstCharts.renderMarket();</script>
+
+<p class="mt-5 text-xs text-slate-500">
+  衡生品数据 (资金费率 / 持仓量 / taker买卖比) 源自
+  <a class="underline hover:text-slate-700"
+     href="https://github.com/ErcinDedeoglu/crypto-market-data"
+     target="_blank" rel="noopener">Ercin Dedeoglu - Crypto Market Data</a>
+  (CC BY 4.0)。宏观: Yahoo Finance; 价格/FGI: Binance/Alternative.me。
+</p>
 
 {% endblock %}

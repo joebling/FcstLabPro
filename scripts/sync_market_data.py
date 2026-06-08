@@ -62,36 +62,35 @@ def _is_fresh(df: pd.DataFrame | None) -> bool:
 
 
 def _refresh_funding() -> bool:
-    """资金费率 — 全量历史自愈 (cache=False 强制刷)。
-
-     走 Binance 期货接口 fapi.binance.com, 部分地区被 451 封锁 →
-    download 会回退旧缓存, 故用 _is_fresh 识破。
-    """
-    from src.data.external import download_binance_funding_rate
-    return _is_fresh(download_binance_funding_rate(cache=False))
+    """资金费率 — 读 crypto-market-data (绕过 Binance 期货 451)。"""
+    from src.data.crypto_market_data import convert_one
+    return _is_fresh(convert_one("funding"))
 
 
-def _refresh_oi_ls() -> bool:
-    """OI + 多空比 — merge 累积 (复用 sync_binance_oi_ls.sync_oi_ls, DRY)。
+def _refresh_open_interest() -> bool:
+    """持仓量 — 读 crypto-market-data (全市场聚合 USD)。"""
+    from src.data.crypto_market_data import convert_one
+    return _is_fresh(convert_one("open_interest"))
 
-    download 失败返回空 df → sync_oi_ls 直接报 False, 无需 _is_fresh。
-    """
-    from scripts.sync_binance_oi_ls import sync_oi_ls
-    r = sync_oi_ls()
-    # 两个子源都成功才算这一源 OK
-    return bool(r.get("long_short")) and bool(r.get("open_interest"))
+
+def _refresh_taker_ratio() -> bool:
+    """taker 买卖比 — 读 crypto-market-data (多空情绪近亲, 非多空账户比)。"""
+    from src.data.crypto_market_data import convert_one
+    return _is_fresh(convert_one("taker_ratio"))
 
 
 def _refresh_macro() -> bool:
-    """宏观 — 全量历史自愈 (cache=False)。yfinance 最易抽风, 隔离在此。"""
+    """宏观 — 全量历史自愈 (cache=False)。yfinance 未被封, 继续直连。"""
     from src.data.external import download_macro_factors
     return _is_fresh(download_macro_factors(cache=False))
 
 
 # 源名 → 刷新函数 (单一注册表, 加新源只改这里)
+# funding/oi/taker 走 crypto-market-data (GitHub, 不被 451); macro 走 yfinance
 SOURCES = {
     "funding": _refresh_funding,
-    "oi_ls": _refresh_oi_ls,
+    "open_interest": _refresh_open_interest,
+    "taker_ratio": _refresh_taker_ratio,
     "macro": _refresh_macro,
 }
 
@@ -108,7 +107,7 @@ def sync_market_data() -> dict[str, bool]:
         try:
             ok = fn()
             results[name] = ok
-            logger.info("[%s] %s", name, "OK" if ok else "空数据")
+            logger.info("[%s] %s", name, "OK" if ok else "无数据或过陈旧(>%dd)" % FRESH_MAX_AGE_DAYS)
         except Exception as exc:  # noqa: BLE001 — best-effort: 任何异常都隔离
             results[name] = False
             logger.warning("[%s] 失败: %s", name, exc)

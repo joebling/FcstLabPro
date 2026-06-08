@@ -76,7 +76,7 @@ const FcstCharts = (function () {
     line('mktPrice', d.price.dates, [ds('BTC 收盘价', d.price.close, INDIGO, true)]);
     line('mktFgi', d.fgi.dates, [ds('FGI', d.fgi.series, VIOLET, true)]);
     line('mktFunding', d.funding.dates, [ds('资金费率', d.funding.series, AMBER, false)]);
-    line('mktLs', d.long_short.dates, [ds('多空比', d.long_short.series, EMERALD, false)]);
+    line('mktLs', d.long_short.dates, [ds('taker买卖比', d.long_short.series, EMERALD, false)]);
     line('mktOi', d.open_interest.dates, [ds('持仓量(USD)', d.open_interest.series, INDIGO, true)]);
     if (d.macro) {
       line('mktMacro', d.macro.dxy.dates, [

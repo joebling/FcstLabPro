@@ -7,18 +7,41 @@
 
 市场页有 4 个展示数据源，**不是**生产模型 (E1/E8) 的特征（模型只吃 OHLCV + FGI）：
 
-| 源 | 文件 | API 能力 | 写盘 |
+| 源 | 来源 | 输出文件 (gitignored) | 备注 |
 |---|---|---|---|
-| 资金费率 | `data/external/funding_rate_BTCUSDT.csv` | 全量历史 (2019起分页) | 覆盖自愈 |
-| 多空比 | `data/external/long_short_ratio_BTCUSDT.csv` | **仅最近 ~30 天** | merge 累积 |
-| 持仓量 | `data/external/open_interest_BTCUSDT.csv` | **仅最近 ~30 天** | merge 累积 |
-| 宏观 | `data/external/macro_factors.csv` (yfinance) | 全量历史 (2018起) | 覆盖自愈 |
+| 资金费率 | crypto-market-data (GitHub) | `data/external/cmd_funding.csv` | 全市场聚合, 2022-12起 |
+| 持仓量 | crypto-market-data (GitHub) | `data/external/cmd_open_interest.csv` | 全市场聚合 USD |
+| taker买卖比 | crypto-market-data (GitHub) | `data/external/cmd_taker_ratio.csv` | **非**多空账户比 |
+| 宏观 | Yahoo Finance (yfinance) | `data/external/macro_factors.csv` | 全量历史 (2018起), 覆盖自愈 |
+
+> **为什么不用 Binance 期货?** funding/OI/多空比原走 `fapi.binance.com`,
+> 但部分地区 (含本 VPS) 被 Binance **451 地域封锁**衍生品, 且期货**无公开镜像**
+> (现货靠 data-api.binance.vision 才活)。改用 GitHub 托管的 crypto-market-data
+> (CryptoQuant 口径全市场聚合), 不被 451, 每日自动更新, VPS 只需 git pull。
+>
+> **口径不同**: 全市场聚合数字/符号与币安单家不同, 故写入独立 `cmd_*.csv`,
+> **不污染**研究基准 `funding_rate_BTCUSDT.csv` 等 (那些保持原 Binance 口径, 复现可靠)。
+>
+> **署名 (强制, CC BY 4.0)**: 市场页底部署名 Ercin Dedeoglu - Crypto Market Data。
 
 按操作手册 Layer 0 边界，展示数据本就在模型链路之外，故另起独立 job，
 不塞进信号 pipeline（避免 yfinance 抽风拖累信号命脉）。
 
 > **FGI 不在此处刷** —— 它是生产特征，由信号 pipeline `run_production_pipeline.py`
 > stage 2 每日下载（单一真相源，勿重复）。
+
+## 前提: crypto-market-data 仓库
+
+衍生品数据来自 https://github.com/ErcinDedeoglu/crypto-market-data，
+需 clone 到**与 FcstLabPro 同级**的目录 (或设 `CRYPTO_MARKET_DATA_DIR` 指向其位置):
+
+```bash
+cd ~ && git clone https://github.com/ErcinDedeoglu/crypto-market-data.git
+# 结果: ~/FcstLabPro 与 ~/crypto-market-data 同级
+```
+
+`run_market_data.sh` 每次会先 `git -C <repo> pull --ff-only` 拉最新 JSON,
+再由 `sync_market_data.py` 转成 `cmd_*.csv`。pull 失败则用本地旧 JSON (best-effort)。
 
 ## 怎么跑
 
@@ -52,34 +75,30 @@ deploy/vps/run_market_data.sh
 > 两者别混。脚本内部用 `BASH_SOURCE` 自算 REPO_DIR, 不依赖绝对路径;
 > cron 里的绝对路径只需指向你实际克隆位置即可。
 
-## git 冲突治理 (重要)
+## git 冲突治理
 
-`data/external/*.csv` 是 **git-tracked**（兼任研究特征输入，保 committed 复现性 +
-fresh-clone 安全网，故**不** gitignore）。但本 job 会原地改写它们 → VPS 上跟
-`git pull` 打架。治理：**拉代码前先丢弃本地再生数据，再 pull**（下次 sync 自动重灌）：
+- `cmd_*.csv` (funding/OI/taker) 已 **gitignored** (再生展示数据, 同 data/live 理念),
+  不进 git → 不会跟 `git pull` 打架。
+- `macro_factors.csv` 仍 **git-tracked** (兼任研究特征输入), 本 job 会改写它。
+  拉代码前先丢弃再 pull (下次 sync 自动重灌):
 
 ```bash
-git checkout -- data/external/*.csv && git pull
+git checkout -- data/external/macro_factors.csv && git pull
 ```
 
 ## 已知限制 (诚实告知)
 
-- ** Binance 期货 451 地域封锁 (2026-06-08 VPS 实测)**：
-  funding / OI / 多空比全走 `fapi.binance.com` (衡生品接口)，部分地区 (含当前 VPS)
-  被 Binance 返回 **451 Unavailable For Legal Reasons**。期货**无公开镜像**
-  (`data-api.binance.vision` 仅现货)，`BINANCE_BASE_URL` fallback 也只救现货 klines。
-  → 这三个在该 VPS 上拿不到，保持陈旧，市场页诚实标「陈旧」徽章。
-  - **影响面小**：这仁是**纯展示**，生产模型 E1/E8 只吃 FGI，不碰它们。
-  - **待办 (跟进任务)**：若要 funding/OI/LS 实时，换成不被封的交易所
-    —— 首选 **Bybit** (`api.bybit.com`，免费无 key，三个都有)，列名映射到
-    `funding_rate_mean` / `long_short_ratio` / `open_interest_usd`，标注数据源。
-- **OI / 多空比的历史无法回补**：Binance 接口只给最近 ~30 天。
-  从部署当天起 `merge_and_save` 逐日累积，中间的历史洞补不了 —— 数据源硬限制，非 bug。
-- funding / macro 无此问题，重跑即拉回全量历史 (前提是接口可达)。
-- 市场页每个面板有「数据截止 {date}」徽章 + 超 4 天黄字告警（纵深防御），
-  万一某源静默死了，一眼可见图旧没旧。
+- **衍生品数据与币安口径不同**：crypto-market-data 是 CryptoQuant 口径全市场聚合，
+  funding 符号/尺度、OI 量级（约币安单家数倍）与原 Binance 不同。这是口径差异，非 bug。
+- **taker 买卖比 ≠ 多空账户比**：它是成交主动买/卖量比，是情绪近亲，市场页据实标「taker买卖比」。
+- **funding 显示尺度**：CMD funding 原生值约 ±0.003~0.006，市场页 KPI ×100 显示为 ±0.3~0.6%。
+  偏大但因是全市场聚合口径；若观感不对可加显示因子微调。
+- **无 SLA**：crypto-market-data 是社区项目（“随时可能停”）。它哪天停更 →
+  `_is_fresh` 判陈旧 → 市场页自动标「陈旧」徽章（纵深防御）。
+- macro (yfinance) 未被封，重跑即拉回全量历史。
+- 市场页每个面板有「数据截止 {date}」徽章 + 超 4 天黄字告警（纵深防御）。
 - 任务成功判定用 `_is_fresh` (最新日期超 4 天即判失败)，
-  识破 "API 失败→回退旧缓存" 的假成功。
+  识破 “数据陈旧/未 pull” 的假成功。VPS 上 `run_market_data.sh` 会先 git pull 保鲜。
 
 ## 相关文件
 

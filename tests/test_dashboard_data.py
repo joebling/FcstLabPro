@@ -70,7 +70,7 @@ def test_market_missing_file(monkeypatch, tmp_path):
 
 def test_market_freshness_keys():
     """每个 series 必带 as_of/age_days/stale (模板新鲜度徽章依赖)."""
-    for s in (market.funding_series(), market.long_short_series(),
+    for s in (market.funding_series(), market.taker_ratio_series(),
               market.open_interest_series(), market.price_series(),
               market.fgi_series(), market.macro_series()):
         assert {"as_of", "age_days", "stale"} <= set(s)

@@ -3,7 +3,12 @@
 # FcstLabPro VPS 市场展示数据同步 —— 独立 best-effort 任务 (与信号 pipeline 解耦)
 #
 # 编排逻辑在 scripts/sync_market_data.py:
-#   刷新 funding + OI/多空比(merge) + macro, 每源独立 try/except。
+#   funding / 持仓量 / taker买卖比 ← crypto-market-data (GitHub, 不被 Binance 451 封)
+#   宏观 ← Yahoo Finance (yfinance, 未被封)
+#   每源独立 try/except。
+#
+# 衍生品数据来源 crypto-market-data 仓库 (与 FcstLabPro 同级 clone), 本脚本
+# 会先 git pull 它拿到最新 JSON, 再由 sync 转成 data/external/cmd_*.csv。
 #
 # 这些**不是**模型特征 (模型只吃 OHLCV+FGI), 故本任务与信号完全隔离:
 # 它挂了只影响市场图, 信号毫发无伤。
@@ -45,6 +50,16 @@ export PYTHONPATH="${REPO_DIR}:${PYTHONPATH:-}"
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
+
+# ── 先拉最新衍生品数据 (crypto-market-data, best-effort) ─────────────────────
+# 默认与 FcstLabPro 同级; CRYPTO_MARKET_DATA_DIR 可覆盖。pull 失败仅用旧 JSON。
+CMD_DIR="${CRYPTO_MARKET_DATA_DIR:-${REPO_DIR}/../crypto-market-data}"
+if [ -d "${CMD_DIR}/.git" ]; then
+    echo ">>> git pull crypto-market-data ..."
+    git -C "${CMD_DIR}" pull --ff-only 2>&1 || echo " crypto-market-data pull 失败, 用本地旧 JSON"
+else
+    echo " 未找到 crypto-market-data 仓库 (${CMD_DIR}); funding/OI/taker 将无法刷新"
+fi
 
 # ── 点火 ───────────────────────────────────────────────────────────────────
 "${VENV_PYTHON}" "${REPO_DIR}/scripts/sync_market_data.py"
