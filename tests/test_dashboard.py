@@ -50,10 +50,17 @@ def test_models_renders(client):
 
 
 def test_sidebar_nav_present(client):
-    """侧边栏 5 个导航项都在."""
+    """侧边栏 6 个导航项都在."""
     r = client.get("/")
-    for label in ("总览", "信号", "市场", "顶部", "模型"):
+    for label in ("总览", "信号", "市场", "顶部", "实盘", "模型"):
         assert label in r.text
+
+
+def test_perfmon_renders(client):
+    """实盘业绩页: 渲染 + 无账本不崩 (本地无 state 优雅降级)."""
+    r = client.get("/perfmon")
+    assert r.status_code == 200
+    assert "实盘业绩监控" in r.text
 
 
 def test_topping_renders(client):

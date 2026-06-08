@@ -107,3 +107,32 @@ def test_ledger_reads_real_trades(monkeypatch, tmp_path):
     h = ledger.trade_history("m")
     assert h["total_trades"] == 1 and h["win_rate"] == 0.0
     assert h["recent"][0]["pnl"] == "-3.7%"
+
+
+# ---------- perfmon (实盘业绩监控) ----------
+
+def test_perfmon_equity_drawdown_and_gating(monkeypatch, tmp_path):
+    """净值曲线/回撤/样本量 gating 正确."""
+    from src.dashboard.data import ledger, perfmon
+    monkeypatch.setattr(ledger, "STATE_DIR", tmp_path)
+    (tmp_path / "m_state.json").write_text(json.dumps({
+        "history": [
+            {"exit_date": "2026-03-22", "pnl": 0.05, "reason": "到期: T=21"},
+            {"exit_date": "2026-04-15", "pnl": -0.03, "reason": "到期: T=21"},
+            {"exit_date": "2026-06-07", "pnl": -0.037, "reason": "regime=熊市, 强制平仓"},
+        ],
+    }, ensure_ascii=False))
+    c = perfmon.build("m", "conservative")
+    assert c["n_trades"] == 3
+    assert c["sample_ok"] is False           # n<20 → gated
+    assert len(c["curve"]["equity"]) == 3
+    assert c["max_drawdown"] <= 0
+    # 净值 = 1.05 * 0.97 * 0.963 ≈ 0.9806
+    assert abs(c["total_return"] - (1.05 * 0.97 * 0.963 - 1)) < 1e-3
+
+
+def test_perfmon_no_state_graceful(monkeypatch, tmp_path):
+    from src.dashboard.data import ledger, perfmon
+    monkeypatch.setattr(ledger, "STATE_DIR", tmp_path)
+    c = perfmon.build("nope", "conservative")
+    assert c["has_state"] is False and c["n_trades"] == 0

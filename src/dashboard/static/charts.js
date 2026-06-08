@@ -136,5 +136,37 @@ const FcstCharts = (function () {
     });
   }
 
-  return { renderOverview, renderMarket, renderSignals, renderTopping };
+  // ---- 实盘业绩页 (净值曲线 + 回撤) ----
+  function renderPerfmon() {
+    const d = _data('pm-data');
+    if (!d || !d.dates || !d.dates.length) return;
+    const el = document.getElementById('equityChart');
+    if (!el) return;
+    new Chart(el, {
+      data: {
+        labels: d.dates,
+        datasets: [
+          { type: 'line', label: '净值', yAxisID: 'yEq', data: d.equity,
+            borderColor: INDIGO, backgroundColor: INDIGO + '14', fill: true,
+            pointRadius: 2, borderWidth: 2, tension: 0.2 },
+          { type: 'line', label: '回撤', yAxisID: 'yDd', data: d.drawdown,
+            borderColor: ROSE, backgroundColor: ROSE + '20', fill: true,
+            pointRadius: 0, borderWidth: 1.5, tension: 0.2 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          yEq: { position: 'left', title: { display: true, text: '净值' }, grid: { color: '#f1f5f9' } },
+          yDd: { position: 'right', max: 0, title: { display: true, text: '回撤' },
+            ticks: { callback: (v) => (v * 100).toFixed(0) + '%' }, grid: { display: false } },
+          x: { ticks: { maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  return { renderOverview, renderMarket, renderSignals, renderTopping, renderPerfmon };
 })();

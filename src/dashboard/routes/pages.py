@@ -1,4 +1,4 @@
-"""整页路由 — 4 页 (总览/信号/市场/模型).
+"""整页路由 — 6 页 (总览/信号/市场/顶部/模型/实盘).
 
 每页共享 base context (侧边栏导航 + 模型选择)。
 具体卡片/图表数据在各 partial 路由或页面 context builder 里取。
@@ -68,3 +68,12 @@ def topping(request: Request, model: str | None = None):
     ctx = _base_ctx(request, "topping", model)
     ctx.update(page.build())
     return templates.TemplateResponse(request, "pages/topping.html", ctx)
+
+
+@router.get("/perfmon", response_class=HTMLResponse)
+def perfmon(request: Request, model: str | None = None):
+    from src.dashboard.app import templates
+    from src.dashboard.pages import perfmon as page
+    ctx = _base_ctx(request, "perfmon", model)
+    ctx.update(page.build(ctx["active_model"]))
+    return templates.TemplateResponse(request, "pages/perfmon.html", ctx)
