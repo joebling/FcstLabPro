@@ -30,21 +30,26 @@
 """
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
+# 让脚本可直接 `python scripts/research/bottoming_indicator_ic.py` 运行:
+# 把项目根目录塞进 sys.path, 否则下面的 `from scripts.research...` 会 ModuleNotFoundError。
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 # 复用逃顶脚本的数据加载 + IC 内核 (DRY, 保证两端方法论严格可比)
-from scripts.research.topping_indicator_ic import (
+from scripts.research.topping_indicator_ic import (  # noqa: E402
     INDICATORS,
     ic_nonoverlap,
     load_indicator,
     load_price,
 )
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 HORIZONS = [30, 90, 180]  # 底部反弹关心中-长期 (比顶部多看 180d)
 LOW_Q = 20.0              # "极度低估" 阈值: expanding 历史分位 <= 20%

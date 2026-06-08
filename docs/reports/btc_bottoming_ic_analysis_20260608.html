@@ -75,10 +75,11 @@
   <ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5">
     <li>本报告是逃顶研究的姊妹篇，回答“<b>能否把逃顶框架对称地拿来抄底</b>”。结论：<b>框架可复用，但 alpha 与动作绝不对称</b>。</li>
     <li><b>方法论陷阱（核心）</b>：单资产<b>全样本</b> Rank IC 是对称的——翻方向跑底部 = 顶部镜像，|IC|/|t| 一字不差，<b>零新信息</b>。故改用<b>条件分位法</b>：只在 expanding 历史低分位（≤20%，极度低估）子样本上看未来反弹。</li>
-    <li><b>冠军换人</b>：顶部唯一硬 alpha 是 Reserve Risk（90d |t|=2.65）；在底部它退到中游。底部真主力是<b>估值/长持盈亏类</b>——AVIV / MVRV-Z / NUPL / LTH-NUPL（低估区 180d 命中 79–87%，超额 +41~53%）。<b>证伪“底部=顶部反操作”</b>。</li>
+    <li><b>冠军换人</b>：顶部唯一硬 alpha 是 Reserve Risk（90d |t|=2.65）；在底部其<b>日频条件分位超额排名退出第一梯队</b>（但事件去重口径下仍可能很强，见 §7，不宜简单判“退位”）。底部更稳的主力是<b>估值类</b>——AVIV / MVRV-Z（低估区 180d 命中 83–87%，超额 +48~53%）；LTH-NUPL / NUPL / LTH-MVRV 更适合作<b>确认层</b>。<b>证伪“底部=顶部反操作”</b>。</li>
     <li><b>底部是长周期游戏</b>：命中率随窗口单调暴涨（30d ≈55–64% → 180d ≈80–87%）；<b>短期抄底（30d）几乎无 edge</b>（超额仅 +0~2%），价值全在 90–180d。</li>
     <li><b>“极度恐惧抄底”是伪命题</b>：恐惧贪婪指数低估区 180d 超额 <b>-30.6%</b>（命中仅 48%，跑输基线）。极恐时多在左侧下跌 → <b>底部必须右侧确认，不做左侧预测</b>。</li>
     <li><b>统计严谨度天然弱于顶部</b>：低估区非重叠采样后 N&lt;8，子样本 IC 做不出显著性——BTC 史上仅 3–4 个大底的结构性限制。底部框架应定位为<b>“长周期参考 + 右侧确认”</b>，而非顶部那种硬 t-stat alpha。</li>
+    <li><b>命中率 / 超额是日频重叠计数（违反手册 §2.1 非重叠铁律）</b>：仅用于<b>候选指标排序</b>，不能当独立同分布硬结论。事件去重 sanity check（见 §7）显示 NUPL 日频强但事件口径走弱、Reserve Risk 事件口径仍强——晋升前必须做事件去重 + 右侧触发回测。</li>
   </ul>
 </section>
 
@@ -132,14 +133,14 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
     <span class="badge" style="background:#e3f1dc;color:#1f6b02">超额 ≥ 30% 且命中 ≥ 80% → 强 (底部主力)</span>
     <span class="badge" style="background:#efe6fb;color:#6b21a8">宏观存疑 (样本偏差)</span>
   </div>
-  <p class="text-xs text-slate-500 mt-2">注：超额 / 命中均以 180d 窗口判定（底部长周期特性）；全样本基线 180d ≈ +33.8%。</p>
+  <p class="text-xs text-slate-500 mt-2">注：超额 / 命中均以 180d 窗口判定（底部长周期特性）；基线按<b>各指标可用样本期分别计算</b>（主流链上指标约 +33.8%，宏观 DXY/TNX 约 +35.6%，恐惧贪婪 约 +38.4%，资金费率 约 +28.9%）。</p>
 </section>
 
 <!-- ===== 3 ===== -->
 <div class="mt-8 mb-3"><h2 id="s3" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">3. 条件分位结果 (18 因子)</h2></div>
 <section id="s3-1" class="bg-white p-5 rounded-lg shadow mb-4 scroll-mt-24 border-2" style="border-color:#0053e2">
   <h3 class="text-lg font-bold mb-1">3.1 低估区 180d 超额反弹排名</h3>
-  <p class="text-sm text-slate-600 mb-3">超额 = 低估区(分位≤20%)未来 180d 均收益 − 全样本基线(+33.8%)，<b>越正越强的抄底信号</b>。蓝=强(超额≥30%且命中≥80%)，金=弱有效，灰=不显著，红=反向(失效)，紫=宏观存疑。</p>
+  <p class="text-sm text-slate-600 mb-3">超额 = 低估区(分位≤20%)未来 180d 均收益 − 该指标全样本基线(主流链上类≈+33.8%)，<b>越正越强的拄底信号</b>。蓝=强(超额≥30%且命中≥80%)，金=弱有效，灰=不显著，红=反向(失效)，紫=宏观存疑。</p>
   <div class="chart-box tall"><canvas id="chartExcess"></canvas></div>
   <p class="text-xs text-slate-500 mt-2">注：估值/长持类（AVIV / MVRV-Z / LTH-NUPL）进入蓝色强信号区；STH 族与恐惧贪婪转红(反向)；DXY/TNX 超额最高但为宏观样本偏差(见 §7)。</p>
 </section>
@@ -170,12 +171,12 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
 <!-- ===== 5 ===== -->
 <div class="mt-8 mb-3"><h2 id="s5" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">5. 顶部 vs 底部 (冠军换人)</h2></div>
 <section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
-  <p class="text-sm text-slate-700 mb-3">同一批链上指标，在两端的角色截然不同。<b>顶部硬 alpha Reserve Risk 在底部退位</b>，底部主力换成估值/长持盈亏类——这是“底部 ≠ 顶部反操作”最直接的证据。</p>
+  <p class="text-sm text-slate-700 mb-3">同一批链上指标，在两端的角色截然不同。<b>顶部硬 alpha Reserve Risk 在底部的日频条件分位排名让位</b>，底部主力换成估值/长持盈亏类——这是“底部 ≠ 顶部反操作”最直接的证据。<b>但注意</b>：Reserve Risk 的“退位”仅限于日频超额排名；按事件去重口径（§7）它仍是最强之一，不可简单判定失效。</p>
   <div class="overflow-x-auto">
   <table class="dt">
     <thead><tr><th>指标</th><th>顶部 90d RankIC / t</th><th>顶部角色</th><th>底部 180d 超额 / 命中</th><th>底部角色</th></tr></thead>
     <tbody>
-      <tr><td class="font-medium">Reserve Risk</td><td class="num">-0.429 / -2.65</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">顶部唯一硬 alpha</span></td><td class="num">+24.7% / 82%</td><td class="text-slate-500">中游(退位)</td></tr>
+      <tr><td class="font-medium">Reserve Risk</td><td class="num">-0.429 / -2.65</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">顶部唯一硬 alpha</span></td><td class="num">+24.7% / 82%</td><td class="text-slate-500">日频排名让位<br><span class="text-xs">(事件口径仍强)</span></td></tr>
       <tr><td class="font-medium">AVIV 比率</td><td class="num">-0.214 / -1.24</td><td class="text-slate-500">Layer B 候选</td><td class="num">+53.4% / 87%</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">底部主力</span></td></tr>
       <tr><td class="font-medium">MVRV-Z</td><td class="num">-0.261 / -1.53</td><td class="text-slate-600">Layer B 确认</td><td class="num">+47.7% / 83%</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">底部主力</span></td></tr>
       <tr><td class="font-medium">LTH-NUPL</td><td class="num">-0.270 / -1.56</td><td class="text-slate-600">Layer B 确认</td><td class="num">+41.1% / 84%</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">底部主力</span></td></tr>
@@ -219,7 +220,7 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
 <section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
   <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5">
     <li><b>子样本 IC 不显著</b>：低估区非重叠采样 N&lt;8，t-stat 做不出。BTC 史仅 3–4 大底的结构性限制，非代码缺陷 → 底部框架统计严谨度天然弱于顶部。</li>
-    <li><b>命中率 / 超额为日频重叠计数</b>：看趋势可以，不能当独立同分布样本下硬结论。</li>
+    <li><b>命中率 / 超额为日频重叠计数（违反手册 §2.1 非重叠铁律）</b>：例如 MVRV-Z 的 358 个“低估天”其实只对应 6 段连续低估期，非 358 个独立样本。故该类指标仅能用于<b>候选排序</b>，不能当独立同分布硬结论。<b>事件去重 sanity check</b>（把连续低估日合并为“低估事件段”看首/末日 180d 收益）揭示：AVIV 两口径都强；NUPL 日频强但事件段首日 38.5% 命中/-1.0% 明显走弱（依赖连续低估区内部重叠权重）；Reserve Risk 事件段首日 83.3% 命中/+91.1% 仍强。<b>晋升前必须重跑事件级 + 右侧触发回测。</b></li>
     <li><b>DXY/TNX 超额最高但存疑</b>：DXY 180d 超额 +87% 极可能是样本偏差 + regime 巧合（大底恰逢美元宽松周期），是宏观流动性因果而非 DXY 预测力。仅作背景旁证，<b>不可当独立 alpha</b>。</li>
     <li><b>链上数据回填风险 (Layer 0)</b>：回测可能虚高，live 表现打折扣。</li>
     <li><b>只测线性单调 / 分位预测力</b>：不含成本、滑点、延迟，真实收益需 Layer 5 回测验证。</li>
@@ -231,7 +232,8 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
 <section class="border-l-4 p-4 mb-4 rounded scroll-mt-24" style="background:#eef3ff;border-color:#0053e2">
   <h3 class="text-lg font-bold text-slate-800 mb-2">核心结论</h3>
   <ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5">
-    <li><b>底部 alpha 真实存在</b>（估值类低估区命中 80%+、180d 超额 +40–53%），但<b>不是顶部镜像</b>——主信号冠军换成 MVRV-Z / LTH-NUPL / AVIV。</li>
+    <li><b>底部 alpha 有迹象存在，但强度应分层</b>（估值类低估区命中 80%+、180d 超额 +40–53%），但<b>不是顶部镜像</b>——<b>AVIV / MVRV-Z 是更稳的 Layer A 候选</b>；LTH-NUPL / NUPL / LTH-MVRV 更适合作确认层。</li>
+    <li><b>Reserve Risk 在日频条件分位排名不再第一</b>，但事件去重口径下仍可能很强，<b>不能简单判定退位</b>，需事件级回测进一步验证。</li>
     <li><b>底部是长周期游戏</b>，短期抄底无 edge；<b>极恐抄底是伪命题</b>，必须右侧确认。</li>
     <li><b>统计上比顶部弱</b>（样本稀少），框架应降级为“长周期参考 + 右侧确认”，UI 诚实标注。</li>
     <li>本框架是<b>仓位管理工具，不是抄底神器</b>。任何指标都无法 100% 预判底部。</li>
