@@ -21,7 +21,7 @@ VPS (Ubuntu 22.04+)
 │                       ├─ [可选] Gemini LLM 分析
 │                       └─ [可选] 发送邮件
 │
-├── /root/FcstLabPro/.venv/       # Python 虚拟环境
+├── ~/FcstLabPro/.venv/          # Python 虚拟环境 (= /root/FcstLabPro)
 └── /opt/fcstlabpro/
         ├── .env                  # 密钥/邮箱/模型配置
         ├── state/                # 持仓状态 signal_state.json
