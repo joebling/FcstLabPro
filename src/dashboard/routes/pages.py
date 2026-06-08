@@ -26,6 +26,7 @@ def _base_ctx(request: Request, active_page: str, model: str | None) -> dict:
 
 
 @router.get("/", response_class=HTMLResponse)
+@router.get("/overview", response_class=HTMLResponse)  # 别名: /overview 与 / 同源
 def overview(request: Request, model: str | None = None):
     from src.dashboard.app import templates
     from src.dashboard.pages import overview as page
