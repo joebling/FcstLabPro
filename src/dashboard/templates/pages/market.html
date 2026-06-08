@@ -16,7 +16,7 @@
        "正=多头付费", "text-slate-700", "💸") }}
   {{ ui.kpi("taker买卖比",
        ("%.2f"|format(long_short.series[-1])) if long_short.series else "—",
-       ">1 主动买占优", "text-slate-700", "⚖️") }}
+       ">1.1 多头进攻 / <0.9 空头进攻", "text-slate-700", "⚖️") }}
   {{ ui.kpi("BTC 价格",
        ("$" ~ "{:,.0f}".format(price.close[-1])) if price.close else "—",
        "近 180 天", "text-indigo-600", "₿") }}
