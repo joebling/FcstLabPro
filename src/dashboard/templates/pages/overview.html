@@ -19,10 +19,12 @@
   {{ ui.kpi_hero("最新信号",
        ('🟢 BUY' if is_buy else '⚪ ' ~ (sig or '—')),
        latest.get('date', ''), "📡") }}
-  {{ ui.kpi("当前价格",
+  {{ ui.kpi("最新收盘价",
        ("$" ~ "{:,.0f}".format(current_price)) if current_price else "—",
-       (("▲ " if (chg_pct or 0) >= 0 else "▼ ") ~ (chg_pct|string) ~ "%") if chg_pct is not none else "",
-       "text-emerald-600" if (chg_pct or 0) >= 0 else "text-rose-500", "💰") }}
+       (("截至 " ~ (price_date or "?") ~ " · ▲ " ~ (chg_pct|string) ~ "%") if (chg_pct is not none and chg_pct >= 0)
+        else (("截至 " ~ (price_date or "?") ~ " · ▼ " ~ (chg_pct|string) ~ "%") if chg_pct is not none
+        else ("截至 " ~ (price_date or "?")))),
+       "text-emerald-600" if (chg_pct or 0) >= 0 else "text-rose-500", "") }}
   {{ ui.kpi("命中率",
        (summary.get('hit_rate')|string ~ "%") if summary.get('hit_rate') is not none else "—",
        (summary.get('n_bets', 0)|string) ~ " 笔下注",

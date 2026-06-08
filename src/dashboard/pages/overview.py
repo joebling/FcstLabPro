@@ -32,9 +32,11 @@ def build(model_name: str | None) -> dict:
 
     # 今日涨跌 (最后两根收盘价)
     closes = price.get("close", [])
+    dates = price.get("dates", [])
     chg_pct = None
     if len(closes) >= 2 and closes[-2]:
         chg_pct = round((closes[-1] / closes[-2] - 1) * 100, 2)
+    price_date = dates[-1] if dates else None
 
     # performance 汇总 (命中率/IC)
     try:
@@ -60,6 +62,7 @@ def build(model_name: str | None) -> dict:
         "latest": latest,
         "price": price,
         "current_price": closes[-1] if closes else None,
+        "price_date": price_date,
         "chg_pct": chg_pct,
         "summary": summary,
         "distribution": dist,
