@@ -40,9 +40,14 @@ deploy/vps/run_market_data.sh
 覆盖 funding 结算 + 美股收盘后刷到 macro。
 
 ```cron
-# /etc/cron.d/fcstlab 或 crontab -e
-0 */6 * * * /opt/.../FcstLabPro/deploy/vps/run_market_data.sh >> /var/log/fcstlab_market.log 2>&1
+# crontab -e  (仓库克隆在 ~/FcstLabPro = /root/FcstLabPro; 与 run_daily_nodock.sh 同目录)
+0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data.log 2>&1
 ```
+
+> 路径说明: `~/FcstLabPro` = 代码仓库 (git clone 位置, 含 shell 脚本);
+> `/opt/fcstlabpro/` = 数据输出目录 (state/signals/logs), **里面没有代码**。
+> 两者别混。脚本内部用 `BASH_SOURCE` 自算 REPO_DIR, 不依赖绝对路径;
+> cron 里的绝对路径只需指向你实际克隆位置即可。
 
 ## git 冲突治理 (重要)
 

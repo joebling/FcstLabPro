@@ -9,12 +9,13 @@
 # 它挂了只影响市场图, 信号毫发无伤。
 #
 # 调度: 建议每 6 小时 (覆盖 funding 8h 结算 + 美股收盘后刷 macro + 瞬时失败自恢复)。
-#   crontab 示例:
-#     0 */6 * * * /opt/.../FcstLabPro/deploy/vps/run_market_data.sh >> /var/log/fcstlab_market.log 2>&1
+#   crontab 示例 (仓库在 ~/FcstLabPro, 与 run_daily_nodock.sh 同目录):
+#     0 */6 * * * /root/FcstLabPro/deploy/vps/run_market_data.sh >> /opt/fcstlabpro/logs/market_data.log 2>&1
+#   (路径以你实际 git clone 位置为准; 脚本内部用 BASH_SOURCE 自算 REPO_DIR, 不依赖绝对路径)
 #
 # git 冲突治理 (data/external 是 tracked, 本任务会原地改写 CSV):
 #   拉代码前先丢弃本地再生数据, 再 pull (反正下次 sync 自动重灌):
-#     git checkout -- data/external/*.csv && git pull
+#     cd ~/FcstLabPro && git checkout -- data/external/*.csv && git pull
 # =============================================================================
 set -uo pipefail  # 不用 -e: best-effort, 单源失败不该让整脚本崩
 
