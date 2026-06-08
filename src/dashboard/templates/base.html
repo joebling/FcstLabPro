@@ -4,16 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}FcstLabPro{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <!-- Tailwind: 预编译静态 CSS (替代生产禁用的 Play CDN, 避免浏览器内 JIT 阻塞首屏)。
+       改样式/改模板 class 后需重新构建: 见 tailwind.config.js 头部注释。 -->
   <link rel="stylesheet" href="/static/app.css">
-  <script>
-    tailwind.config = { theme: { extend: { colors: {
-      indigo600: '#4f46e5', violet500: '#8b5cf6',
-      emerald: '#10b981', rose: '#f43f5e', amber: '#f59e0b',
-    }}}};
-  </script>
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 <div class="flex min-h-screen">
