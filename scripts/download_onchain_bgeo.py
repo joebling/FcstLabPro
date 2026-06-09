@@ -38,7 +38,8 @@ CORE_INDICATORS = [
 
 CANDIDATE_INDICATORS = [
     "aviv",
-    "reserve_risk",
+    # "reserve_risk" — 已剔除! BGeo 静态文件自 2025-12-29 起 value 全为 null (上游断供)。
+    #   改由 scripts/update_reserve_risk.py 用 REST API 缩放拼接维护, 别让空文件覆盖。
     "mvrv_data",
     "mvrv_zscore_data",
     "nupl_data",

@@ -53,6 +53,10 @@ def _classify(rr_pct: float | None, lb_low: int, lc_fired: int) -> dict:
                 "action": "A/B 深度低估，但右侧未确认 —— 严禁左侧抄底，等 Layer C 信号",
                 "bought": 0, "warn": True}
     if rr_pct <= WATCH_Q:
+        if rr_pct <= DEEP_Q:   # Layer A 已深度低估, 但 lb_low<2 (B 未共振) 才落到这里
+            return {"key": "watch", "label": "关注", "color": "#3b82f6",
+                    "action": "Layer A(RR) 已深度低估，但 Layer B 估值类未共振确认；备好稳定币，盯 B 转低 + Layer C 右侧",
+                    "bought": 0, "warn": False}
         return {"key": "watch", "label": "关注", "color": "#3b82f6",
                 "action": "接近低估区，备好稳定币，开始盯 Layer C 右侧信号",
                 "bought": 0, "warn": False}
