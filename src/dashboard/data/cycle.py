@@ -1,7 +1,9 @@
 """周期研判整合层 — 单一 regime gate, 单一自适应面板 (DRY).
 
 设计 (解决"两 tab 结论打架"):
-  - 周期位置 = Reserve Risk 的 expanding 历史分位 (0=深底, 100=极顶), 单一标尺。
+  - 周期位置 = Reserve Risk 的 rolling-2y 历史分位 (0=深底, 100=极顶), 单一标尺。
+    (V1.2: 从 expanding 升级到 rolling-2y, 防早期极值锚死天花板. 详见
+     docs/plans/rolling_vs_expanding_audit_20260609.md)
   - regime gate 纯按 RR 分位, 路由到唯一一套自适应三层面板:
       >= TOP_ZONE   -> 顶部区, 面板按逃顶读数 (跌破/极高估/转跌)
       <= BOTTOM_ZONE-> 底部区, 面板按抄底读数 (站上/极低估/转涨)
@@ -24,7 +26,8 @@ def build(hist_points: int = 120) -> dict:
     """组装周期研判页 context: regime + 当前自适应面板 + 双向回放。"""
     top = topping.build(hist_points)
     bot = bottoming.build(hist_points)
-    rr_pct = top.get("rr_pct")  # 顶底共用 Reserve Risk
+    rr_pct = top.get("rr_pct")  # 顺底共用 Reserve Risk (rolling-2y, V1.2)
+    rr_pct_legacy = top.get("rr_pct_legacy")  # 旧口径 (仅供展示对比)
 
     if rr_pct is None:
         return {"available": False, "top": top, "bot": bot}
@@ -50,7 +53,8 @@ def build(hist_points: int = 120) -> dict:
 
     return {
         "available": True,
-        "rr_pct": rr_pct, "rr_val": top.get("rr_val"),
+        "rr_pct": rr_pct, "rr_pct_legacy": rr_pct_legacy,
+        "rr_val": top.get("rr_val"),
         "regime": regime,
         "active_verdict": active_verdict,
         "top": top, "bot": bot,

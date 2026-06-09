@@ -15,10 +15,13 @@
 
   <!-- Layer A -->
   {% call ui.card("Layer A · 主信号 (Reserve Risk)", "A") %}
-  <p class="text-xs text-slate-400 -mt-2 mb-3">expanding 历史分位, <b>越低越接近底</b> (事件级 180d 超额 +12.4%, 底部最稳)</p>
+  <p class="text-xs text-slate-400 -mt-2 mb-3">rolling-2y 历史分位 (V1.2), <b>越低越接近底</b> (事件级 180d 超额 +12.4%, 底部最稳)</p>
   <div class="flex items-baseline gap-2 mb-3">
     <span class="text-4xl font-bold text-emerald-600">{{ rr_pct if rr_pct is not none else '—' }}</span>
     <span class="text-sm text-slate-400">分位</span>
+    {% if rr_pct_legacy is not none %}
+    <span class="text-[10px] text-slate-400 ml-1" title="旧口径 expanding, 仅供对比">旧 {{ rr_pct_legacy }}</span>
+    {% endif %}
     {% if rr_val is not none %}<span class="text-xs text-slate-400 ml-auto">值 {{ rr_val }}</span>{% endif %}
   </div>
   <div class="relative h-4 rounded-full overflow-hidden mb-1"
@@ -38,6 +41,7 @@
       <span class="text-slate-700">{{ r.name }}{% if r.preferred %}<span class="text-[10px] text-emerald-500 ml-1">首选</span>{% endif %}</span>
       <span class="flex items-center gap-2">
         <span class="text-xs text-slate-400">{{ r.pct if r.pct is not none else '—' }}分位</span>
+        {% if r.pct_legacy is not none %}<span class="text-[10px] text-slate-300" title="旧口径 expanding">({{ r.pct_legacy }})</span>{% endif %}
         {% if r.low %}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">低位</span>
         {% else %}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">未低</span>{% endif %}
       </span>
@@ -48,7 +52,7 @@
     <p class="text-[11px] font-semibold text-rose-500 mb-1">避坑名单 (左侧接飞刀陷阱, 不计入确认)</p>
     {% for r in avoid_rows %}
     <div class="flex items-center justify-between text-[11px] text-slate-500">
-      <span>{{ r.name }} <span class="text-slate-400">{{ r.pct if r.pct is not none else '—' }}分位</span></span>
+      <span>{{ r.name }} <span class="text-slate-400">{{ r.pct if r.pct is not none else '—' }}分位</span>{% if r.pct_legacy is not none %}<span class="text-[10px] text-slate-300 ml-1" title="旧口径">({{ r.pct_legacy }})</span>{% endif %}</span>
       <span class="text-rose-400">{{ r.why }}</span>
     </div>
     {% endfor %}

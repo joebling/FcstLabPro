@@ -14,12 +14,24 @@
 <!-- regime gate -->
 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
   <div class="flex items-center justify-between mb-2">
-    <h3 class="text-sm font-semibold text-slate-700">周期位置 (Reserve Risk 历史分位)</h3>
-    <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:{{ regime.color }}1a;color:{{ regime.color }}">{{ regime.label }} · RR {{ rr_pct }} 分位</span>
+    <h3 class="text-sm font-semibold text-slate-700">周期位置 (Reserve Risk 历史分位)
+      <span class="ml-2 text-[10px] font-normal text-slate-400">V1.2 rolling-2y</span>
+    </h3>
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:{{ regime.color }}1a;color:{{ regime.color }}">{{ regime.label }} · RR <b>{{ rr_pct }}</b> 分位</span>
+      {% if rr_pct_legacy is not none %}
+      <span class="text-[10px] text-slate-400" title="旧口径 expanding 分位, 仅供对比. 话口径不作主判断 (被 2013-2018 极值锚死天花板, 详见审计报告)">
+        旧 expanding: {{ rr_pct_legacy }}
+      </span>
+      {% endif %}
+    </div>
   </div>
   <div class="relative h-5 rounded-full overflow-hidden"
        style="background:linear-gradient(90deg,#10b981 0%,#3b82f6 50%,#f43f5e 100%)">
     <div class="absolute top-0 h-5 w-1 bg-slate-900" style="left:{{ rr_pct }}%"></div>
+    {% if rr_pct_legacy is not none %}
+    <div class="absolute top-0 h-5 w-0.5 bg-slate-400 opacity-50" style="left:{{ rr_pct_legacy }}%" title="旧口径位置 (仅参考)"></div>
+    {% endif %}
   </div>
   <div class="flex justify-between text-[10px] text-slate-400 mt-1">
     <span>0 深底</span><span>底部区 ≤{{ bottom_zone }}</span><span>中性</span><span>顶部区 ≥{{ top_zone }}</span><span>100 极顶</span>
@@ -80,7 +92,7 @@
 {% endcall %}
 
 <p class="text-[11px] text-slate-400 mt-4">
-  口径: Reserve Risk expanding 历史分位为单一 regime gate (低=底/高=顶)。纯历史位置参考, 不预测。
+  口径: Reserve Risk rolling-2y 历史分位 为单一 regime gate (低=底/高=顶)。纯历史位置参考, 不预测。V1.2 从 expanding 升级，防早期极值锚死天花板。
   实证依据见 <code class="bg-slate-100 px-1 rounded">docs/reports/btc_topping_ic_analysis_20260608.html</code> /
   <code class="bg-slate-100 px-1 rounded">btc_bottoming_ic_analysis_20260608.html</code>
 </p>

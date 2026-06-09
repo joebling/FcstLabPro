@@ -48,14 +48,18 @@ def _classify(rr_pct: float | None, lb_high: int, lc_fired: int) -> dict:
 def build(hist_points: int = 120) -> dict:
     """组装顶部页 context: Layer A/B/C 读数 + 分级 + 历史回放序列。"""
     rr = core.load_onchain("reserve_risk.csv")
-    rr_pct = core.latest_pct(rr)
+    rr_pct = core.latest_pct(rr)                  # V1.2 主口径 rolling-2y
+    rr_pct_legacy = core.legacy_latest_pct(rr)    # 旧口径 expanding (双展示)
     rr_val = round(float(rr.iloc[-1]), 6) if rr is not None and not rr.empty else None
 
     # Layer B
     lb_rows = []
     for name, fname, preferred in LAYER_B:
-        pct = core.latest_pct(core.load_onchain(fname))
-        lb_rows.append({"name": name, "pct": pct, "preferred": preferred,
+        s = core.load_onchain(fname)
+        pct = core.latest_pct(s)
+        pct_legacy = core.legacy_latest_pct(s)
+        lb_rows.append({"name": name, "pct": pct, "pct_legacy": pct_legacy,
+                        "preferred": preferred,
                         "high": (pct is not None and pct >= 85)})
     lb_high = sum(1 for r in lb_rows if r["high"])
 
@@ -75,7 +79,7 @@ def build(hist_points: int = 120) -> dict:
                for i, (n, p) in enumerate(BATCHES)]
 
     return {
-        "rr_val": rr_val, "rr_pct": rr_pct,
+        "rr_val": rr_val, "rr_pct": rr_pct, "rr_pct_legacy": rr_pct_legacy,
         "lb_rows": lb_rows, "lb_high": lb_high,
         "lc_rows": lc_rows, "lc_active": lc_active, "lc_fired": lc_fired,
         "verdict": verdict, "batches": batches, "hist": hist,

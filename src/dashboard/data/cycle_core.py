@@ -44,19 +44,59 @@ def load_onchain(fname: str, col: str = "value") -> pd.Series | None:
 
 
 # ---------- 分位引擎 (point-in-time, 防未来函数) ----------
-def expanding_pct(s: pd.Series) -> pd.Series:
-    """每个点的 expanding 历史分位 (0~100), 只用 <=当日数据。"""
+# V1.2 (2026-06-09): 从 expanding 升级到 rolling-2y. 原因:
+#   expanding 被早期极值锚死 (RR 2013顶 0.0385 → 2025顶 0.0037, 衰减 90%),
+#   2025-10-06 真顶 expanding 仅 51.3% (零警报), rolling-2y 是 87.4% (危险区, 命中).
+#   详: docs/plans/rolling_vs_expanding_audit_20260609.md
+
+ROLL_WIN = 730       # 2 年 ≈ 半个 BTC 周期 (覆盖牋后+顶+熊初或熊后+底+复苏初)
+ROLL_MINPER = 180    # 启动期 ≥6 个月才出分位, 避免低样本骚动
+
+
+def position_pct(s: pd.Series) -> pd.Series:
+    """主分位函数: rolling-2y 点位定位分位 (V1.2).
+
+    比'今天值'在最近 730 天里排第几, 适应 BTC 市场结构演化 (ETF/HODL waves 拉长).
+    依然 point-in-time 合手册架构 (只用 <=当日数据).
+    """
+    return s.rolling(window=ROLL_WIN, min_periods=ROLL_MINPER).rank(pct=True) * 100.0
+
+
+def _legacy_expanding_pct(s: pd.Series) -> pd.Series:
+    """旧版: expanding 全历史分位 (V1.0/V1.1 默认, V1.2 降为参考).
+
+    保留原因: 双口径展示 + 快速回滚能力 + 老报告复现。
+    不建议用作主判断 (会被早期极值锚死天花板).
+    """
     return s.expanding(min_periods=1).apply(
         lambda w: (w <= w.iloc[-1]).sum() / len(w) * 100.0, raw=False
     )
 
 
+# 旧名字别名 (兼容外部有人引用, 但仅最低限度保留)
+expanding_pct = _legacy_expanding_pct
+
+
 def latest_pct(s: pd.Series | None) -> float | None:
-    """最新值在自身历史中的 expanding 分位 (0~100)。"""
+    """最新值的 rolling-2y 分位 (主口径, V1.2)."""
     if s is None or s.empty:
         return None
-    return round(float((s <= s.iloc[-1]).sum() / len(s) * 100.0), 1)
+    pct = position_pct(s.dropna())
+    if pct.empty:
+        return None
+    last = pct.iloc[-1]
+    return round(float(last), 1) if pd.notna(last) else None
 
+
+def legacy_latest_pct(s: pd.Series | None) -> float | None:
+    """最新值的 expanding 分位 (旧口径, 仅供双口径展示)."""
+    if s is None or s.empty:
+        return None
+    pct = _legacy_expanding_pct(s.dropna())
+    if pct.empty:
+        return None
+    last = pct.iloc[-1]
+    return round(float(last), 1) if pd.notna(last) else None
 
 # ---------- Layer C 技术面触发 (方向相关) ----------
 def layer_c_signals(direction: str) -> list[dict]:
@@ -146,7 +186,7 @@ def replay_history(
     hist = {"dates": [], "pct": [], "price": [], "fire": []}
     if driver is None or driver.empty:
         return hist
-    pct_series = expanding_pct(driver)
+    pct_series = position_pct(driver)
     sampled = _subsample(pct_series, hist_points)
     try:
         from src.dashboard.data import load_display_ohlcv
@@ -174,7 +214,7 @@ def replay_dual(
     out = {"dates": [], "pct": [], "price": [], "top_fire": [], "bottom_fire": []}
     if driver is None or driver.empty:
         return out
-    pct_series = expanding_pct(driver)
+    pct_series = position_pct(driver)
     sampled = _subsample(pct_series, hist_points)
     try:
         from src.dashboard.data import load_display_ohlcv

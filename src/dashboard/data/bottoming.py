@@ -67,22 +67,28 @@ def _classify(rr_pct: float | None, lb_low: int, lc_fired: int) -> dict:
 def build(hist_points: int = 120) -> dict:
     """组装底部页 context: Layer A/B/C 读数 + 分级 + 避坑名单 + 历史回放。"""
     rr = core.load_onchain("reserve_risk.csv")
-    rr_pct = core.latest_pct(rr)
+    rr_pct = core.latest_pct(rr)                  # V1.2 主口径 rolling-2y
+    rr_pct_legacy = core.legacy_latest_pct(rr)    # 旧口径 expanding (双展示)
     rr_val = round(float(rr.iloc[-1]), 6) if rr is not None and not rr.empty else None
 
     # Layer B (低位计数: 分位 <= DEEP_Q 视为低估)
     lb_rows = []
     for name, fname, preferred in LAYER_B:
-        pct = core.latest_pct(core.load_onchain(fname))
-        lb_rows.append({"name": name, "pct": pct, "preferred": preferred,
+        s = core.load_onchain(fname)
+        pct = core.latest_pct(s)
+        pct_legacy = core.legacy_latest_pct(s)
+        lb_rows.append({"name": name, "pct": pct, "pct_legacy": pct_legacy,
+                        "preferred": preferred,
                         "low": (pct is not None and pct <= DEEP_Q)})
     lb_low = sum(1 for r in lb_rows if r["low"])
 
     # 避坑名单 (展示其分位 + 警告语, 不计入确认)
     avoid_rows = []
     for name, fname, why in AVOID:
-        pct = core.latest_pct(core.load_onchain(fname))
-        avoid_rows.append({"name": name, "pct": pct, "why": why})
+        s = core.load_onchain(fname)
+        pct = core.latest_pct(s)
+        pct_legacy = core.legacy_latest_pct(s)
+        avoid_rows.append({"name": name, "pct": pct, "pct_legacy": pct_legacy, "why": why})
 
     # 恐惧贪婪 — 极恐特判 (恐惧 != 底部)
     fgi = core.load_series(core.EXTERNAL_DIR / "fear_greed_index.csv", "fgi_value")
@@ -106,7 +112,7 @@ def build(hist_points: int = 120) -> dict:
                for i, (n, p) in enumerate(BATCHES)]
 
     return {
-        "rr_val": rr_val, "rr_pct": rr_pct,
+        "rr_val": rr_val, "rr_pct": rr_pct, "rr_pct_legacy": rr_pct_legacy,
         "lb_rows": lb_rows, "lb_low": lb_low,
         "avoid_rows": avoid_rows,
         "fgi_val": fgi_val, "fgi_extreme": fgi_extreme,
