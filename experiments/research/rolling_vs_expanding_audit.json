@@ -1,0 +1,323 @@
+{
+  "top_anchors": [
+    [
+      "2017-12-16",
+      "2017-2018"
+    ],
+    [
+      "2021-04-13",
+      "2021-04 局部顶"
+    ],
+    [
+      "2021-11-08",
+      "2021-11 真顶"
+    ],
+    [
+      "2025-10-06",
+      "2025-10 真顶"
+    ]
+  ],
+  "bot_anchors": [
+    [
+      "2018-12-15",
+      "2018-12 大底"
+    ],
+    [
+      "2020-03-12",
+      "2020-03 COVID 底"
+    ],
+    [
+      "2022-11-21",
+      "2022-11 Luna 后底"
+    ]
+  ],
+  "snapshot_2026_06_01": [
+    {
+      "name": "MVRV-Z分数",
+      "direction": -1,
+      "value": 0.6694,
+      "pct_exp": 34.31018078020933,
+      "pct_roll2y": 9.315068493150685
+    },
+    {
+      "name": "NUPL(净未实现盈亏)",
+      "direction": -1,
+      "value": 0.2504,
+      "pct_exp": 27.00490998363339,
+      "pct_roll2y": 8.356164383561644
+    },
+    {
+      "name": "SOPR(花费产出利润)",
+      "direction": -1,
+      "value": 0.9881,
+      "pct_exp": 8.314307458143075,
+      "pct_roll2y": 4.52054794520548
+    },
+    {
+      "name": "Puell倍数(矿工营收)",
+      "direction": -1,
+      "value": 0.8017142857,
+      "pct_exp": 26.929087712443838,
+      "pct_roll2y": 27.123287671232877
+    },
+    {
+      "name": "Reserve Risk",
+      "direction": -1,
+      "value": 0.0012415709236526,
+      "pct_exp": 9.89345509893455,
+      "pct_roll2y": 3.1506849315068495
+    },
+    {
+      "name": "LTH-NUPL(长持)",
+      "direction": -1,
+      "value": 0.3266,
+      "pct_exp": 24.856674856674857,
+      "pct_roll2y": 6.438356164383562
+    },
+    {
+      "name": "资金费率(均值)",
+      "direction": -1,
+      "value": -2.8055e-05,
+      "pct_exp": 6.070826306913997,
+      "pct_roll2y": 2.6027397260273974
+    },
+    {
+      "name": "恐惧贪婪指数",
+      "direction": -1,
+      "value": 29.0,
+      "pct_exp": 29.96051332675222,
+      "pct_roll2y": 31.164383561643838
+    },
+    {
+      "name": "DXY(美元指数)",
+      "direction": -1,
+      "value": 98.8550033569336,
+      "pct_exp": 55.17744287797763,
+      "pct_roll2y": 19.17808219178082
+    },
+    {
+      "name": "美债10年(TNX)",
+      "direction": -1,
+      "value": 4.132999897003174,
+      "pct_exp": 76.59367396593673,
+      "pct_roll2y": 34.93150684931507
+    },
+    {
+      "name": "AVIV比率(估值)",
+      "direction": -1,
+      "value": 0.90779,
+      "pct_exp": 34.12780656303973,
+      "pct_roll2y": 8.21917808219178
+    },
+    {
+      "name": "CDD(币天销毁)",
+      "direction": -1,
+      "value": 2896343.1,
+      "pct_exp": 14.261069580218516,
+      "pct_roll2y": 5.7534246575342465
+    },
+    {
+      "name": "CDD调整(终端)",
+      "direction": -1,
+      "value": 2761318.08,
+      "pct_exp": 24.367816091954023,
+      "pct_roll2y": 4.794520547945205
+    },
+    {
+      "name": "LTH-MVRV(长持估值)",
+      "direction": -1,
+      "value": 1.48,
+      "pct_exp": 21.788772597526165,
+      "pct_roll2y": 0.136986301369863
+    },
+    {
+      "name": "LTH-SOPR(长持获利)",
+      "direction": -1,
+      "value": 0.8114,
+      "pct_exp": 17.672824223957342,
+      "pct_roll2y": 3.4246575342465753
+    },
+    {
+      "name": "STH-MVRV(短持估值)",
+      "direction": -1,
+      "value": 0.93,
+      "pct_exp": 30.82037643207856,
+      "pct_roll2y": 30.273972602739725
+    },
+    {
+      "name": "STH-NUPL(短持)",
+      "direction": -1,
+      "value": -0.078,
+      "pct_exp": 31.244881244881245,
+      "pct_roll2y": 28.767123287671232
+    },
+    {
+      "name": "STH-SOPR(短持获利)",
+      "direction": -1,
+      "value": 0.9909,
+      "pct_exp": 27.06151209293468,
+      "pct_roll2y": 12.465753424657535
+    },
+    {
+      "name": "ahr999(定投指数)",
+      "direction": -1,
+      "value": 0.4335522315649491,
+      "pct_exp": 13.982608695652173,
+      "pct_roll2y": 11.095890410958905
+    }
+  ],
+  "trigger_counts": [
+    {
+      "name": "MVRV-Z分数",
+      "direction": -1,
+      "high_exp": 938,
+      "high_roll": 1406,
+      "low_exp": 657,
+      "low_roll": 1190
+    },
+    {
+      "name": "NUPL(净未实现盈亏)",
+      "direction": -1,
+      "high_exp": 556,
+      "high_roll": 1123,
+      "low_exp": 812,
+      "low_roll": 1293
+    },
+    {
+      "name": "SOPR(花费产出利润)",
+      "direction": -1,
+      "high_exp": 765,
+      "high_roll": 1046,
+      "low_exp": 658,
+      "low_roll": 884
+    },
+    {
+      "name": "Puell倍数(矿工营收)",
+      "direction": -1,
+      "high_exp": 578,
+      "high_roll": 851,
+      "low_exp": 794,
+      "low_roll": 858
+    },
+    {
+      "name": "Reserve Risk",
+      "direction": -1,
+      "high_exp": 509,
+      "high_roll": 1244,
+      "low_exp": 1143,
+      "low_roll": 1010
+    },
+    {
+      "name": "LTH-NUPL(长持)",
+      "direction": -1,
+      "high_exp": 201,
+      "high_roll": 1142,
+      "low_exp": 813,
+      "low_roll": 1226
+    },
+    {
+      "name": "资金费率(均值)",
+      "direction": -1,
+      "high_exp": 219,
+      "high_roll": 283,
+      "low_exp": 332,
+      "low_roll": 335
+    },
+    {
+      "name": "恐惧贪婪指数",
+      "direction": -1,
+      "high_exp": 586,
+      "high_roll": 585,
+      "low_exp": 383,
+      "low_roll": 532
+    },
+    {
+      "name": "DXY(美元指数)",
+      "direction": -1,
+      "high_exp": 904,
+      "high_roll": 565,
+      "low_exp": 146,
+      "low_roll": 365
+    },
+    {
+      "name": "美债10年(TNX)",
+      "direction": -1,
+      "high_exp": 862,
+      "high_roll": 641,
+      "low_exp": 416,
+      "low_roll": 416
+    },
+    {
+      "name": "AVIV比率(估值)",
+      "direction": -1,
+      "high_exp": 1388,
+      "high_roll": 1491,
+      "low_exp": 285,
+      "low_roll": 1268
+    },
+    {
+      "name": "CDD(币天销毁)",
+      "direction": -1,
+      "high_exp": 1257,
+      "high_roll": 975,
+      "low_exp": 257,
+      "low_roll": 637
+    },
+    {
+      "name": "CDD调整(终端)",
+      "direction": -1,
+      "high_exp": 1502,
+      "high_roll": 1028,
+      "low_exp": 83,
+      "low_roll": 535
+    },
+    {
+      "name": "LTH-MVRV(长持估值)",
+      "direction": -1,
+      "high_exp": 387,
+      "high_roll": 1368,
+      "low_exp": 934,
+      "low_roll": 1138
+    },
+    {
+      "name": "LTH-SOPR(长持获利)",
+      "direction": -1,
+      "high_exp": 481,
+      "high_roll": 1362,
+      "low_exp": 743,
+      "low_roll": 1099
+    },
+    {
+      "name": "STH-MVRV(短持估值)",
+      "direction": -1,
+      "high_exp": 519,
+      "high_roll": 774,
+      "low_exp": 768,
+      "low_roll": 845
+    },
+    {
+      "name": "STH-NUPL(短持)",
+      "direction": -1,
+      "high_exp": 540,
+      "high_roll": 772,
+      "low_exp": 665,
+      "low_roll": 801
+    },
+    {
+      "name": "STH-SOPR(短持获利)",
+      "direction": -1,
+      "high_exp": 713,
+      "high_roll": 866,
+      "low_exp": 683,
+      "low_roll": 798
+    },
+    {
+      "name": "ahr999(定投指数)",
+      "direction": -1,
+      "high_exp": 317,
+      "high_roll": 470,
+      "low_exp": 426,
+      "low_roll": 485
+    }
+  ]
+}
