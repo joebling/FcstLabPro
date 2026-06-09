@@ -112,18 +112,47 @@ def _read_dated_csv(path: Path, value_col: str | None = None) -> pd.DataFrame:
 
 
 def check_ohlcv_freshness(
-    ohlcv_path: Path | None = None, sla_days: int | None = None
+    ohlcv_path: Path | None = None,
+    sla_days: int | None = None,
+    *,
+    now_utc: datetime | None = None,
 ) -> FreshnessReport:
-    """OHLCV 相对 '今天(UTC)' 的新鲜度. 超 SLA → FATAL."""
+    """OHLCV 相对 '今天(UTC)' 的新鲜度. 超 SLA → FATAL.
+
+    lesson_0609 升级: 算 stale 前先剔除末尾 partial bar (UTC 当日未闭合 K 线).
+    否则 cron 在 UTC 00:10 拉到的 partial bar 会让 stale=0 假装新鲜, 但下游
+    推理拿到的 close 实际是早盘瞬时价, 导致 regime 误判 + 执行价错位.
+
+    Parameters
+    ----------
+    now_utc : 注入当前 UTC 时刻, 仅供测试. None 则用 datetime.now(timezone.utc).
+    """
     ohlcv_path = ohlcv_path or OHLCV_PATH
     if sla_days is None:
         sla_days = load_freshness_sla()["ohlcv_max_stale_days"]
 
     df = _read_dated_csv(ohlcv_path)
+    now = now_utc or datetime.now(timezone.utc)
+    today = pd.Timestamp(now.date())
+
+    # lesson_0609: drop 末尾 partial bar (date >= UTC today) 再算 stale.
+    # 用 >= 而非 == 是防御性: 未来日期 (上游时钟错位) 也按 partial 处理.
+    dropped_partial_date: str | None = None
+    if not df.empty and df["date"].iloc[-1].normalize() >= today:
+        dropped_partial_date = str(df["date"].iloc[-1].date())
+        df = df.iloc[:-1]
+        if df.empty:
+            raise DataFreshnessError(
+                f"OHLCV csv 仅含 partial bar (已剔除 {dropped_partial_date}), 无完整 bar 可用. "
+                f"lesson_0609: 推理拒绝在缺数据下出信号."
+            )
+
     last = df["date"].max()
-    today = pd.Timestamp(datetime.now(timezone.utc).date())
     stale = (today - last.normalize()).days
     ok = stale <= sla_days
+    detail = f"OHLCV last_date={last.date()} 落后今天(UTC) {stale} 天"
+    if dropped_partial_date:
+        detail += f" (已剔除 partial bar {dropped_partial_date}, lesson_0609)"
     report = FreshnessReport(
         source="ohlcv",
         path=_rel(ohlcv_path),
@@ -133,7 +162,7 @@ def check_ohlcv_freshness(
         stale_days=stale,
         sla_days=sla_days,
         ok=ok,
-        detail=f"OHLCV last_date={last.date()} 落后今天(UTC) {stale} 天",
+        detail=detail,
     )
     if not ok:
         raise DataFreshnessError(
