@@ -5,6 +5,37 @@
 {% block page_sub %}{{ active_model }}{% endblock %}
 
 {% block content %}
+
+{% if gauge and gauge.available %}
+<!-- 周期温度计 -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
+  <div class="flex items-center justify-between mb-2">
+    <h3 class="text-sm font-semibold text-slate-700">周期温度计 · 现在大概在哪</h3>
+    <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:{{ gauge.color }}1a;color:{{ gauge.color }}">{{ gauge.zone }} · RR {{ gauge.position }} 分位</span>
+  </div>
+  <!-- 标尺: 底部绿 → 中性蓝 → 顶部红 -->
+  <div class="relative h-5 rounded-full overflow-hidden"
+       style="background:linear-gradient(90deg,#10b981 0%,#3b82f6 50%,#f43f5e 100%)">
+    <div class="absolute top-0 h-5 w-1 bg-slate-900" style="left:{{ gauge.position }}%"></div>
+  </div>
+  <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+    <span>0 深底</span><span>30</span><span>中性</span><span>70</span><span>100 极顶</span>
+  </div>
+  <div class="grid sm:grid-cols-2 gap-3 mt-3">
+    <a href="/topping" class="rounded-lg border border-slate-200 p-2.5 hover:bg-slate-50 transition block">
+      <div class="text-[11px] text-slate-400">顶部研判</div>
+      <div class="text-sm font-semibold text-slate-700">{{ gauge.top_label }}</div>
+      <div class="text-[11px] text-slate-500 mt-0.5">{{ gauge.top_action }}</div>
+    </a>
+    <a href="/bottoming" class="rounded-lg border border-slate-200 p-2.5 hover:bg-slate-50 transition block">
+      <div class="text-[11px] text-slate-400">底部研判</div>
+      <div class="text-sm font-semibold text-slate-700">{{ gauge.bot_label }}</div>
+      <div class="text-[11px] text-slate-500 mt-0.5">{{ gauge.bot_action }}</div>
+    </a>
+  </div>
+  <p class="text-[10px] text-slate-400 mt-2">口径: Reserve Risk expanding 历史分位 (低=底/高=顶)。纯历史位置参考, 不预测; 具体动作见顶/底 tab。</p>
+</div>
+{% endif %}
 {% if not has_data %}
   <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
     暂无模型数据。

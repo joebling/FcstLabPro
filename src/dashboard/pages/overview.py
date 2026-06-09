@@ -8,6 +8,7 @@ import calendar as _cal
 from datetime import date
 
 from src.dashboard.data import signals, market, ledger
+from src.dashboard.data import cycle_gauge
 from src.performance import service
 
 
@@ -23,8 +24,14 @@ def _calendar_grid(year: int, month: int) -> list:
 
 
 def build(model_name: str | None) -> dict:
+    # 周期温度计 (与 model 无关, 顶/底 tab 同源) — 即便无模型也显示
+    try:
+        gauge = cycle_gauge.build()
+    except Exception:
+        gauge = {"available": False}
+
     if not model_name:
-        return {"has_data": False}
+        return {"has_data": False, "gauge": gauge}
 
     latest = signals.latest_signal(model_name) or {}
     price = market.price_series(days=120)
@@ -77,4 +84,5 @@ def build(model_name: str | None) -> dict:
         "cal_year": today.year,
         "cal_month": today.month,
         "buy_points": buy_points,
+        "gauge": gauge,
     }
