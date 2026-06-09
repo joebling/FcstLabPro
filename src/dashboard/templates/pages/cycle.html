@@ -51,15 +51,6 @@
   {% endif %}
 </div>
 
-<!-- 休眠侧速读 -->
-{% if dormant %}
-<a href="{{ dormant.href }}" class="block rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 mb-5 hover:bg-slate-100 transition">
-  <span class="text-xs text-slate-400">{{ dormant.side }}剧本 (当前休眠, 非主场)</span>
-  <span class="text-sm text-slate-500 ml-2">{{ dormant.label }} · {{ dormant.action }}</span>
-  <span class="text-xs text-indigo-500 float-right">查看详情 →</span>
-</a>
-{% endif %}
-
 <!-- 激活剧本 -->
 {% if regime.key == "top" %}
   {% with rr_pct=top.rr_pct, rr_val=top.rr_val, lb_rows=top.lb_rows, lb_high=top.lb_high,
@@ -78,9 +69,7 @@
   <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-5 text-center">
     <div class="text-2xl font-bold text-slate-600 mb-1">持有观望</div>
     <p class="text-sm text-slate-500">周期处中段，离顶 (≥{{ top_zone }}) 离底 (≤{{ bottom_zone }}) 都有距离。持有 BTC 不动，
-    等周期走向两端再激活对应剧本。两端详情见
-    <a href="/topping" class="text-indigo-600 hover:underline">顶部</a> /
-    <a href="/bottoming" class="text-indigo-600 hover:underline">底部</a>。</p>
+    等周期走向两端再激活对应读数。</p>
   </div>
 {% endif %}
 

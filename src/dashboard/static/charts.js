@@ -101,76 +101,6 @@ const FcstCharts = (function () {
     ]);
   }
 
-  // ---- 顶部页 (历史点灯回放) ----
-  function renderTopping() {
-    const d = _data('top-data');
-    if (!d || !d.dates) return;
-    const el = document.getElementById('topHist');
-    if (!el) return;
-    new Chart(el, {
-      data: {
-        labels: d.dates,
-        datasets: [
-          { type: 'line', label: 'RR 历史分位', yAxisID: 'yPct', data: d.rr_pct,
-            borderColor: INDIGO, backgroundColor: INDIGO + '14', fill: true,
-            pointRadius: 0, borderWidth: 2, tension: 0.25 },
-          { type: 'scatter', label: '顶部点灯 (RR≥85)', yAxisID: 'yPct', data: d.fire,
-            backgroundColor: ROSE, pointRadius: 6, pointStyle: 'triangle' },
-          { type: 'line', label: 'BTC 价格 (右轴)', yAxisID: 'yPrice', data: d.price,
-            borderColor: '#94a3b8', borderDash: [4, 3], fill: false,
-            pointRadius: 0, borderWidth: 1.5, tension: 0.25 }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { labels: { boxWidth: 12, font: { size: 11 } } } },
-        scales: {
-          yPct: { position: 'left', min: 0, max: 100,
-            title: { display: true, text: 'RR 分位' },
-            grid: { color: (c) => [70, 85, 95].includes(c.tick.value) ? '#f59e0b' : '#f1f5f9' } },
-          yPrice: { position: 'right', title: { display: true, text: 'BTC 价格' }, grid: { display: false } },
-          x: { ticks: { maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } }
-        }
-      }
-    });
-  }
-
-  // ---- 底部页 (历史点灯回放, 低分位=机会) ----
-  function renderBottoming() {
-    const d = _data('bot-data');
-    if (!d || !d.dates) return;
-    const el = document.getElementById('botHist');
-    if (!el) return;
-    new Chart(el, {
-      data: {
-        labels: d.dates,
-        datasets: [
-          { type: 'line', label: 'RR 历史分位', yAxisID: 'yPct', data: d.rr_pct,
-            borderColor: EMERALD, backgroundColor: EMERALD + '14', fill: true,
-            pointRadius: 0, borderWidth: 2, tension: 0.25 },
-          { type: 'scatter', label: '底部点灯 (RR≤15)', yAxisID: 'yPct', data: d.fire,
-            backgroundColor: EMERALD, pointRadius: 6, pointStyle: 'triangle' },
-          { type: 'line', label: 'BTC 价格 (右轴)', yAxisID: 'yPrice', data: d.price,
-            borderColor: '#94a3b8', borderDash: [4, 3], fill: false,
-            pointRadius: 0, borderWidth: 1.5, tension: 0.25 }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { labels: { boxWidth: 12, font: { size: 11 } } } },
-        scales: {
-          yPct: { position: 'left', min: 0, max: 100,
-            title: { display: true, text: 'RR 分位' },
-            grid: { color: (c) => [5, 15, 30].includes(c.tick.value) ? '#10b981' : '#f1f5f9' } },
-          yPrice: { position: 'right', title: { display: true, text: 'BTC 价格' }, grid: { display: false } },
-          x: { ticks: { maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } }
-        }
-      }
-    });
-  }
-
   // ---- 周期研判页 (双向点灯: 顶红三角 + 底绿三角) ----
   function renderCycle() {
     const d = _data('cyc-data');
@@ -240,5 +170,5 @@ const FcstCharts = (function () {
     });
   }
 
-  return { renderOverview, renderMarket, renderSignals, renderTopping, renderBottoming, renderCycle, renderPerfmon };
+  return { renderOverview, renderMarket, renderSignals, renderCycle, renderPerfmon };
 })();
