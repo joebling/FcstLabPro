@@ -20,35 +20,7 @@
 
 ---
 
-## 2. 设计演进：从"两套剧本打架"到"单一自适应面板"
-
-### 2.1 旧形态的痛点
-
-最初实现是 `/topping` + `/bottoming` 两个并列页：
-- 各自有完整 Layer A/B/C 三层面板
-- 各自给出"危险等级"/"机会等级"两套独立判定
-- nav 上"逃顶研判"和"抄底研判"并列展示
-
-**问题**：用户在任一时刻只能处于周期的一端，但 UI 让人**同时看两套结论**。当 RR 处中段时，两端都给"不太危险/不太机会"的暧昧研判，造成**决策瘫痪**——"到底听哪一套？"
-
-更糟的是底部页有个"休眠"灰条 (`dormant`)，专门用来说"当前不在底部区，本页休眠"。等于
-用第二个页面告诉用户"别看本页"，纯属信息噪音。
-
-### 2.2 方案 D：彻底溶解二元
-
-经过 A/B/C/D 四个备选方案权衡（详见 git commit `968149e`），选定 **方案 D · 单一自适应光谱**：
-
-- **删除** `/topping` 和 `/bottoming` 两个页面（含模板、route、charts.js 死代码）
-- **保留**两份数据引擎 (`topping.build()` / `bottoming.build()`) 作为指标计算库
-- **保留**两份 Jinja partials (`playbook_top.html` / `playbook_bottom.html`) 作为面板组件
-- `/cycle` 用 regime gate 决定**当前激活哪一端的 partial**，永远只渲染一个
-- 删除"休眠"灰条概念——周期中段就是中段，明确说"持有不动"即可
-
-**结果**：屏幕上不再有"另一套剧本"的任何痕迹。一个页、一个研判、一个动作。
-
----
-
-## 3. 总体架构
+## 2. 总体架构
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -85,9 +57,9 @@
 
 ---
 
-## 4. 核心概念
+## 3. 核心概念
 
-### 4.1 Layer A/B/C 三层精英制
+### 3.1 Layer A/B/C 三层精英制
 
 灵感来自机构 quant 的"主信号 + 确认 + 触发"体系。每层职责严格分离：
 
@@ -100,7 +72,7 @@
 **铁律**：A 没警报 → B/C 都灰色（顶部）/ 不计入决策（底部）。这是为了对抗
 "指标买家秀 → 凑齐了就买/卖"的民间陷阱。
 
-### 4.2 Expanding 历史分位 (Point-in-Time)
+### 3.2 Expanding 历史分位 (Point-in-Time)
 
 **所有阈值都是分位，不是绝对值。** 原因：
 - BTC 周期之间结构变化大（早期 MVRV 飙到 8，2021 才到 4），固定阈值会过期
@@ -110,7 +82,7 @@
 这是 Layer 0 数据完整性铁律，防未来函数。研究脚本 `bottoming_indicator_ic.py` 与展示层
 `cycle_core.expanding_pct` **同口径**（刻意不跨层 import，保持解耦但逻辑严格一致）。
 
-### 4.3 Regime Gate
+### 3.3 Regime Gate
 
 `src/dashboard/data/cycle.py` 中两个常量：
 
@@ -130,7 +102,7 @@ BOTTOM_ZONE = 30.0  # RR 分位 <= 此值 = 底部区
 
 ---
 
-## 5. 文件清单与职责
+## 4. 文件清单与职责
 
 ```
 src/dashboard/
@@ -162,7 +134,7 @@ src/dashboard/
 
 ---
 
-## 6. 数据流
+## 5. 数据流
 
 ```
 data/raw/btc_binance_BTCUSDT_1d.csv    (Layer 0: 价格)
@@ -203,9 +175,9 @@ topping.build()   bottoming.build()
 
 ---
 
-## 7. 三层指标详解
+## 6. 三层指标详解
 
-### 7.1 顶部 (`topping.py`)
+### 6.1 顶部 (`topping.py`)
 
 | 层级 | 指标 | 阈值 | 说明 |
 |------|------|------|------|
@@ -228,7 +200,7 @@ topping.build()   bottoming.build()
 | 危险 | RR ≥ 85 且 B 高位计数 ≥ 2 | 减第 1 批 (~30%) | 1 |
 | 极危 | RR ≥ 95 且 B 高位计数 ≥ 3 | 减第 2 批; C 触发则清第 3 批 | 2-3 |
 
-### 7.2 底部 (`bottoming.py`)
+### 6.2 底部 (`bottoming.py`)
 
 | 层级 | 指标 | 阈值 | 说明 |
 |------|------|------|------|
@@ -253,7 +225,7 @@ topping.build()   bottoming.build()
 
 ---
 
-## 8. 顶部 vs 底部的关键不对称
+## 7. 顶部 vs 底部的关键不对称
 
 这是设计中**最容易被对称性诱惑写错的地方**。两端逻辑结构相似 (Layer A/B/C)，但
 **成本结构完全不同**：
@@ -272,7 +244,7 @@ topping.build()   bottoming.build()
 
 ---
 
-## 9. 历史回放可视化
+## 8. 历史回放可视化
 
 `cycle_core.replay_dual()` 在同一条 RR 分位曲线上标两种点：
 
@@ -291,11 +263,11 @@ topping.build()   bottoming.build()
 
 ---
 
-## 10. 设计决策记录
+## 9. 设计决策记录
 
 按时间倒序，每条记录一个"为什么这样做"：
 
-### 10.1 (2026-06-09) ahr999 **不接入** Layer A
+### 9.1 (2026-06-09) ahr999 **不接入** Layer A
 - **背景**：从 fuckbtc.com 参考看板学到 ahr999 定投指数，写了纯公式实现
 - **IC 验证**：单因子 90d IC=-0.321/\|t\|=1.83 (第二强，但未达 \|t\|≥2 门槛)
   条件分位 30d: 6 事件 83% 命中 +14.8% 超额 (强)
@@ -307,7 +279,7 @@ topping.build()   bottoming.build()
   (单因子 IC \|t\|≥2 且 vs 已有 ρ<0.7 才算新 alpha)
 - **决策**: `repo:decisions` drawer 160, commit `5b200b0`
 
-### 10.2 (2026-06-09) 方案 D：删除 `/topping` 和 `/bottoming`
+### 9.2 (2026-06-09) 方案 D：删除 `/topping` 和 `/bottoming`
 - **背景**：两 tab 并列产生"双结论打架 → 决策瘫痪"
 - **方案 D**：单一自适应光谱，由 regime gate 路由到唯一面板
 - **删除**：`pages/topping.py`, `pages/bottoming.py`, `templates/pages/topping.html`,
@@ -316,27 +288,27 @@ topping.build()   bottoming.build()
 - **保留**：`data/topping.py`, `data/bottoming.py` (引擎), partials (cycle 复用)
 - **commit**: `968149e`
 
-### 10.3 (历史) 三层精英制 + Layer A 唯一 RR
+### 9.3 (历史) 三层精英制 + Layer A 唯一 RR
 - 实证依据：`docs/reports/btc_topping_ic_analysis_20260608.html`
   Reserve Risk 是唯一 \|t\|≥2 的真 alpha，其他都是 regime 依赖的"有时有效"
 - 决策：Layer A 只放 RR，不引入"投票打分"。其他高 IC 指标（LTH-MVRV/MVRV-Z 等）
   归入 Layer B 作互验，**不能独立触发警报**
 
-### 10.4 (历史) 全程 expanding 分位 + Point-in-Time
+### 9.4 (历史) 全程 expanding 分位 + Point-in-Time
 - 拒绝绝对阈值（MVRV<1=底、Puell<0.5=底）的民间传说
 - 全程 `expanding(min_periods=1).apply(...)` 严格 point-in-time，防未来函数
 - 研究层和展示层同口径但不跨层 import（手册架构约束）
 
 ---
 
-## 11. YAGNI 边界：我们**故意不做**的事
+## 10. YAGNI 边界：我们**故意不做**的事
 
 为了保持"决策型"哲学不被稀释，以下功能**有人提过但被刻意拒绝**：
 
 | 拒绝的功能 | 理由 |
 |-----------|------|
 | 在 Layer A 加多个指标投票 | 违反"主信号唯一性"，回到民间陷阱 |
-| 接 ahr999 入 Layer A | ρ=0.91 与 RR 冗余 (§10.1) |
+| 接 ahr999 入 Layer A | ρ=0.91 与 RR 冗余 (§9.1) |
 | 接预测市场跌破概率 | 无历史可回测, 过不了 IC 验证门槛 |
 | 矿机表/STRC/MSTR mNAV | 对币本位周期择时 KPI 是噪音, YAGNI |
 | 多周期相关性 (vs 黄金/纳指) | 同上 |
@@ -346,11 +318,11 @@ topping.build()   bottoming.build()
 
 ---
 
-## 12. 扩展指南：如何"正确地"添加新指标
+## 11. 扩展指南：如何"正确地"添加新指标
 
 任何添加新指标到 Layer A/B 的 PR **必须通过以下检查**才能合并：
 
-### 12.1 IC 双门槛 (硬要求)
+### 11.1 IC 双门槛 (硬要求)
 新指标必须同时满足：
 
 1. **单因子 IC \|t\| ≥ 2** (h=90d 非重叠采样)
@@ -365,29 +337,29 @@ python scripts/research/bottoming_indicator_ic.py
 # 3. 跑共线性检查 (单写, 见 commit 5b200b0 中 ahr999 的例子)
 ```
 
-### 12.2 数据层契约 (Layer 0)
+### 11.2 数据层契约 (Layer 0)
 
 - CSV 必须 `date,value` 两列, date 升序
 - 必须有每日自动更新机制 (cron 或下载脚本)
 - 若依赖外部 API，必须有 fallback 或备份计算方式 (避免 reserve_risk 断供事故重演)
 
-### 12.3 文档要求
+### 11.3 文档要求
 
 - 在 `topping.py` / `bottoming.py` 模块 docstring 更新指标清单
 - 在 IC 报告 (`docs/reports/btc_*_ic_analysis_*.html`) 追加验证结果
-- 在本文档 §10 添加决策记录条目（**包括如果决定不接的理由**）
+- 在本文档 §9 添加决策记录条目（**包括如果决定不接的理由**）
 
-### 12.4 修改 regime gate 阈值的额外约束
+### 11.4 修改 regime gate 阈值的额外约束
 
 如果想动 `TOP_ZONE` / `BOTTOM_ZONE`：
 
 - 必须用至少 2 个完整 BTC 周期回测验证 (>= 8 年数据)
 - 必须报告 false positive rate 和 false negative rate 变化
-- 必须更新本文档 §4.3 的"为什么是 70/30"
+- 必须更新本文档 §3.3 的"为什么是 70/30"
 
 ---
 
-## 13. 经验教训 (来自这次设计迭代)
+## 12. 经验教训
 
 | 教训 | 一句话总结 |
 |------|-----------|
@@ -400,7 +372,7 @@ python scripts/research/bottoming_indicator_ic.py
 
 ---
 
-## 14. 维护记录
+## 13. 维护记录
 
 - **2026-06-08** v0.x: `/topping` + `/bottoming` 双 tab 上线，伴随完整 IC 研究报告
 - **2026-06-09**: 方案 D 落地，整合到 `/cycle` 单页 (commit `968149e`)
