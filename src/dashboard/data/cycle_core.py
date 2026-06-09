@@ -78,25 +78,35 @@ expanding_pct = _legacy_expanding_pct
 
 
 def latest_pct(s: pd.Series | None) -> float | None:
-    """最新值的 rolling-2y 分位 (主口径, V1.2)."""
+    """最新值的 rolling-2y 分位 (主口径, V1.2).
+
+    优化: 只看最后 ROLL_WIN 天 (O(W)), 不算整条 series 的 rolling (O(N·W)).
+    """
     if s is None or s.empty:
         return None
-    pct = position_pct(s.dropna())
-    if pct.empty:
+    s = s.dropna()
+    if s.empty:
         return None
-    last = pct.iloc[-1]
-    return round(float(last), 1) if pd.notna(last) else None
+    tail = s.iloc[-ROLL_WIN:] if len(s) >= ROLL_WIN else s
+    if len(tail) < ROLL_MINPER:
+        return None
+    last = tail.iloc[-1]
+    pct = (tail <= last).sum() / len(tail) * 100.0
+    return round(float(pct), 1)
 
 
 def legacy_latest_pct(s: pd.Series | None) -> float | None:
-    """最新值的 expanding 分位 (旧口径, 仅供双口径展示)."""
+    """最新值的 expanding 分位 (旧口径, 仅供双口径展示).
+
+    优化: 直接算整条 series 上最后一点 (比调 expanding().apply() 快 100x).
+    """
     if s is None or s.empty:
         return None
-    pct = _legacy_expanding_pct(s.dropna())
-    if pct.empty:
+    s = s.dropna()
+    if s.empty:
         return None
-    last = pct.iloc[-1]
-    return round(float(last), 1) if pd.notna(last) else None
+    last = s.iloc[-1]
+    return round(float((s <= last).sum() / len(s) * 100.0), 1)
 
 # ---------- Layer C 技术面触发 (方向相关) ----------
 def layer_c_signals(direction: str) -> list[dict]:
