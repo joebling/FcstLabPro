@@ -1,8 +1,12 @@
 # Partial Bar PnL Replay - `e8-touch`
 
-State updated: `?`
+State last signal: `2026-06-09`
 In-position: `False`
 Closed trades reassessed: **2**
+
+##  Partial Bar Warnings
+
+-  exit_date 2026-06-09 看起来是 csv 中的 partial bar. exit_true / pnl_delta 不准, 等 UTC 下一日重跑。
 
 ## Per-trade reassessment
 

@@ -146,14 +146,57 @@ def format_price(x: float) -> str:
     return f"{x:,.2f}"
 
 
-def render_markdown(model: str, rows: list[TradeRow], state: dict[str, Any]) -> str:
+def _is_likely_partial_bar(ohlcv: pd.DataFrame, date_str: str) -> bool:
+    """Heuristic: csv 中该日的 volume 远小于最近 7 天中位数 → 可能是 partial bar.
+
+    不是绝对准确 (低成交量日也可能触发), 但可以提醒用户 6/9 类似场景。
+    """
+    ts = pd.Timestamp(date_str).normalize()
+    if ts not in ohlcv.index or "volume" not in ohlcv.columns:
+        return False
+    vol = float(ohlcv.at[ts, "volume"])
+    # 取最近 7 个完整 bar (包含本日) 的中位数
+    pos = ohlcv.index.get_loc(ts)
+    if pos < 1:
+        return False
+    recent_vols = ohlcv.iloc[max(0, pos - 6):pos]["volume"].astype(float)
+    if recent_vols.empty:
+        return False
+    median_vol = recent_vols.median()
+    return median_vol > 0 and vol < 0.1 * median_vol  # 低于中位数 10%
+
+
+def render_markdown(model: str, rows: list[TradeRow], state: dict[str, Any],
+                    ohlcv: pd.DataFrame) -> str:
     lines: list[str] = []
     lines.append(f"# Partial Bar PnL Replay - `{model}`")
     lines.append("")
-    lines.append(f"State updated: `{state.get('updated_at', '?')}`")
+    # State JSON 没有 updated_at 字段 — 回退到 last_signal_date (阶段性代理)
+    updated = state.get("updated_at") or state.get("last_signal_date", "unknown")
+    lines.append(f"State last signal: `{updated}`")
     lines.append(f"In-position: `{state.get('in_position', '?')}`")
     lines.append(f"Closed trades reassessed: **{len(rows)}**")
     lines.append("")
+
+    # Partial bar warnings: 检查 trade 在 csv 末尾是否是 partial
+    partial_warnings: list[str] = []
+    for r in rows:
+        if _is_likely_partial_bar(ohlcv, r.entry_date):
+            partial_warnings.append(
+                f" entry_date {r.entry_date} 看起来是 csv 中的 partial bar "
+                f"(volume 远低于近 7 天中位数). entry_true 不准, 等 UTC 下一日重跑。"
+            )
+        if _is_likely_partial_bar(ohlcv, r.exit_date):
+            partial_warnings.append(
+                f" exit_date {r.exit_date} 看起来是 csv 中的 partial bar. "
+                f"exit_true / pnl_delta 不准, 等 UTC 下一日重跑。"
+            )
+    if partial_warnings:
+        lines.append("##  Partial Bar Warnings")
+        lines.append("")
+        for w in partial_warnings:
+            lines.append(f"- {w}")
+        lines.append("")
 
     lines.append("## Per-trade reassessment")
     lines.append("")
@@ -243,7 +286,7 @@ def main() -> int:
     history = state.get("history", [])
     rows = [r for r in (replay_trade(t, ohlcv) for t in history) if r is not None]
 
-    md = render_markdown(model, rows, state)
+    md = render_markdown(model, rows, state, ohlcv)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(md)
