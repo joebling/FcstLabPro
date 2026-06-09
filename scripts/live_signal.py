@@ -24,7 +24,7 @@ import json
 import logging
 import sys
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import joblib
@@ -91,6 +91,42 @@ class PositionState:
 # Data Pipeline
 # =====================================================================
 
+def drop_partial_bar(df: pd.DataFrame, *, now_utc: datetime | None = None) -> pd.DataFrame:
+    """剔除可能存在的 partial bar (UTC 当日尚未闭合的 K 线).
+
+    Binance 对未闭合 bar 返回的 'close' 字段实际是该时刻的 last price,
+    OHLC/volume 全部未完成。生产 cron 在 UTC 00:10 拉数据时, csv 末尾
+    几乎必然是 partial bar (才开 10 分钟), 必须丢弃否则会污染:
+      - regime 检测 (63d 滚动收益基于错误 close, 早盘瞬时价被当真)
+      - entry/exit 执行价 (在早盘瞬时价位下单, 而非真实日收盘)
+
+    详见 docs/lessons/lesson_0609_partial_bar.md ("freshness gate 防住,
+    live_signal 没防住" 的不对称 bug 复盘)。
+
+    Parameters
+    ----------
+    df : 日 K 序列 (DatetimeIndex)
+    now_utc : 注入当前时刻, 仅供测试. 生产用 None 走 datetime.now(UTC)
+    """
+    if df.empty:
+        return df
+    now = now_utc or datetime.now(timezone.utc)
+    today_utc = pd.Timestamp(now.date())
+    last_ts = df.index[-1]
+    if last_ts.normalize() >= today_utc:
+        if len(df) < 2:
+            raise ValueError(
+                f"丢弃 partial bar ({last_ts.date()}) 后没有完整 bar 可用 — "
+                f"数据窗口太短 (len={len(df)}). 生产推理拒绝在缺数据情况下出信号。"
+            )
+        logger.warning(
+            f"丢弃 partial bar (date={last_ts.date()}, UTC 今日尚未闭合); "
+            f"使用 {df.index[-2].date()} 作为最新完整 bar (lesson_0609)"
+        )
+        return df.iloc[:-1]
+    return df
+
+
 def fetch_latest_data(config: dict) -> pd.DataFrame:
     """拉取最新数据，确保足够的历史窗口用于计算特征.
 
@@ -102,6 +138,8 @@ def fetch_latest_data(config: dict) -> pd.DataFrame:
     为什么不直接用 config 的 data/raw/: 那是 sha 锁定的训练基准, 生产不会
     更新它 (downloader 拒绝覆盖)。live 链必须吃 data/live/ 的新数据,
     否则就是「下载写 live, 推理读 raw」的路径分裂 (这正是 freshness gate 报警的根因)。
+
+    **lesson_0609 强制保证**: 返回的 df 末尾必为完整 bar (剔除 partial bar)。
     """
     from src.data.loader import load_csv
     from src.serving.paths import LIVE_OHLCV_PATH
@@ -110,6 +148,7 @@ def fetch_latest_data(config: dict) -> pd.DataFrame:
     if LIVE_OHLCV_PATH.exists():
         logger.info(f"使用实时数据 (data/live): {LIVE_OHLCV_PATH}")
         df = load_csv(str(LIVE_OHLCV_PATH))
+        df = drop_partial_bar(df)
         logger.info(f"数据加载完成: {len(df)} 行, {df.index[0].date()} ~ {df.index[-1].date()}")
         return df
 
@@ -118,6 +157,7 @@ def fetch_latest_data(config: dict) -> pd.DataFrame:
     if local_path and Path(PROJECT_ROOT / local_path).exists():
         logger.info(f"使用本地基准数据: {local_path}")
         df = load_csv(str(PROJECT_ROOT / local_path))
+        df = drop_partial_bar(df)
         logger.info(f"数据加载完成: {len(df)} 行, {df.index[0].date()} ~ {df.index[-1].date()}")
         return df
 
@@ -130,6 +170,7 @@ def fetch_latest_data(config: dict) -> pd.DataFrame:
         logger.info(f"拉取 {symbol} 日线数据: {start_date} ~ {end_date}")
         df = download_binance_klines(symbol=symbol, interval="1d", start=start_date, end=end_date)
         df.index.name = "date"
+        df = drop_partial_bar(df)
         logger.info(f"数据拉取完成: {len(df)} 行")
         return df
     except Exception as e:
