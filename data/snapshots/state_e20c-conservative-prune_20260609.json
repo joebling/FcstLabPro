@@ -1,0 +1,32 @@
+{
+  "in_position": false,
+  "entry_date": null,
+  "entry_price": null,
+  "days_held": 0,
+  "last_signal_date": "2026-06-09",
+  "last_signal": "SELL",
+  "run_count_today": 1,
+  "last_reason": "regime=熊市, 强制平仓 (63d收益≤-10%)",
+  "last_regime": "熊市",
+  "last_regime_detail": "63d 滚动收益 = -12.4% (threshold=-10%)",
+  "history": [
+    {
+      "entry_date": "2026-06-05",
+      "exit_date": "2026-06-07",
+      "entry_price": 63186.0,
+      "exit_price": 60865.64,
+      "pnl": -0.0367,
+      "days_held": 2,
+      "reason": "regime=熊市, 强制平仓 (63d收益≤-10%)"
+    },
+    {
+      "entry_date": "2026-06-08",
+      "exit_date": "2026-06-09",
+      "entry_price": 63186.0,
+      "exit_price": 63032.13,
+      "pnl": -0.0024,
+      "days_held": 1,
+      "reason": "regime=熊市, 强制平仓 (63d收益≤-10%)"
+    }
+  ]
+}
