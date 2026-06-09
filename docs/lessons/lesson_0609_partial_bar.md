@@ -1,166 +1,212 @@
-# Lesson Learned: live_signal `fetch_latest_data` \u541e\u4e0b partial bar
+# Lesson Learned: live_signal `fetch_latest_data` 吞下 partial bar
 
-> **\u65e5\u671f**: 2026-06-09
-> **\u4f5c\u8005**: sam (with Qiu)
-> **\u89e6\u53d1\u573a\u666f**: Qiu \u67e5 dashboard \u5b9e\u76d8\u8d26\u672c\u53d1\u73b0\u4e24\u4e2a\u95ee\u9898 \u2014 \u201c\u4ea4\u6613\u4ef7\u4e0d\u50cf\u662f\u5f53\u65e5\u6536\u76d8\u201d + \u201cregime \u4e0e\u4f53\u611f\u4e0d\u7b26\u201d
-> **\u5f71\u54cd\u8303\u56f4**: 6/5-6/9 \u5b9e\u76d8 4 \u7b14\u4ea4\u6613 (e20c + e8 \u5404\u4e24\u7b14), \u5176\u4e2d 6/7 SELL \u51cf\u5c11\u6536\u76ca \u224b 4.06%
-
----
-
-## TL;DR (1 \u5206\u949f\u7248)
-
-\u751f\u4ea7 cron \u5728 UTC 00:10 \u62c9 Binance API. \u6b64\u65f6\u5f53\u65e5 1d bar \u624d\u5f00 10 \u5206\u949f,
-Binance \u8fd4\u56de\u7684 partial bar \u7684 `close` \u5b57\u6bb5\u5b9e\u9645\u662f**\u8be5\u65f6\u523b\u7684 last price**,
-\u4e0d\u662f\u771f\u6b63 24h \u6536\u76d8. \u4e0b\u6e38 `is_bear_market` \u548c entry/exit \u6267\u884c\u5168\u90e8\u88ab\u9519\u4ef7\u6c61\u67d3:
-
-| \u73af\u8282 | \u9632\u62a4 | \u72b6\u6001 |
-|---|---|---|
-| `data_freshness` gate (stage 3) | partial bar | \u6709 \u2014 \u770b stale_days, partial bar `stale=0` \u4f1a\u8bef\u5224\u4e3a\u201c\u65b0\u9c9c\u201d \u2014 \u4f46\u4e0d\u5d29 |
-| `live_signal.fetch_latest_data` (stage 4) | partial bar | **\u6ca1\u6709** \u2014 `df["close"].iloc[-1]` \u62ff\u5230\u65e9\u76d8\u77ac\u65f6\u4ef7 |
-
-**\u8fd9\u662f lesson_0602 \u201c\u5199\u7aef/\u8bfb\u7aef\u4e0d\u5bf9\u79f0\u201d bug \u7684\u53d8\u4f53**: stage 3 \u5b88\u95e8\u5458\u80fd\u62e6\u4f4f\u5047\u6570\u636e,
-stage 4 \u8d70\u540c\u4e00\u4efd\u6570\u636e\u5374\u88f8\u5954.
+> **日期**: 2026-06-09
+> **作者**: sam (with Qiu)
+> **触发场景**: Qiu 查 dashboard 实盘账本发现两个问题 — “交易价不像是当日收盘” + “regime 与体感不符”
+> **影响范围**: 6/5-6/9 实盘 4 笔交易 (e20c + e8 各两笔), 其中 6/7 SELL 减少收益 ≋ 4.06%
 
 ---
 
-## 1. \u4e8b\u4ef6\u65f6\u95f4\u7ebf (\u751f\u4ea7\u4e8b\u6545)
+## TL;DR (1 分钟版)
 
-| UTC \u65f6\u523b | \u4e8b\u4ef6 | \u8d26\u672c\u540e\u679c |
+生产 cron 在 UTC 00:10 拉 Binance API. 此时当日 1d bar 才开 10 分钟,
+Binance 返回的 partial bar 的 `close` 字段实际是**该时刻的 last price**,
+不是真正 24h 收盘. 下游 `is_bear_market` 和 entry/exit 执行全部被错价污染:
+
+| 环节 | 防护 | 状态 |
 |---|---|---|
-| 6/5 00:10 | cron stage 3 halt (last_date=6/1, \u843d\u540e 4 \u5929) \u2014 \u5e72\u51c0 fail | \u65e0 |
-| 6/5 \u67d0\u65f6\u523b | Qiu \u624b\u52a8\u91cd\u8dd1 `run_daily_nodock.sh` \u8865\u6551 | csv \u672b\u5c3e=6/5 partial (last=63186), \u5199 BUY @ 63186 |
-| 6/6 00:10 | cron OK, csv \u672b\u5c3e=6/6 partial (last=61448.84), regime=-8.69% | HOLD |
-| 6/7 00:10 | cron OK, csv \u672b\u5c3e=6/7 partial (last=60865.64, \u65e9\u76d8\u77ac\u65f6\u4f4e\u70b9) | regime=-11.83% \u2192 **\u8bef\u8df3 SELL @ 60865.64** |
-| 6/7 \u5f53\u65e5\u95ed\u5408 | \u771f\u5b9e close=63332.01, \u771f\u5b9e 63d=-8.26% | **\u672a\u5230 -10% \u9608\u503c, \u4e0d\u5e94\u5e73\u4ed3** \u2014 \u5c11\u8d5a 4.06% |
-| 6/8 00:10 | cron OK, csv \u672b\u5c3e=6/8 partial (last=63186, **\u4e0e 6/5 \u5de7\u5408**) | regime=-8.23% \u2192 BUY @ 63186 |
-| 6/9 00:10 | cron OK, csv \u672b\u5c3e=6/9 partial (last=63032.13) | regime=-12.36% \u2192 SELL @ 63032.13 (\u771f\u89e6\u53d1) |
+| `data_freshness` gate (stage 3) | partial bar | 有 — 看 stale_days, partial bar `stale=0` 会误判为“新鲜” — 但不崩 |
+| `live_signal.fetch_latest_data` (stage 4) | partial bar | **没有** — `df["close"].iloc[-1]` 拿到早盘瞬时价 |
 
-**\u6700\u51b3\u5b9a\u6027\u8bc1\u636e** \u2014 6/6 \u65e5\u5fd7\u539f\u53e5:
+**这是 lesson_0602 “写端/读端不对称” bug 的变体**: stage 3 守门员能拦住假数据,
+stage 4 走同一份数据却裸奔.
+
+---
+
+## 1. 事件时间线 (生产事故)
+
+| UTC 时刻 | 事件 | 账本后果 |
+|---|---|---|
+| 6/5 00:10 | cron stage 3 halt (last_date=6/1, 落后 4 天) — 干净 fail | 无 |
+| 6/5 某时刻 | Qiu 手动重跑 `run_daily_nodock.sh` 补救 | csv 末尾=6/5 partial (last=63186), 写 BUY @ 63186 |
+| 6/6 00:10 | cron OK, csv 末尾=6/6 partial (last=61448.84), regime=-8.69% | HOLD |
+| 6/7 00:10 | cron OK, csv 末尾=6/7 partial (last=60865.64, 早盘瞬时低点) | regime=-11.83% → **误跳 SELL @ 60865.64** |
+| 6/7 当日闭合 | 真实 close=63332.01, 真实 63d=-8.26% | **未到 -10% 阈值, 不应平仓** — 少赚 4.06% |
+| 6/8 00:10 | cron OK, csv 末尾=6/8 partial (last=63186, **与 6/5 巧合**) | regime=-8.23% → BUY @ 63186 |
+| 6/9 00:10 | cron OK, csv 末尾=6/9 partial (last=63032.13) | regime=-12.36% → SELL @ 63032.13 (真触发) |
+
+**最决定性证据** — 6/6 日志原句:
 ```
-2026-06-06 00:10 [INFO] Regime: 63d \u6eda\u52a8\u6536\u76ca = -8.69% (threshold=-10%)
+2026-06-06 00:10 [INFO] Regime: 63d 滚动收益 = -8.69% (threshold=-10%)
 ```
-\u7528 6/6 \u771f\u5b9e close (60884.62) \u7b97 \u224b -9.53%, \u4e0d\u7b49\u4e8e\u65e5\u5fd7\u7684 -8.69%.
-\u7528\u65e5\u5fd7\u91cc\u7684 `\u4ef7\u683c=61448.84` \u7b97: 61448.84 / 67300.42 - 1 = **-8.69%** \u2705 \u5b8c\u5168\u5403\u4e0a.
-\u2192 \u7cfb\u7edf\u5403\u7684 \"6/6 close\" = 61448.84 = UTC 00:10 \u90a3\u4e00\u523b\u7684 last price, \u975e\u771f\u5b9e\u6536\u76d8.
+用 6/6 真实 close (60884.62) 算 ≋ -9.53%, 不等于日志的 -8.69%.
+用日志里的 `价格=61448.84` 算: 61448.84 / 67300.42 - 1 = **-8.69%** ✅ 完全吃上.
+→ 系统吃的 \"6/6 close\" = 61448.84 = UTC 00:10 那一刻的 last price, 非真实收盘.
 
 ---
 
-## 2. \u6839\u56e0\u5206\u6790
+## 2. 根因分析
 
-### 2.1 Binance API \u7684 partial bar \u8bed\u4e49\u9677\u9631
+### 2.1 Binance API 的 partial bar 语义陷阱
 
-`GET /api/v3/klines?interval=1d` \u8fd4\u56de\u7684\u5217\u8868\u4e2d, **\u672b\u5c3e bar \u53ef\u80fd\u662f\u5f53\u65e5\u672a\u95ed\u5408\u7684 partial bar**:
-- `close` = \u67e5\u8be2\u90a3\u4e00\u523b\u7684 last trade price (\u4e0d\u662f UTC 24:00 \u6536\u76d8)
-- `high/low/volume` = \u4ece UTC 00:00 \u5230\u67e5\u8be2\u65f6\u523b\u7684\u7d2f\u8ba1 (\u4e0d\u5b8c\u6574)
+`GET /api/v3/klines?interval=1d` 返回的列表中, **末尾 bar 可能是当日未闭合的 partial bar**:
+- `close` = 查询那一刻的 last trade price (不是 UTC 24:00 收盘)
+- `high/low/volume` = 从 UTC 00:00 到查询时刻的累计 (不完整)
 
-\u4efb\u4f55\u5728\u672a\u8fc7\u5b8c\u5f53\u65e5 UTC \u65f6\u62c9\u7684\u6570\u636e\u90fd\u5b58\u5728\u8fd9\u4e2a\u95ee\u9898 \u2014 \u4e0d\u662f Binance \u7684 bug,
-\u662f API \u8bed\u4e49: \u201c\u6700\u65b0\u4e00\u6839\u201d\u53ef\u4ee5\u662f\u672a\u95ed\u5408 (Trading View / TradingView Lightweight Charts \u4e5f\u540c\u8bed\u4e49).
+任何在未过完当日 UTC 时拉的数据都存在这个问题 — 不是 Binance 的 bug,
+是 API 语义: “最新一根”可以是未闭合 (Trading View / TradingView Lightweight Charts 也同语义).
 
-### 2.2 \u8bad\u63a8\u5dee\u5f02\u88ab\u201c\u53cc\u9632\u62a4\u201d\u906e\u853d
+### 2.2 训推差异被“双防护”遮蔽
 
-- **\u8bad\u7ec3\u65f6**: `data/raw/btc...csv` \u662f\u9501\u6b7b\u7684\u5386\u53f2\u6570\u636e, \u6c38\u8fdc\u4e0d\u542b partial bar \u2192 \u8bad\u7ec3/\u56de\u6d4b\u770b\u4e0d\u5230\u8fd9\u4e2a bug.
-- **\u751f\u4ea7\u63a8\u7406\u65f6**: cron \u5728 UTC 00:10 \u62c9 \u2192 100% \u906d\u9047 partial bar.
+- **训练时**: `data/raw/btc...csv` 是锁死的历史数据, 永远不含 partial bar → 训练/回测看不到这个 bug.
+- **生产推理时**: cron 在 UTC 00:10 拉 → 100% 遭遇 partial bar.
 
-\u4e24\u8def\u5f84\u7684\u201c\u8c01\u6709\u8d23\u4efb\u5904\u7406 partial bar\u201d\u662f\u9690\u542b\u7684\u201c\u751f\u4ea7\u4fa7\u8d1f\u8d23\u201d, \u4f46 `fetch_latest_data`
-\u539f\u59cb\u5b9e\u73b0\u76f4\u63a5\u8bfb csv \u672b\u5c3e\u4e00\u884c, \u6ca1\u6709\u5b8c\u6210\u8fd9\u4e2a\u9690\u542b\u804c\u8d23.
+两路径的“谁有责任处理 partial bar”是隐含的“生产侧负责”, 但 `fetch_latest_data`
+原始实现直接读 csv 末尾一行, 没有完成这个隐含职责.
 
-### 2.3 \u9632\u7ebf\u5bf9\u6bd4 (\u4e0e lesson_0602 \u540c\u6784)
+### 2.3 防线对比 (与 lesson_0602 同构)
 
-| \u73af\u8282 | partial bar \u9632\u62a4 | \u72b6\u6001 |
+| 环节 | partial bar 防护 | 状态 |
 |---|---|---|
-| downloader `download_binance_klines` | \u4e0d\u8be5\u5199\u672a\u95ed\u5408 bar \u5230 csv | \u65e0 \u2014 \u539f\u8bed\u4e49\u5c31\u662f\u5199 \u201c\u62c9\u5230\u4ec0\u4e48\u5199\u4ec0\u4e48\u201d |
-| `data_freshness` gate (stage 3) | stale_days \u8ba1\u7b97 | \u90e8\u5206 \u2014 partial bar \u4f1a\u8ba9 stale=0 \u770b\u8d77\u6765\u201c\u65b0\u9c9c\u201d, gate \u4e0d\u4f1a\u62a5\u9519, \u4f46\u4e5f\u4e0d\u4f1a\u62a6\u622a |
-| `live_signal.fetch_latest_data` (stage 4) | drop partial bar | **\u539f\u672c\u6ca1\u6709, \u672c lesson \u8865\u4e0a** |
-| `is_bear_market` | regime \u95e8\u9608 | \u4e0d\u80fd\u5728\u8fd9\u91cc\u8865 \u2014 \u5b83\u4fe1\u4efb\u4e0a\u6e38\u7ed9\u7684 series |
-| `_apply_signal_to_state` BUY \u5206\u652f | entry_price \u6e90\u5934 | \u540c\u4e0a, \u4e0a\u6e38\u9519\u4e86\u5b83\u53ea\u80fd\u8df3\u8fdb\u53bb |
+| downloader `download_binance_klines` | 不该写未闭合 bar 到 csv | 无 — 原语义就是写 “拉到什么写什么” |
+| `data_freshness` gate (stage 3) | stale_days 计算 | 部分 — partial bar 会让 stale=0 看起来“新鲜”, gate 不会报错, 但也不会抦截 |
+| `live_signal.fetch_latest_data` (stage 4) | drop partial bar | **原本没有, 本 lesson 补上** |
+| `is_bear_market` | regime 门阈 | 不能在这里补 — 它信任上游给的 series |
+| `_apply_signal_to_state` BUY 分支 | entry_price 源头 | 同上, 上游错了它只能跳进去 |
 
-\u8fd9\u4e5f\u662f\u4e3a\u4ec0\u4e48\u4fee\u5728 `fetch_latest_data` \u672b\u5c3e\u662f\u200b\u200b**\u552f\u4e00\u6b63\u786e**\u200b\u200b\u7684\u70b9: \u5b83\u662f\u200b\u200b**\u6240\u6709\u63a8\u7406**\u200b\u200b\u4e0a\u6e38\u7684\u552f\u4e00\u95f8\u9580.
+这也是为什么修在 `fetch_latest_data` 末尾是​​**唯一正确**​​的点: 它是​​**所有推理**​​上游的唯一闸門.
 
 ---
 
-## 3. \u4fee\u590d\u65b9\u6848
+## 3. 修复方案
 
-### 3.1 \u4ee3\u7801 (commit `<filled-on-push>`)
+### 3.1 代码 (commit `<filled-on-push>`)
 
 `scripts/live_signal.py`:
-- \u65b0\u589e `drop_partial_bar(df, *, now_utc=None) -> pd.DataFrame`
-  - \u68c0\u6d4b\u672b\u5c3e\u662f\u5426 UTC \u4eca\u65e5 (\u6216\u672a\u6765, \u9632\u672a\u6765\u65f6\u949f\u504f\u5dee), \u662f\u5219 drop
-  - \u4ec5\u6709 partial bar \u65f6 raise (\u62d2\u7edd\u5728\u7f3a\u6570\u636e\u60c5\u51b5\u4e0b\u51fa\u4fe1\u53f7)
-  - `now_utc` \u53ef\u6ce8\u5165 \u2014 \u751f\u4ea7\u8d70\u5b9e\u9645\u65f6\u949f, \u6d4b\u8bd5\u9501\u65f6\u95f4
-- `fetch_latest_data` 3 \u4e2a\u8fd4\u56de\u70b9\u90fd\u8c03\u7528 `drop_partial_bar` \u540e\u518d\u8fd4\u56de
-- docstring \u5199\u660e \u201c**lesson_0609 \u5f3a\u5236\u4fdd\u8bc1**: \u8fd4\u56de\u7684 df \u672b\u5c3e\u5fc5\u4e3a\u5b8c\u6574 bar\u201d
+- 新增 `drop_partial_bar(df, *, now_utc=None) -> pd.DataFrame`
+  - 检测末尾是否 UTC 今日 (或未来, 防未来时钟偏差), 是则 drop
+  - 仅有 partial bar 时 raise (拒绝在缺数据情况下出信号)
+  - `now_utc` 可注入 — 生产走实际时钟, 测试锁时间
+- `fetch_latest_data` 3 个返回点都调用 `drop_partial_bar` 后再返回
+- docstring 写明 “**lesson_0609 强制保证**: 返回的 df 末尾必为完整 bar”
 
-### 3.2 \u5355\u6d4b `tests/test_partial_bar_drop.py` (7/7 \u901a\u8fc7)
+### 3.2 单测 `tests/test_partial_bar_drop.py` (7/7 通过)
 
-| \u7528\u4f8b | \u9501\u4ec0\u4e48 |
+| 用例 | 锁什么 |
 |---|---|
-| `test_drops_when_last_bar_is_today_utc` | \u672b\u5c3e UTC \u4eca\u65e5 \u2192 drop |
-| `test_keeps_when_last_bar_is_yesterday` | \u672b\u5c3e \u4e3a\u6628\u65e5 \u2192 \u4fdd\u7559 |
-| `test_drops_future_bar_defensively` | \u672b\u5c3e\u672a\u6765\u65e5\u671f (\u5f02\u5e38) \u2192 drop |
-| `test_raises_when_only_partial_bar` | \u4ec5 1 \u884c\u4e14\u662f partial \u2192 raise |
-| `test_empty_df_returns_empty` | \u7a7a df \u2192 \u4e0d\u62a5\u9519 |
-| `test_now_utc_default_uses_real_clock` | \u4e0d\u4f20 now_utc \u2192 \u8d70\u5b9e\u9645\u65f6\u949f |
-| `test_replays_2026_06_07_incident` | \u4e8b\u6545\u73b0\u573a\u56de\u653e \u2192 \u4fee\u590d\u540e\u4e22 6/7 \u7559 6/6 |
+| `test_drops_when_last_bar_is_today_utc` | 末尾 UTC 今日 → drop |
+| `test_keeps_when_last_bar_is_yesterday` | 末尾 为昨日 → 保留 |
+| `test_drops_future_bar_defensively` | 末尾未来日期 (异常) → drop |
+| `test_raises_when_only_partial_bar` | 仅 1 行且是 partial → raise |
+| `test_empty_df_returns_empty` | 空 df → 不报错 |
+| `test_now_utc_default_uses_real_clock` | 不传 now_utc → 走实际时钟 |
+| `test_replays_2026_06_07_incident` | 事故现场回放 → 修复后丢 6/7 留 6/6 |
 
 ---
 
-## 4. \u635f\u5bb3\u8bc4\u4f30 (\u4fdd\u5b88)
+## 4. 损害评估 (保守)
 
-\u4ec5\u8ba1\u672c\u6b21\u4e8b\u4ef6 (6/5-6/9, 4 \u7b14\u4ea4\u6613):
+仅计本次事件 (6/5-6/9, 4 笔交易):
 
-| \u4ea4\u6613 | \u8d26\u672c\u8bb0\u5f55 | \u771f\u5b9e\u5e94\u8be5 | \u635f\u5931 |
+| 交易 | 账本记录 | 真实应该 | 损失 |
 |---|---|---|---|
-| 6/7 e20c SELL @ 60865.64 | \u8bef\u89e6\u53d1\u718a\u5e02 | regime \u672a\u5230\u9608\u503c, \u4e0d\u5e94 SELL | **\u5c11\u8d5a 4.06%** (\u540c\u65e5\u53cd\u5f39\u5230 63332) |
-| 6/7 e8 SELL @ 60865.64 | \u540c\u4e0a | \u540c\u4e0a | \u540c\u4e0a |
-| 6/8 BUY @ 63186.00 (\u4e24\u4e2a\u6a21\u578b) | early \u624b | \u672c\u8be5 HOLD (\u672a\u5e73\u4ed3) | \u9ad8\u4e70 0.16% (\u5c0f) |
-| 6/9 SELL @ 63032.13 | \u771f\u718a\u5e02 | \u771f\u89e6\u53d1, OK | \u4ef7\u683c\u662f partial \u4f46\u51b3\u7b56\u5bf9 |
+| 6/7 e20c SELL @ 60865.64 | 误触发熊市 | regime 未到阈值, 不应 SELL | **少赚 4.06%** (同日反弹到 63332) |
+| 6/7 e8 SELL @ 60865.64 | 同上 | 同上 | 同上 |
+| 6/8 BUY @ 63186.00 (两个模型) | early 手 | 本该 HOLD (未平仓) | 高买 0.16% (小) |
+| 6/9 SELL @ 63032.13 | 真熊市 | 真触发, OK | 价格是 partial 但决策对 |
 
-**\u4e0d\u5305\u542b** \u201c\u5982\u679c\u5386\u53f2\u4e0a\u6709\u591a\u5c11\u6b21 partial bar \u8bef\u89e6\u53d1\u201d \u2014 \u5f85\u8865 §6 \u56de\u653e\u5206\u6790.
+**不包含** "如果历史上有多少次 partial bar 误触发" — 待 followup 回放 30 天.
 
 ---
 
-## 5. \u90e8\u7f72 / VPS \u540c\u6b65
+## 4.5 反事实回放: 修复后 6/5-6/10 cron 会怎么跳?
+
+以下是用当时 VPS data/live 真实当日 close 重算 regime, 预测修复后 cron 行为:
+
+| cron UTC 日 | 看到的 today (T-1) | today close | T-63 close | 63d 收益 | regime | 动作 |
+|---|---|---:|---:|---:|---|---|
+| 6/5  | 6/4 | 63885.99 | 4/2: 66901.99 | **-4.51%**  | 非熊 | 模型决定 |
+| 6/6  | 6/5 | 61056.47 | 4/3: 66964.30 | **-8.82%**  | 非熊 | 模型决定 |
+| 6/7  | 6/6 | 60884.62 | 4/4: 67300.42 | **-9.53%**  | 非熊 (差 0.47%) | 模型决定 |
+| 6/8  | 6/7 | 63332.01 | 4/5: 69034.18 | **-8.26%**  | 非熊 | 模型决定 |
+| 6/9  | 6/8 | 63085.99 | 4/6: 68853.66 | **-8.38%**  | 非熊 | 模型决定 |
+| **6/10** | 6/9 | 63032.13 | 4/7: 71924.22 | **-12.36%** | **熊市** | **在仓 -> 强制平仓, 空仓 -> SILENT** |
+
+### 与事故现状逐日对比
+
+| cron 日 | 事故现状 | 修复后预期 |
+|---|---|---|
+| 6/5  | halt + 手动重跑 BUY @63186 | 不 halt, 模型决定 (regime 不拦) |
+| 6/6  | HOLD | HOLD (一致) |
+| 6/7  | **SELL @60865 (误触发熊)** | **HOLD** — 救回同日反弹 4.06% |
+| 6/8  | BUY @63186 (事故重仓) | HOLD (仓还在, 本就没平) |
+| 6/9  | SELL @63032 (真触发) | HOLD (此时看 6/8 close -8.38%, 未到阈值) |
+| **6/10** | (未跑) | **SELL** (看 6/9 close -12.36%, 真触发) |
+
+### 两个 caveat
+
+1. **模型 BUY/SILENT 本地无法精确模拟** — 需要跑 e20c/e8 的 137 个特征推理. 但结论不变:
+   只要 regime 不拦 (6/5-6/9 都不拦), 最多就是模型按它本该的逻辑决定 BUY/SILENT,
+   不会出现 "被 regime 误触发" 的交易.
+
+2. **cron 看到的 'today' 晚一天** — 修复后 trade history 里 `entry_date`/`exit_date` 会比事故
+   晚 1 天 (UTC 视角). 这是语义正确: 执行价是 T-1 完整 close, "on which day" 标 T-1 才合理.
+   dashboard 展示与账本逻辑都不需调整.
+
+### 净效益
+
+| 救回的损失 | 数额 |
+|---|---|
+| 6/7 e20c 误触发 SELL -> 漏掉当日反弹 | **~4.06%** |
+| 6/7 e8 误触发 SELL -> 漏掉当日反弹 (仓位境况不同, 但同价位) | **~4.06%** |
+| 6/8 BUY @63186 高 tick -> 6/10 强平 -> 多一次 -0.24% 无意义交易 | 省掉 |
+
+**最大救回**: 6/7 那次 -4% 假平仓不再发生.
+
+---
+
+## 5. 部署 / VPS 同步
 
 ```bash
-# \u672c\u5730 (\u672c PR)
+# 本地 (本 PR)
 git checkout fix/partial-bar-drop
 git push origin fix/partial-bar-drop
 # (PR / merge to main)
 
 # VPS
 cd /root/FcstLabPro && git pull origin main
-# \u4e0b\u4e00\u6b21 UTC 00:10 cron \u8df3\u8fc7 partial bar, \u7528\u771f\u5b9e T-1 close
-# \u9a8c\u8bc1: tail /opt/fcstlabpro/logs/daily_<\u660e\u65e5>.log \u4f1a\u770b\u5230
-#   "\u4e22\u5f03 partial bar (date=<\u4eca\u65e5>, UTC \u4eca\u65e5\u5c1a\u672a\u95ed\u5408)"
+# 下一次 UTC 00:10 cron 跳过 partial bar, 用真实 T-1 close
+# 验证: tail /opt/fcstlabpro/logs/daily_<明日>.log 会看到
+#   "丢弃 partial bar (date=<今日>, UTC 今日尚未闭合)"
 ```
 
-\u65e0\u9700\u91cd\u542f service, \u65e0\u9700\u91cd\u8bad\u6a21\u578b \u2014 cron \u4e0b\u6b21\u8df3\u624d\u91cd\u8bfb\u6587\u4ef6.
+无需重启 service, 无需重训模型 — cron 下次跳才重读文件.
 
 ---
 
-## 6. \u540e\u7eed (\u672a\u5b8c\u6210, \u5f85 followup PR)
+## 6. 后续 (未完成, 待 followup PR)
 
-1. **\u91cd\u522f\u6700\u8fd1 30 \u5929\u5b9e\u76d8** \u2014 \u7528\u771f\u5b9e\u5f53\u65e5 close \u91cd\u7b97 regime, \u770b\u6709\u591a\u5c11\u7b14 SELL/BUY \u662f partial bar \u8bef\u89e6\u53d1; PnL \u5dee\u5f02\u8d26
-2. **`data_freshness` gate \u5347\u7ea7** \u2014 \u63a8\u8350 stale_days \u8ba1\u7b97\u4e5f\u8df3\u8fc7\u5f53\u65e5 partial bar, \u907f\u514d\u5047\u9605\u52a8 stale_days=0
-3. **downloader \u4fa7\u53cc\u4fdd\u9669** \u2014 `download_binance_klines` \u53ef\u9009\u53c2\u6570 `drop_incomplete_bar=True`, \u5728\u5199 csv \u524d\u5c31\u522a\u63c9
-4. **\u6587\u6863 §10.1 / \u751f\u4ea7\u624b\u518c** \u2014 \u660e\u8bb0 \u201ccron \u62c9\u6570\u636e \u2260 \u62c9\u5230\u7684\u90fd\u662f\u5b8c\u6574 bar\u201d
-
----
-
-## 7. \u6559\u8bad
-
-1. **\u201c\u6700\u65b0\u4e00\u6761\u201d\u4e0d\u7b49\u4e8e\u201c\u6700\u65b0\u5b8c\u6574\u4e00\u6761\u201d** \u2014 \u4efb\u4f55\u6309\u65f6\u95f4\u5377\u7684 K \u7ebf API,
-   \u9ed8\u8ba4\u8981\u95ee\u201c\u672b\u5c3e\u662f\u5426\u95ed\u5408\u201d, \u4e0d\u80fd\u9ed8\u8ba4 trust.
-
-2. **\u8bad\u63a8\u5bf9\u79f0\u539f\u5219\u53d8\u4f53** \u2014 \u8bad\u7ec3\u5403\u201c\u5386\u53f2\u90fd\u662f\u5b8c\u6574 bar\u201d, \u751f\u4ea7\u5403\u201c\u672b\u5c3e\u53ef\u80fd partial\u201d,
-   \u4e24\u8005\u8f93\u5165\u5206\u5e03\u4e0d\u540c \u2192 \u751f\u4ea7\u5fc5\u987b\u5728\u8f93\u5165\u8fdb\u63a8\u7406\u524d\u62c9\u9f50\u5230\u8bad\u7ec3\u5206\u5e03 (drop partial).
-
-3. **\u591a\u9632\u7ebf\u4e0d\u662f\u4ee3\u66ff\u54c1** \u2014 lesson_0602 \u5b66\u5230 \u201cstage 3 + stage 4 \u8bfb\u540c\u4e00\u4e2a\u8def\u5f84\u5e38\u91cf\u201d,
-   \u4f46 \u201c\u540c\u4e00\u8def\u5f84\u201d \u4e0d\u4ee3\u66ff \u201c\u540c\u6837\u7684\u6570\u636e\u8bed\u4e49\u68c0\u67e5\u201d. partial bar \u5403\u4e86\u8fd9\u4e2a\u865a\u5047\u5b89\u5168\u611f.
-
-4. **\u4ef7\u683c\u4e0d\u5bf9\u52b2 \u2192 \u5148\u67e5\u201c\u4ef7\u683c\u4ece\u54ea\u91cc\u8bfb\u7684\u201d** \u2014 \u672c\u4e8b\u6545 Qiu \u9996\u53d1\u96f6\u662f \u201c\u8d26\u672c\u4ef7\u4e0d\u662f\u5f53\u65e5\u6536\u76d8\u201d,
-   \u8fd9\u662f\u6700\u9ad8\u4ef7\u503c\u7684 anchor. \u4efb\u4f55\u201cmodel \u8868\u73b0\u4e0d\u5bf9\u201d\u8c03\u67e5, \u5148\u67e5\u4e0a\u6e38\u4ef7\u683c\u6e90\u5934.
+1. **重刯最近 30 天实盘** — 用真实当日 close 重算 regime, 看有多少笔 SELL/BUY 是 partial bar 误触发; PnL 差异账
+2. **`data_freshness` gate 升级** — 推荐 stale_days 计算也跳过当日 partial bar, 避免假阅动 stale_days=0
+3. **downloader 侧双保险** — `download_binance_klines` 可选参数 `drop_incomplete_bar=True`, 在写 csv 前就刪揉
+4. **文档 §10.1 / 生产手册** — 明记 “cron 拉数据 ≠ 拉到的都是完整 bar”
 
 ---
 
-*\u672c\u6587\u6863\u4e0e lesson_0601 / lesson_0602 \u540c\u7cfb\u5217, \u5747\u4e3a\u6570\u636e\u6cbb\u7406 (Layer 0) \u7ea2\u7ebf\u4e8b\u4ef6.*
+## 7. 教训
+
+1. **“最新一条”不等于“最新完整一条”** — 任何按时间卷的 K 线 API,
+   默认要问“末尾是否闭合”, 不能默认 trust.
+
+2. **训推对称原则变体** — 训练吃“历史都是完整 bar”, 生产吃“末尾可能 partial”,
+   两者输入分布不同 → 生产必须在输入进推理前拉齐到训练分布 (drop partial).
+
+3. **多防线不是代替品** — lesson_0602 学到 “stage 3 + stage 4 读同一个路径常量”,
+   但 “同一路径” 不代替 “同样的数据语义检查”. partial bar 吃了这个虚假安全感.
+
+4. **价格不对劲 → 先查“价格从哪里读的”** — 本事故 Qiu 首发零是 “账本价不是当日收盘”,
+   这是最高价值的 anchor. 任何“model 表现不对”调查, 先查上游价格源头.
+
+---
+
+*本文档与 lesson_0601 / lesson_0602 同系列, 均为数据治理 (Layer 0) 红线事件.*
