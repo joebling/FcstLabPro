@@ -51,6 +51,10 @@ INDICATORS = {
     "STH-MVRV(短持估值)":  ("external/onchain/sth_mvrv.csv",         "value", -1),
     "STH-NUPL(短持)":      ("external/onchain/sth_nupl.csv",         "value", -1),
     "STH-SOPR(短持获利)":  ("external/onchain/sth_sopr.csv",         "value", -1),
+    # === v1.2 新增: ahr999 定投指数 (纯公式计算, 低=低估=底, 同 MVRV-Z 方向 -1) ===
+    #     注: 基于 Binance 价格 2018+ 起, 比其它链上指标(2012+)短; expanding分位需365天
+    #     => 条件分析约 2019-07 起, 只含 2020/2022 两个底 (--coingecko 可拓到含2018底)
+    "ahr999(定投指数)":     ("external/onchain/ahr999.csv",          "value", -1),
     # === 注: 合约杠杆率 (open_interest / long_short_ratio) 本地数据仅自 2026-02 起,
     #     ~4个月 → 90d 非重叠采样后 N≈1, 无法做 IC 检验, 暂不纳入 (数据太短) ===
 }
