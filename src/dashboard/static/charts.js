@@ -136,6 +136,41 @@ const FcstCharts = (function () {
     });
   }
 
+  // ---- 底部页 (历史点灯回放, 低分位=机会) ----
+  function renderBottoming() {
+    const d = _data('bot-data');
+    if (!d || !d.dates) return;
+    const el = document.getElementById('botHist');
+    if (!el) return;
+    new Chart(el, {
+      data: {
+        labels: d.dates,
+        datasets: [
+          { type: 'line', label: 'RR 历史分位', yAxisID: 'yPct', data: d.rr_pct,
+            borderColor: EMERALD, backgroundColor: EMERALD + '14', fill: true,
+            pointRadius: 0, borderWidth: 2, tension: 0.25 },
+          { type: 'scatter', label: '底部点灯 (RR≤15)', yAxisID: 'yPct', data: d.fire,
+            backgroundColor: EMERALD, pointRadius: 6, pointStyle: 'triangle' },
+          { type: 'line', label: 'BTC 价格 (右轴)', yAxisID: 'yPrice', data: d.price,
+            borderColor: '#94a3b8', borderDash: [4, 3], fill: false,
+            pointRadius: 0, borderWidth: 1.5, tension: 0.25 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          yPct: { position: 'left', min: 0, max: 100,
+            title: { display: true, text: 'RR 分位' },
+            grid: { color: (c) => [5, 15, 30].includes(c.tick.value) ? '#10b981' : '#f1f5f9' } },
+          yPrice: { position: 'right', title: { display: true, text: 'BTC 价格' }, grid: { display: false } },
+          x: { ticks: { maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
   // ---- 实盘业绩页 (净值曲线 + 回撤) ----
   function renderPerfmon() {
     const d = _data('pm-data');
@@ -168,5 +203,5 @@ const FcstCharts = (function () {
     });
   }
 
-  return { renderOverview, renderMarket, renderSignals, renderTopping, renderPerfmon };
+  return { renderOverview, renderMarket, renderSignals, renderTopping, renderBottoming, renderPerfmon };
 })();
