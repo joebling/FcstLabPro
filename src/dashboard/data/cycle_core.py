@@ -154,3 +154,31 @@ def replay_history(
         fired = (p <= fire_threshold) if is_bottom else (p >= fire_threshold)
         hist["fire"].append(round(float(p), 1) if fired else None)
     return hist
+
+
+def replay_dual(
+    driver: pd.Series, top_thr: float, bottom_thr: float, hist_points: int = 120
+) -> dict:
+    """双向点灯回放: 同一条 RR 分位曲线上同时标顶部区(>=top_thr)和底部区(<=bottom_thr)。
+
+    供整合后的「周期研判」页用 — 一张图看清历史顶/底两端都亮过哪些灯。
+    """
+    out = {"dates": [], "pct": [], "price": [], "top_fire": [], "bottom_fire": []}
+    if driver is None or driver.empty:
+        return out
+    pct_series = expanding_pct(driver)
+    step = max(1, len(pct_series) // hist_points)
+    sampled = pct_series.iloc[::step]
+    try:
+        from src.dashboard.data import load_display_ohlcv
+        price = load_display_ohlcv()[0]["close"]
+    except (OSError, ValueError, ImportError):
+        price = pd.Series(dtype=float)
+    for d, p in sampled.items():
+        out["dates"].append(d.strftime("%Y-%m-%d"))
+        out["pct"].append(round(float(p), 1))
+        px = price.asof(d) if not price.empty else None
+        out["price"].append(round(float(px), 0) if px == px and px is not None else None)
+        out["top_fire"].append(round(float(p), 1) if p >= top_thr else None)
+        out["bottom_fire"].append(round(float(p), 1) if p <= bottom_thr else None)
+    return out

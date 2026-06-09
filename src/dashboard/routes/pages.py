@@ -62,11 +62,20 @@ def models(request: Request, model: str | None = None):
     return templates.TemplateResponse(request, "pages/models.html", ctx)
 
 
+@router.get("/cycle", response_class=HTMLResponse)
+def cycle(request: Request, model: str | None = None):
+    from src.dashboard.app import templates
+    from src.dashboard.pages import cycle as page
+    ctx = _base_ctx(request, "cycle", model)
+    ctx.update(page.build())
+    return templates.TemplateResponse(request, "pages/cycle.html", ctx)
+
+
 @router.get("/topping", response_class=HTMLResponse)
 def topping(request: Request, model: str | None = None):
     from src.dashboard.app import templates
     from src.dashboard.pages import topping as page
-    ctx = _base_ctx(request, "topping", model)
+    ctx = _base_ctx(request, "cycle", model)
     ctx.update(page.build())
     return templates.TemplateResponse(request, "pages/topping.html", ctx)
 
@@ -75,7 +84,7 @@ def topping(request: Request, model: str | None = None):
 def bottoming(request: Request, model: str | None = None):
     from src.dashboard.app import templates
     from src.dashboard.pages import bottoming as page
-    ctx = _base_ctx(request, "bottoming", model)
+    ctx = _base_ctx(request, "cycle", model)
     ctx.update(page.build())
     return templates.TemplateResponse(request, "pages/bottoming.html", ctx)
 

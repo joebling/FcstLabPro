@@ -171,6 +171,43 @@ const FcstCharts = (function () {
     });
   }
 
+  // ---- 周期研判页 (双向点灯: 顶红三角 + 底绿三角) ----
+  function renderCycle() {
+    const d = _data('cyc-data');
+    if (!d || !d.dates) return;
+    const el = document.getElementById('cycHist');
+    if (!el) return;
+    new Chart(el, {
+      data: {
+        labels: d.dates,
+        datasets: [
+          { type: 'line', label: 'RR 历史分位', yAxisID: 'yPct', data: d.pct,
+            borderColor: INDIGO, backgroundColor: INDIGO + '14', fill: true,
+            pointRadius: 0, borderWidth: 2, tension: 0.25 },
+          { type: 'scatter', label: '顶部区 (RR≥70)', yAxisID: 'yPct', data: d.top_fire,
+            backgroundColor: ROSE, pointRadius: 6, pointStyle: 'triangle' },
+          { type: 'scatter', label: '底部区 (RR≤30)', yAxisID: 'yPct', data: d.bottom_fire,
+            backgroundColor: EMERALD, pointRadius: 6, pointStyle: 'triangle', rotation: 180 },
+          { type: 'line', label: 'BTC 价格 (右轴)', yAxisID: 'yPrice', data: d.price,
+            borderColor: '#94a3b8', borderDash: [4, 3], fill: false,
+            pointRadius: 0, borderWidth: 1.5, tension: 0.25 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          yPct: { position: 'left', min: 0, max: 100,
+            title: { display: true, text: 'RR 分位' },
+            grid: { color: (c) => [30, 70].includes(c.tick.value) ? '#f59e0b' : '#f1f5f9' } },
+          yPrice: { position: 'right', title: { display: true, text: 'BTC 价格' }, grid: { display: false } },
+          x: { ticks: { maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
   // ---- 实盘业绩页 (净值曲线 + 回撤) ----
   function renderPerfmon() {
     const d = _data('pm-data');
@@ -203,5 +240,5 @@ const FcstCharts = (function () {
     });
   }
 
-  return { renderOverview, renderMarket, renderSignals, renderTopping, renderBottoming, renderPerfmon };
+  return { renderOverview, renderMarket, renderSignals, renderTopping, renderBottoming, renderCycle, renderPerfmon };
 })();

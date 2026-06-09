@@ -2,26 +2,17 @@
 {% import "macros.html" as ui %}
 {% block title %}底部 · FcstLabPro{% endblock %}
 {% block page_title %}底部研判{% endblock %}
-{% block page_sub %}周期底部机会分级 · 严格右侧 · 币本位{% endblock %}
+{% block page_sub %}周期底部机会分级 · 严格右侧 · <a href="/cycle" class="text-indigo-600 hover:underline">← 回周期研判</a>{% endblock %}
 
 {% block content %}
 
-<!-- 诚实横幅 (防"看起来太准"误导) -->
+<!-- 诚实横幅 -->
 <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 mb-4 text-xs text-amber-800">
   <b>诚实声明:</b> 事件级去重后 BTC 史上仅 3-6 个独立周期底, 本框架是
   <b>「机会区间排序器」非抄底神器</b>。实证 (事件级) 表明<b>左侧首日抄底已被证伪</b>
   (LTH-NUPL/NUPL 事件级超额翻负), 故采<b>严格右侧</b>: A/B 深度低估也必须等 Layer C 确认才接回。
   币本位 KPI = 轮动后 BTC 数量 vs HODL。
 </div>
-
-<!-- 极恐特判警告 -->
-{% if fgi_extreme %}
-<div class="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 mb-4 text-xs text-rose-700">
-  <b>恐惧贪婪指数 = {{ fgi_val }} (极度恐惧):</b> 注意「恐惧 ≠ 底部」。
-  实证: 恐慌贪婪指数低估区 180d 日频超额 -26.8%, 极恐多发生在<b>左侧下跌途中</b>。
-  不要把恐慌当买入信号, 仍以 Layer A/B 估值 + Layer C 右侧确认为准。
-</div>
-{% endif %}
 
 <!-- HERO 机会等级 + 行动 -->
 <div class="rounded-xl shadow-md p-5 mb-5 text-white"
@@ -47,93 +38,12 @@
   {% endif %}
 </div>
 
-<!-- 三层卡片 -->
-<div class="grid lg:grid-cols-3 gap-4 mb-5">
-
-  <!-- Layer A -->
-  {% call ui.card("Layer A · 主信号 (Reserve Risk)", "A") %}
-  <p class="text-xs text-slate-400 -mt-2 mb-3">expanding 历史分位, <b>越低越接近底</b> (事件级 180d 超额 +12.4%, 底部最稳)</p>
-  <div class="flex items-baseline gap-2 mb-3">
-    <span class="text-4xl font-bold text-emerald-600">{{ rr_pct if rr_pct is not none else '—' }}</span>
-    <span class="text-sm text-slate-400">分位</span>
-    {% if rr_val is not none %}<span class="text-xs text-slate-400 ml-auto">值 {{ rr_val }}</span>{% endif %}
-  </div>
-  <div class="relative h-4 rounded-full overflow-hidden mb-1"
-       style="background:linear-gradient(90deg,#a7f3d0 0% 5%,#6ee7b7 5% 15%,#bfdbfe 15% 30%,#e2e8f0 30% 100%)">
-    {% if rr_pct is not none %}<div class="absolute top-0 h-4 w-1.5 bg-slate-900" style="left:{{ rr_pct }}%"></div>{% endif %}
-  </div>
-  <div class="flex justify-between text-[10px] text-slate-400"><span>0</span><span>5</span><span>15</span><span>30</span><span>100</span></div>
-  <p class="text-[10px] text-slate-400 mt-1">深度机会 ≤{{ deep_q }} · 关注 ≤{{ watch_q }}</p>
-  {% endcall %}
-
-  <!-- Layer B -->
-  {% call ui.card("Layer B · 确认信号 (估值类)", "B") %}
-  <p class="text-xs text-slate-400 -mt-2 mb-3">≤{{ deep_q }} 分位低位计数: <b class="text-slate-700">{{ lb_low }}</b> / 2 (门槛 ≥2 确认深度机会)</p>
-  <div class="space-y-2">
-    {% for r in lb_rows %}
-    <div class="flex items-center justify-between text-sm">
-      <span class="text-slate-700">{{ r.name }}{% if r.preferred %}<span class="text-[10px] text-emerald-500 ml-1">首选</span>{% endif %}</span>
-      <span class="flex items-center gap-2">
-        <span class="text-xs text-slate-400">{{ r.pct if r.pct is not none else '—' }}分位</span>
-        {% if r.low %}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">低位</span>
-        {% else %}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">未低</span>{% endif %}
-      </span>
-    </div>
-    {% endfor %}
-  </div>
-  <!-- 避坑名单 -->
-  <div class="mt-3 pt-3 border-t border-slate-100">
-    <p class="text-[11px] font-semibold text-rose-500 mb-1">避坑名单 (左侧接飞刀陷阱, 不计入确认)</p>
-    {% for r in avoid_rows %}
-    <div class="flex items-center justify-between text-[11px] text-slate-500">
-      <span>{{ r.name }} <span class="text-slate-400">{{ r.pct if r.pct is not none else '—' }}分位</span></span>
-      <span class="text-rose-400">{{ r.why }}</span>
-    </div>
-    {% endfor %}
-  </div>
-  {% endcall %}
-
-  <!-- Layer C -->
-  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 transition {{ '' if lc_active else 'opacity-40' }}">
-    <h3 class="text-sm font-semibold text-slate-700 mb-1">
-      <span class="inline-flex items-center justify-center w-5 h-5 rounded text-[11px] font-semibold bg-slate-100 text-slate-500 mr-1">C</span>
-      Layer C · 右侧确认 (强制)</h3>
-    <p class="text-xs text-slate-400 mb-3">{{ '已激活 (A/B 深度低估, 等右侧扳机)' if lc_active else '仅深度机会区间激活 (当前未激活)' }} · 触发 {{ lc_fired }}/3</p>
-    <div class="space-y-2">
-      {% for r in lc_rows %}
-      <div class="flex items-center justify-between text-sm">
-        <span class="text-slate-700">{{ r.name }}</span>
-        {% if r.fired is none %}<span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-400">无数据</span>
-        {% elif r.fired %}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">已确认</span>
-        {% else %}<span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-500">未触发</span>{% endif %}
-      </div>
-      {% endfor %}
-    </div>
-    <p class="text-[10px] text-slate-400 mt-3">右侧确认是底部刚需: 抄底错=接飞刀(真亏本金), 宁可右侧追不可左侧接。</p>
-  </div>
-</div>
-
-<!-- 分批接回状态机 -->
-{% call ui.card("分批接回状态机 (稳定币 → BTC)", "") %}
-<div class="grid sm:grid-cols-3 gap-3 mb-2">
-  {% for b in batches %}
-  <div class="border rounded-lg p-3 {{ 'border-emerald-400' if b.done else 'border-slate-200' }}">
-    <div class="flex items-center justify-between">
-      <span class="font-semibold text-sm text-slate-700">{{ b.name }}</span>
-      {% if b.done %}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">已接回</span>
-      {% else %}<span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-500">待触发</span>{% endif %}
-    </div>
-    <div class="text-xs text-slate-400 mt-1">接回 {{ b.pct }}%</div>
-  </div>
-  {% endfor %}
-</div>
-<p class="text-[11px] text-slate-400">已接回 {{ verdict.bought }}/3 批 · 状态由当前机会等级推导 (落地版将持久化已接回批次, 加滞后防横跳)。</p>
-{% endcall %}
+{% include "partials/playbook_bottom.html" %}
 
 <!-- 历史回放 -->
 <div class="mt-4">
 {% call ui.card("历史底部点灯回放 (验证)", "") %}
-<p class="text-xs text-slate-400 -mt-2 mb-3">RR expanding 分位曲线 + 价格叠加; 绿三角 = 规则在历史底部当时是否亮灯 (RR≤{{ deep_q }})。检验「这套规则在过去的底到底亮没亮灯」。注意: 亮灯仅是"机会区间", 真实接回还需右侧确认。</p>
+<p class="text-xs text-slate-400 -mt-2 mb-3">RR expanding 分位曲线 + 价格叠加; 绿三角 = 规则在历史底部当时是否亮灯 (RR≤{{ deep_q }})。注意: 亮灯仅是"机会区间", 真实接回还需右侧确认。</p>
 <div style="height:320px"><canvas id="botHist"></canvas></div>
 {% endcall %}
 </div>

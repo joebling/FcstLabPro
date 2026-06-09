@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% import "macros.html" as ui %}
+{% block title %}周期研判 · FcstLabPro{% endblock %}
+{% block page_title %}周期研判{% endblock %}
+{% block page_sub %}先判周期位置, 再定逃顶/抄底 · 币本位{% endblock %}
+
+{% block content %}
+{% if not available %}
+  <div class="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
+    Reserve Risk 数据不可用，无法研判周期位置。
+  </div>
+{% else %}
+
+<!-- regime gate -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
+  <div class="flex items-center justify-between mb-2">
+    <h3 class="text-sm font-semibold text-slate-700">周期位置 (Reserve Risk 历史分位)</h3>
+    <span class="text-xs font-semibold px-2 py-0.5 rounded" style="background:{{ regime.color }}1a;color:{{ regime.color }}">{{ regime.label }} · RR {{ rr_pct }} 分位</span>
+  </div>
+  <div class="relative h-5 rounded-full overflow-hidden"
+       style="background:linear-gradient(90deg,#10b981 0%,#3b82f6 50%,#f43f5e 100%)">
+    <div class="absolute top-0 h-5 w-1 bg-slate-900" style="left:{{ rr_pct }}%"></div>
+  </div>
+  <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+    <span>0 深底</span><span>底部区 ≤{{ bottom_zone }}</span><span>中性</span><span>顶部区 ≥{{ top_zone }}</span><span>100 极顶</span>
+  </div>
+  <p class="text-xs text-slate-500 mt-2">{{ regime.desc }}</p>
+</div>
+
+<!-- 统一 HERO: 唯一动作 + 唯一仓位倾向 -->
+<div class="rounded-xl shadow-md p-5 mb-4 text-white"
+     style="background: linear-gradient(135deg, {{ active_verdict.color }}, {{ active_verdict.color }}cc);">
+  <div class="grid md:grid-cols-3 gap-5 items-center">
+    <div>
+      <div class="text-xs opacity-80">当前研判 ({{ regime.label }})</div>
+      <div class="text-3xl font-bold mt-1">{{ active_verdict.label }}</div>
+    </div>
+    <div>
+      <div class="text-xs opacity-80">建议动作</div>
+      <div class="text-lg font-semibold mt-1">{{ active_verdict.action }}</div>
+    </div>
+    <div class="md:text-right">
+      <div class="text-xs opacity-80">仓位倾向 (币本位)</div>
+      <div class="text-lg font-bold mt-1">{{ regime.stance }}</div>
+    </div>
+  </div>
+  {% if active_verdict.warn %}
+  <div class="mt-3 bg-white/20 rounded px-3 py-2 text-sm font-semibold">
+     别接飞刀: 深度低估 ≠ 见底。历史上极度低估后价格常继续下跌数月, 务必等右侧确认。
+  </div>
+  {% endif %}
+</div>
+
+<!-- 休眠侧速读 -->
+{% if dormant %}
+<a href="{{ dormant.href }}" class="block rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 mb-5 hover:bg-slate-100 transition">
+  <span class="text-xs text-slate-400">{{ dormant.side }}剧本 (当前休眠, 非主场)</span>
+  <span class="text-sm text-slate-500 ml-2">{{ dormant.label }} · {{ dormant.action }}</span>
+  <span class="text-xs text-indigo-500 float-right">查看详情 →</span>
+</a>
+{% endif %}
+
+<!-- 激活剧本 -->
+{% if regime.key == "top" %}
+  {% with rr_pct=top.rr_pct, rr_val=top.rr_val, lb_rows=top.lb_rows, lb_high=top.lb_high,
+          lc_rows=top.lc_rows, lc_active=top.lc_active, lc_fired=top.lc_fired,
+          verdict=top.verdict, batches=top.batches %}
+    {% include "partials/playbook_top.html" %}
+  {% endwith %}
+{% elif regime.key == "bottom" %}
+  {% with rr_pct=bot.rr_pct, rr_val=bot.rr_val, lb_rows=bot.lb_rows, lb_low=bot.lb_low,
+          avoid_rows=bot.avoid_rows, fgi_val=bot.fgi_val, fgi_extreme=bot.fgi_extreme,
+          lc_rows=bot.lc_rows, lc_active=bot.lc_active, lc_fired=bot.lc_fired,
+          verdict=bot.verdict, batches=bot.batches, deep_q=bot.deep_q, watch_q=bot.watch_q %}
+    {% include "partials/playbook_bottom.html" %}
+  {% endwith %}
+{% else %}
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-5 text-center">
+    <div class="text-2xl font-bold text-slate-600 mb-1">持有观望</div>
+    <p class="text-sm text-slate-500">周期处中段，离顶 (≥{{ top_zone }}) 离底 (≤{{ bottom_zone }}) 都有距离。持有 BTC 不动，
+    等周期走向两端再激活对应剧本。两端详情见
+    <a href="/topping" class="text-indigo-600 hover:underline">顶部</a> /
+    <a href="/bottoming" class="text-indigo-600 hover:underline">底部</a>。</p>
+  </div>
+{% endif %}
+
+<!-- 双向历史点灯回放 -->
+{% call ui.card("历史周期两端点灯回放 (验证)", "") %}
+<p class="text-xs text-slate-400 -mt-2 mb-3">同一条 RR 分位曲线 + 价格叠加; 红三角=顶部区 (≥{{ top_zone }}), 绿三角=底部区 (≤{{ bottom_zone }})。一眼看历史顶/底两端规则都亮过哪些灯。</p>
+<div style="height:340px"><canvas id="cycHist"></canvas></div>
+{% endcall %}
+
+<p class="text-[11px] text-slate-400 mt-4">
+  口径: Reserve Risk expanding 历史分位为单一 regime gate (低=底/高=顶)。纯历史位置参考, 不预测。
+  实证依据见 <code class="bg-slate-100 px-1 rounded">docs/reports/btc_topping_ic_analysis_20260608.html</code> /
+  <code class="bg-slate-100 px-1 rounded">btc_bottoming_ic_analysis_20260608.html</code>
+</p>
+
+<script id="cyc-data" type="application/json">{{ hist | tojson }}</script>
+<script src="/static/charts.js"></script>
+<script>FcstCharts.renderCycle();</script>
+
+{% endif %}
+{% endblock %}
