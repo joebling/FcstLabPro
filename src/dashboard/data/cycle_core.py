@@ -188,10 +188,11 @@ def _subsample(s: pd.Series, hist_points: int) -> pd.Series:
 def replay_history(
     driver: pd.Series, fire_threshold: float, direction: str, hist_points: int = 120
 ) -> dict:
-    """driver 的 expanding 分位曲线 + 价格叠加 + 点灯标记.
+    """driver 的 rolling-2y 分位曲线 + 价格叠加 + 点灯标记.
 
     顶部: 分位 >= fire_threshold 点灯 (危险); 底部: 分位 <= fire_threshold 点灯 (机会)。
     抽稀到约 hist_points 个点。
+    V1.2: rolling-2y 启动期 (< 180天) 会出 NaN, 必须转 None 避免 JSON 非法.
     """
     hist = {"dates": [], "pct": [], "price": [], "fire": []}
     if driver is None or driver.empty:
@@ -206,11 +207,15 @@ def replay_history(
     is_bottom = direction == "bottom"
     for d, p in sampled.items():
         hist["dates"].append(d.strftime("%Y-%m-%d"))
-        hist["pct"].append(round(float(p), 1))
+        if p != p:  # NaN 检测
+            hist["pct"].append(None)
+            hist["fire"].append(None)
+        else:
+            hist["pct"].append(round(float(p), 1))
+            fired = (p <= fire_threshold) if is_bottom else (p >= fire_threshold)
+            hist["fire"].append(round(float(p), 1) if fired else None)
         px = price.asof(d) if not price.empty else None
         hist["price"].append(round(float(px), 0) if px == px and px is not None else None)
-        fired = (p <= fire_threshold) if is_bottom else (p >= fire_threshold)
-        hist["fire"].append(round(float(p), 1) if fired else None)
     return hist
 
 
@@ -220,6 +225,7 @@ def replay_dual(
     """双向点灯回放: 同一条 RR 分位曲线上同时标顶部区(>=top_thr)和底部区(<=bottom_thr)。
 
     供整合后的「周期研判」页用 — 一张图看清历史顶/底两端都亮过哪些灯。
+    V1.2: rolling-2y 启动期 会出 NaN, 必须转 None 避免 JSON 非法.
     """
     out = {"dates": [], "pct": [], "price": [], "top_fire": [], "bottom_fire": []}
     if driver is None or driver.empty:
@@ -233,9 +239,14 @@ def replay_dual(
         price = pd.Series(dtype=float)
     for d, p in sampled.items():
         out["dates"].append(d.strftime("%Y-%m-%d"))
-        out["pct"].append(round(float(p), 1))
+        if p != p:  # NaN 检测
+            out["pct"].append(None)
+            out["top_fire"].append(None)
+            out["bottom_fire"].append(None)
+        else:
+            out["pct"].append(round(float(p), 1))
+            out["top_fire"].append(round(float(p), 1) if p >= top_thr else None)
+            out["bottom_fire"].append(round(float(p), 1) if p <= bottom_thr else None)
         px = price.asof(d) if not price.empty else None
         out["price"].append(round(float(px), 0) if px == px and px is not None else None)
-        out["top_fire"].append(round(float(p), 1) if p >= top_thr else None)
-        out["bottom_fire"].append(round(float(p), 1) if p <= bottom_thr else None)
     return out
