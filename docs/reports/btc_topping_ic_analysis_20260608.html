@@ -200,6 +200,9 @@ t_stat          = IC * sqrt(N-2) / sqrt(1 - IC^2)           # N = 非重叠样�
   </table>
   </div>
   <p class="text-sm text-slate-700 mt-3"><b>为什么分批：</b>慢指标给区间不给点，分批把择时误差摊平。假警报只让你少赚，不让你满仓被埋。全部用 expanding 历史分位、阈值/方向事前锁定。</p>
+  <div class="border-l-4 rounded p-3 mt-3" style="background:#fff8e6;border-color:#ffc220">
+    <p class="text-xs text-slate-700"><b>本位说明（币本位视角）：</b>本框架服务于<b>币本位周期择时</b>——目标是高点减仓、低点接回，最终<b>攒到更多 BTC</b>，而非最大化 USD Sharpe。IC / 超额用 USD 价格收益口径仅为<b>判断信号方向</b>；最终成败以「轮动后 BTC 数量 vs 全程 HODL」衡量（见 §9 路线图 #6）。</p>
+  </div>
 </section>
 
 <!-- ===== 7 ===== -->
@@ -236,7 +239,7 @@ Layer C: 未启用 (A/B 未拉警报)
     <li><b>Regime 依赖</b>：Layer B 全族 |t|&lt;2，意味着“看市场状态吃饭”，下轮未必复现。</li>
     <li><b>链上数据回填风险 (Layer 0)</b>：回测可能虚高，live 表现打折扣。</li>
     <li><b>只测线性单调预测力</b>：IC 不捕捉阈值/形态/非线性，不能完全否定人工共振直觉。</li>
-    <li><b>未含交易成本/滑点/延迟</b>：本框架是信号/仓位层，真实收益需 Layer 5 回测验证。</li>
+    <li><b>未含交易成本/滑点/延迟</b>：本框架是信号/仓位层；验证靠<b>币本位轮动回测</b>(期末 BTC 数量 vs HODL)，粗算手续费即可，非机构级滑点精度。</li>
   </ol>
 </section>
 <section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
@@ -281,7 +284,7 @@ Layer C: 未启用 (A/B 未拉警报)
       <tr><td>3. 因子扩充 (18 因子) + 本报告</td><td>本 HTML 报告</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">完成</span></td></tr>
       <tr><td>4. 补 ETF 流 / Altseason / 交易所净流入 IC</td><td>接数据源后过 IC 检验</td><td><span class="badge" style="background:#fff3d6;color:#995213">高优先级</span></td></tr>
       <tr><td>5. 危险分级仪表盘 topping_dashboard.py</td><td>每日自动打分 (RR 分位 + Layer B 计数)</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
-      <tr><td>6. 分批撤退回测</td><td>分批规则 vs 买入持有 vs 单点逃顶 的 Calmar</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
+      <tr><td>6. 币本位轮动回测</td><td>高点分批减仓换稳定币 vs 全程 HODL：对比<b>期末 BTC 数量</b>(币本位)，非 USD Calmar</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
     </tbody>
   </table>
   </div>

@@ -55,6 +55,12 @@ HORIZONS = [30, 90, 180]  # 底部反弹关心中-长期 (比顶部多看 180d)
 LOW_Q = 20.0              # "极度低估" 阈值: expanding 历史分位 <= 20%
 MIN_PCT_WIN = 365        # 分位最少需要 1 年历史才稳 (早期不算)
 
+# 统一基线窗口 (修 review §2.2 苹果比橘): 所有指标用同一价格口径基线,
+# 超额才可横向排名。窗口 = 剖资金费率(2019-09上线)后的指标交集,
+# 以保住 2018 + 2022 两个周期底。资金费率因 history 太短, 基线单独降级。
+BASELINE_START = pd.Timestamp("2018-02-01")
+BASELINE_END = pd.Timestamp("2025-12-28")
+
 
 def expanding_pct(s: pd.Series) -> pd.Series:
     """每点的 expanding 历史分位 (0~100), 只用 <=当日数据 (防未来函数).
@@ -67,10 +73,43 @@ def expanding_pct(s: pd.Series) -> pd.Series:
     )
 
 
-def conditional_bottom(sig: pd.Series, price: pd.Series, h: int) -> dict | None:
+def unified_baseline(price: pd.Series, h: int) -> float:
+    """统一基线: 固定共同窗口 [BASELINE_START, BASELINE_END] 上的无条件 h 天前瞻收益均值.
+
+    只依赖 price, 与具体指标无关 -> 所有指标共用同一基线, 超额可严格横向比
+    (修 review §2.2: 旧版按各指标可用样本期分别算基线 -> 苹果比橘)。
+    """
+    fwd = price.shift(-h) / price - 1.0
+    win = fwd[(fwd.index >= BASELINE_START) & (fwd.index <= BASELINE_END)].dropna()
+    return float(win.mean()) if len(win) else float("nan")
+
+
+def low_events(low_idx: pd.Index, h: int) -> pd.DatetimeIndex:
+    """把重叠低估日塌缩成非重叠事件: 相邻低估日间隔 > h 天则视为新事件段, 取每段首日.
+
+    修 review §2.1 日频重叠: MVRV-Z 的 358 低估日去重后只剩 ~6 段独立低估期。
+    间隔阈值用 h -> 事件首日彼此 > h 天 -> 前瞻窗口不重叠。进场点 = 低估段首日
+    (无前瞻 / 最贴近可交易, 项目方确认口径)。
+    """
+    if len(low_idx) == 0:
+        return pd.DatetimeIndex([])
+    dates = pd.DatetimeIndex(sorted(low_idx))
+    starts = [dates[0]]
+    for prev, cur in zip(dates[:-1], dates[1:]):
+        if (cur - prev).days > h:
+            starts.append(cur)
+    return pd.DatetimeIndex(starts)
+
+
+def conditional_bottom(
+    sig: pd.Series, price: pd.Series, h: int, base_mean: float
+) -> dict | None:
     """底部条件分析: 仅在 expanding 历史低分位 (<=LOW_Q) 子样本上看未来反弹.
 
-    Returns dict: 低分位天数 / 命中率 / 平均反弹 / 全样本基线 / 超额 / 子样本IC+t。
+    双口径输出 (review §2.1):
+      - 日频(重叠): 仅供排序, 命中率被重叠夸大
+      - 事件级(非重叠): 主口径, 每个低估段取首日
+    base_mean 为统一基线 (由 unified_baseline 算好传入, 全指标共用)。
     """
     pct = expanding_pct(sig)
     fwd = price.shift(-h) / price - 1.0  # future_return[t -> t+h]
@@ -80,16 +119,27 @@ def conditional_bottom(sig: pd.Series, price: pd.Series, h: int) -> dict | None:
     if len(df) < MIN_PCT_WIN:
         return None
 
-    base_mean = float(df["r"].mean())  # 全样本未来收益基线
     low = df[df["pct"] <= LOW_Q]
     if len(low) < 5:
         return {"n_low": len(low), "insufficient": True, "base_mean": base_mean}
 
-    hit = float((low["r"] > 0).mean())
-    avg = float(low["r"].mean())
-    excess = avg - base_mean
+    # ---- 日频(重叠)口径: 仅供排序, 命中率被重叠夸大 (review §2.1) ----
+    hit_d = float((low["r"] > 0).mean())
+    avg_d = float(low["r"].mean())
+    excess_d = avg_d - base_mean
 
-    # 子样本 IC (非重叠): 低估区内 指标 vs 未来收益, 抄底预期为负 (越低越涨)
+    # ---- 事件级(非重叠)口径: 主口径, 每个低估段取首日 ----
+    ev_starts = low_events(low.index, h)
+    ev_r = df.loc[ev_starts, "r"]
+    n_ev = int(len(ev_r))
+    if n_ev > 0:
+        hit_e: float | None = float((ev_r > 0).mean())
+        avg_e: float | None = float(ev_r.mean())
+        excess_e: float | None = avg_e - base_mean
+    else:
+        hit_e = avg_e = excess_e = None
+
+    # 子样本 IC (非重叠): 低估区内 指标 vs 未来收益, 拄底预期为负 (越低越涨)
     low_no = low.iloc[::h]
     sub = None
     if len(low_no) >= 8:
@@ -100,8 +150,9 @@ def conditional_bottom(sig: pd.Series, price: pd.Series, h: int) -> dict | None:
 
     return {
         "n_low": int(len(low)), "insufficient": False,
-        "hit": hit, "avg": avg, "base_mean": base_mean, "excess": excess,
-        "sub_ic": sub,
+        "hit_d": hit_d, "avg_d": avg_d, "excess_d": excess_d,
+        "n_ev": n_ev, "hit_e": hit_e, "avg_e": avg_e, "excess_e": excess_e,
+        "base_mean": base_mean, "sub_ic": sub,
     }
 
 
@@ -134,12 +185,15 @@ def main() -> None:
                   f"{res['t']:>+8.2f}{('' if ok else ''):>9}")
 
     # ---------- Part B: 条件分位 IC (底部灵魂) ----------
-    print("\n" + "=" * 100)
+    base = {h: unified_baseline(price, h) for h in HORIZONS}
+    print("\n" + "=" * 116)
     print("[Part B] 条件分位分析 — 极度低估区 (分位<=20%) 的未来反弹 (底部专属预测力)")
-    print("=" * 100)
-    print(f"{'指标':<20}{'窗口':>6}{'低估天数':>8}{'命中率':>8}{'均反弹':>9}"
-          f"{'基线':>9}{'超额':>9}{'子样本IC':>10}{'子t':>7}")
-    print("-" * 100)
+    print(f"统一基线窗口: {BASELINE_START.date()} ~ {BASELINE_END.date()} (全指标共用, 价格口径)")
+    print(f"  基线 h=30:{base[30]*100:+.1f}%  h=90:{base[90]*100:+.1f}%  h=180:{base[180]*100:+.1f}%")
+    print("=" * 116)
+    print(f"{'指标':<20}{'窗口':>6}{'事件N':>6}{'事命中':>7}{'事超额':>8}"
+          f"{'|':>3}{'日N':>6}{'日命中':>7}{'日超额':>8}{'子ICt':>8}")
+    print("-" * 116)
 
     rows = []
     for name, (rel, col, _) in INDICATORS.items():
@@ -148,34 +202,41 @@ def main() -> None:
         except Exception:  # noqa: BLE001
             continue
         for h in HORIZONS:
-            res = conditional_bottom(sig, price, h)
+            res = conditional_bottom(sig, price, h, base[h])
             if res is None:
                 continue
             if res.get("insufficient"):
-                print(f"{name:<20}{h:>5}d{res['n_low']:>8}  (低估样本<5, 跳过)")
+                print(f"{name:<20}{h:>5}d  (低估样本<5, 跳过)")
                 continue
             sub = res["sub_ic"]
-            sic = f"{sub['ic']:+.3f}" if sub else "  n/a"
-            st = f"{sub['t']:+.2f}" if sub else "  -"
-            print(f"{name:<20}{h:>5}d{res['n_low']:>8}{res['hit']*100:>7.0f}%"
-                  f"{res['avg']*100:>+8.1f}%{res['base_mean']*100:>+8.1f}%"
-                  f"{res['excess']*100:>+8.1f}%{sic:>10}{st:>7}")
+            st = f"{sub['t']:+.1f}" if sub else "  n/a"
+            he = f"{res['hit_e']*100:>5.0f}%" if res["hit_e"] is not None else "  n/a"
+            xe = f"{res['excess_e']*100:>+6.1f}%" if res["excess_e"] is not None else "   n/a"
+            print(f"{name:<20}{h:>5}d{res['n_ev']:>6}{he:>7}{xe:>8}"
+                  f"{'|':>3}{res['n_low']:>6}{res['hit_d']*100:>6.0f}%"
+                  f"{res['excess_d']*100:>+7.1f}%{st:>8}")
             rows.append({
-                "指标": name, "h": h, "低估天数": res["n_low"],
-                "命中率": res["hit"], "均反弹": res["avg"],
-                "基线": res["base_mean"], "超额": res["excess"],
+                "指标": name, "h": h,
+                # 事件级(非重叠) = 主口径
+                "事件N": res["n_ev"],
+                "事命中率": res["hit_e"], "事均反弹": res["avg_e"], "事超额": res["excess_e"],
+                # 日频(重叠) = 仅排序
+                "低估天数": res["n_low"],
+                "日命中率": res["hit_d"], "日均反弹": res["avg_d"], "日超额": res["excess_d"],
+                "统一基线": res["base_mean"],
                 "子样本IC": sub["ic"] if sub else None,
                 "子t": sub["t"] if sub else None,
                 "子N": sub["n"] if sub else None,
             })
 
-    print("-" * 100)
-    print("\n【解读·手册§3.3】")
-    print("  命中率 = 低估区未来正收益占比; 超额 = 低估区均反弹 - 全样本基线 (>0 才有抄底价值)")
-    print("  子样本IC<0 = 低估区内'越便宜越涨'成立 (抄底逻辑); 子t>=1 才稳")
+    print("-" * 116)
+    print("\n【解读·review V2】")
+    print("  事件级(非重叠) = 主口径: 每个低估段取首日, N 诚实反映周期数(~3-6); 这才是能依赖的证据。")
+    print("  日频(重叠) = 仅排序: 命中率被重叠夸大(6个故事讲358遍), 不能当独立同分布硬结论。")
+    print("  超额 = 该口径均反弹 - 统一基线(全指标共用) (>0 才有拄底价值)。")
     print("\n【caveat】")
-    print("  - 低估天数是日频(重叠)计数, 用于命中率趋势观察; 子样本IC用非重叠 t-stat。")
-    print("  - 底部样本天然稀少 -> 子N 偏小, 显著性弱是市场结构的诚实结果, 非代码缺陷。")
+    print("  - 子样本IC 非重叠后 N<8 多为 n/a 是 BTC 只有 3-4 大底的结构性宿命, 非代码缺陷。")
+    print("  - 本位: 超额/命中是 USD 价格收益口径(判方向+排序); 能不能攒更多币靠币本位轮动回测。")
     print("  - 链上数据可能被数据源回填修正 (Layer 0 风险), 真实 live 表现或低于此回测。")
 
     out = PROJECT_ROOT / "experiments" / "research" / "bottoming_indicator_ic.csv"

@@ -72,14 +72,17 @@
 <!-- EXEC SUMMARY -->
 <section id="exec" class="border-l-4 p-4 mb-6 rounded scroll-mt-24" style="background:#eef3ff;border-color:#0053e2">
   <h2 class="text-lg font-bold text-slate-800 mb-2">执行摘要</h2>
+  <div class="border-l-4 rounded p-3 mb-3" style="background:#fff8e6;border-color:#ffc220">
+    <p class="text-xs text-slate-700"><b>V2 校准 (2026-06-09)</b>：本报告初版 headline 用<b>日频重叠</b>命中率/超额，被 review 指出夸大。本版改用<b>事件级(非重叠，每个低估段取首日)主口径 + 统一基线</b>重算，结论<b>大幅放软并部分反转</b>。日频口径降级为「仅排序参考」。本框架服务<b>币本位周期择时</b>，非机构 alpha。</p>
+  </div>
   <ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5">
-    <li>本报告是逃顶研究的姊妹篇，回答“<b>能否把逃顶框架对称地拿来抄底</b>”。结论：<b>框架可复用，但 alpha 与动作绝不对称</b>。</li>
-    <li><b>方法论陷阱（核心）</b>：单资产<b>全样本</b> Rank IC 是对称的——翻方向跑底部 = 顶部镜像，|IC|/|t| 一字不差，<b>零新信息</b>。故改用<b>条件分位法</b>：只在 expanding 历史低分位（≤20%，极度低估）子样本上看未来反弹。</li>
-    <li><b>冠军换人</b>：顶部唯一硬 alpha 是 Reserve Risk（90d |t|=2.65）；在底部其<b>日频条件分位超额排名退出第一梯队</b>（但事件去重口径下仍可能很强，见 §7，不宜简单判“退位”）。底部更稳的主力是<b>估值类</b>——AVIV / MVRV-Z（低估区 180d 命中 83–87%，超额 +48~53%）；LTH-NUPL / NUPL / LTH-MVRV 更适合作<b>确认层</b>。<b>证伪“底部=顶部反操作”</b>。</li>
-    <li><b>底部是长周期游戏</b>：命中率随窗口单调暴涨（30d ≈55–64% → 180d ≈80–87%）；<b>短期抄底（30d）几乎无 edge</b>（超额仅 +0~2%），价值全在 90–180d。</li>
-    <li><b>“极度恐惧抄底”是伪命题</b>：恐惧贪婪指数低估区 180d 超额 <b>-30.6%</b>（命中仅 48%，跑输基线）。极恐时多在左侧下跌 → <b>底部必须右侧确认，不做左侧预测</b>。</li>
-    <li><b>统计严谨度天然弱于顶部</b>：低估区非重叠采样后 N&lt;8，子样本 IC 做不出显著性——BTC 史上仅 3–4 个大底的结构性限制。底部框架应定位为<b>“长周期参考 + 右侧确认”</b>，而非顶部那种硬 t-stat alpha。</li>
-    <li><b>命中率 / 超额是日频重叠计数（违反手册 §2.1 非重叠铁律）</b>：仅用于<b>候选指标排序</b>，不能当独立同分布硬结论。事件去重 sanity check（见 §7）显示 NUPL 日频强但事件口径走弱、Reserve Risk 事件口径仍强——晋升前必须做事件去重 + 右侧触发回测。</li>
+    <li>本报告是逃顶研究的姊妹篇，回答「<b>能否把逃顶框架对称地拿来抄底</b>」。结论：<b>框架可复用，但底部 alpha 远比初版以为的弱</b>。</li>
+    <li><b>方法论陷阱（核心）</b>：单资产<b>全样本</b> Rank IC 是对称的——翻方向跑底部 = 顶部镜像，零新信息。故改用<b>条件分位法</b>：只在 expanding 历史低分位（≤20%，极度低估）子样本上看未来反弹。</li>
+    <li><b>「87% 命中神器」是重叠幻觉。</b>事件级一去重，初版冠军全部缩水甚至翻负：AVIV 180d 超额 +52.6%→<b>+10.5%</b>(N=3)、MVRV-Z +46.9%→<b>+6.6%</b>、<b>LTH-NUPL +40.4%→−35.7%、NUPL +40.4%→−19.3%（直接翻负）</b>。它们的高分纯粹是「6 个周期故事讲了 358 遍」。</li>
+    <li><b>左侧首日抄底基本全军覆没（但这是好消息）。</b>「低估段首日」通常仍在下跌途中=接飞刀，故事件级 180d 超额多为负。这用<b>硬数据证实了「必须右侧确认、不做左侧预测」</b>——抄底框架的灵魂不在选指标，在右侧扳机。</li>
+    <li><b>事件级仅存的微弱正超额（180d，vs 统一基线 +34.5%）</b>：<b>Reserve Risk +12.4%(命中75%/N=4)</b>、AVIV +10.5%、MVRV-Z +6.6%。注意：<b>Reserve Risk 事件级反而最稳</b>，初版「Reserve Risk 在底部退位」的说法<b>被反转</b>。</li>
+    <li><b>统计天然弱，样本是宿命</b>：事件去重后每指标仅 <b>3–6 个独立周期</b>，子样本 IC 几乎全 n/a。BTC 史上仅 3–4 个大底——底部框架只能定位为<b>「长周期机会区间排序 + 右侧确认」</b>，绝非 t-stat 硬 alpha。</li>
+    <li><b>本位说明</b>：超额/命中是 USD 价格收益口径（仅用于<b>判方向 + 给指标排座次</b>）。「照这套轮动能不能攒到更多 BTC」需<b>币本位轮动回测</b>（路线图 #5）单独验证。</li>
   </ul>
 </section>
 
@@ -91,13 +94,13 @@
   <table class="dt">
     <thead><tr><th>问题</th><th>朴素假设</th><th>本报告结论</th></tr></thead>
     <tbody>
-      <tr><td class="font-medium">底部=顶部反操作？</td><td>把方向翻过来即可</td><td><b>否</b>。全样本 IC 对称无新信息；主信号冠军换人</td></tr>
-      <tr><td class="font-medium">哪些指标真能抄底？</td><td>沿用 Reserve Risk</td><td>估值/长持类（MVRV-Z / LTH-NUPL / AVIV）更强</td></tr>
-      <tr><td class="font-medium">抄底该左侧还是右侧？</td><td>越恐惧越买</td><td><b>右侧</b>。极恐抄底长周期跑输基线</td></tr>
+      <tr><td class="font-medium">底部=顶部反操作？</td><td>把方向翻过来即可</td><td><b>否</b>。全样本 IC 对称无新信息；且事件级 alpha 远弱于顶部</td></tr>
+      <tr><td class="font-medium">哪些指标真能抄底？</td><td>沿用 Reserve Risk</td><td>事件级仅 RR / AVIV / MVRV-Z 微弱正超额（+6~12%），其余多翻负</td></tr>
+      <tr><td class="font-medium">抄底该左侧还是右侧？</td><td>越恐惧越买</td><td><b>右侧</b>。左侧首日进场事件级超额多为负（接飞刀）</td></tr>
     </tbody>
   </table>
   </div>
-  <p class="text-sm text-slate-700 mt-3"><b>本报告目标</b>：用条件分位命中率 / 超额反弹给底部指标定主次，回答“哪些指标在<b>极度低估区</b>真有反弹预测力，而非全样本线性巧合”。</p>
+  <p class="text-sm text-slate-700 mt-3"><b>本报告目标</b>：用条件分位命中率 / 超额反弹给底部指标<b>排序定主次</b>，诚实回答“哪些指标在<b>极度低估区</b>真有反弹预测力、能否经住事件去重”。<b>不追求统计显著（样本不够），只求周期逻辑 + 右侧确认。</b></p></p>
 </section>
 
 <!-- ===== 2 ===== -->
@@ -113,46 +116,49 @@
 <section id="s2-2" class="bg-white p-5 rounded-lg shadow mb-4 scroll-mt-24 border-l-4" style="border-color:#ffc220">
   <h3 class="text-lg font-bold mb-2">2.2 条件分位法 + 三道防作弊</h3>
   <p class="text-sm text-slate-700 mb-3">底部的真问题是条件预测力：“当指标处于<b>历史极低分位（极度低估）</b>时，未来是否真反弹？”只在低估子样本上度量：</p>
-  <pre class="bg-slate-900 text-slate-100 text-xs rounded p-3 overflow-x-auto">pct[t]     = expanding 历史分位(signal, &lt;=当日)        # point-in-time
-low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样本
-命中率      = P( future_return[t->t+h] &gt; 0 | t in low )
-超额反弹    = mean(ret | low) - mean(ret | 全样本)       # &gt;0 才有抄底价值
-子样本IC    = spearman( signal, ret | low, 非重叠采样 )</pre>
+  <pre class="bg-slate-900 text-slate-100 text-xs rounded p-3 overflow-x-auto">pct[t]      = expanding 历史分位(signal, &lt;=当日)        # point-in-time
+low         = { t : pct[t] &lt;= 20% }                     # 极度低估子样本
+【主口径·事件级】 把连续低估日塌缩成事件段(间隔&gt;h=新段), 取每段首日
+事件命中   = P( future_return &gt; 0 | 低估段首日 )           # N 诚实=周期数(~3-6)
+事件超额   = mean(ret | 低估段首日) - 统一基线
+【仅排序·日频】 重叠计数(6个故事讲358遍), 命中率系统性夸大, 不当硬结论
+统一基线   = mean(ret) over [2018-02, 2025-12]          # 全指标共用, 价格口径</pre>
   <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5 mt-3">
-    <li><b>非重叠采样</b>：子样本 IC 每 h 天取一点，避免重叠虚高 t-stat。</li>
+    <li><b>事件级去重（主口径）</b>：连续低估日塌缩成独立事件段，取首日，N 诚实反映周期数。防重叠虚高。</li>
+    <li><b>统一基线</b>：所有指标减同一个价格口径基线（2018-02~2025-12），超额才可横向比。</li>
     <li><b>方向锁定</b>：抄底指标预声明为“低分位 → 未来正收益”，不事后反推。</li>
     <li><b>防未来函数</b>：分位用 expanding 扩展窗口（最少 365 天历史），只用 ≤ 当日数据。</li>
   </ol>
 </section>
 <section id="s2-3" class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
-  <h3 class="text-lg font-bold mb-2">2.3 判定门槛</h3>
+  <h3 class="text-lg font-bold mb-2">2.3 判定门槛（事件级）</h3>
   <div class="flex flex-wrap gap-2 text-xs">
-    <span class="badge" style="background:#fde7e6;color:#a30d00">超额 &lt; 0 → 反向 (避坑)</span>
-    <span class="badge" style="background:#f0f1f2;color:#46474a">超额 0–10% → 不显著</span>
-    <span class="badge" style="background:#fff3d6;color:#995213">超额 ≥ 10% → 弱有效</span>
-    <span class="badge" style="background:#e3f1dc;color:#1f6b02">超额 ≥ 30% 且命中 ≥ 80% → 强 (底部主力)</span>
-    <span class="badge" style="background:#efe6fb;color:#6b21a8">宏观存疑 (样本偏差)</span>
+    <span class="badge" style="background:#fde7e6;color:#a30d00">事件超额 &lt; 0 → 左侧失效 (接飞刀)</span>
+    <span class="badge" style="background:#f0f1f2;color:#46474a">事件超额 ≈0 / 命中&lt;60% → 不显著</span>
+    <span class="badge" style="background:#cfe0ff;color:#0053e2">事件超额 &gt;0 且 命中≥60% 且 N≥3 → 微弱正 edge</span>
+    <span class="badge" style="background:#efe6fb;color:#6b21a8">宏观/情绪存疑 (N≤3 或口径矛盾)</span>
   </div>
-  <p class="text-xs text-slate-500 mt-2">注：超额 / 命中均以 180d 窗口判定（底部长周期特性）；基线按<b>各指标可用样本期分别计算</b>（主流链上指标约 +33.8%，宏观 DXY/TNX 约 +35.6%，恐惧贪婪 约 +38.4%，资金费率 约 +28.9%）。</p>
+  <p class="text-xs text-slate-500 mt-2">注：主口径为<b>事件级（低估段首日、非重叠）</b>；日频重叠仅供排序。超额 / 命中以 180d 窗口判定（底部长周期特性）；基线改为<b>统一价格口径（2018-02~2025-12，剖资金费率交集）</b>：30d≈+4.3% / 90d≈+14.9% / 180d≈+34.5%。修正初版「按各指标可用样本期分别计算」的苹果比橘问题。</p>
 </section>
 
 <!-- ===== 3 ===== -->
 <div class="mt-8 mb-3"><h2 id="s3" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">3. 条件分位结果 (18 因子)</h2></div>
 <section id="s3-1" class="bg-white p-5 rounded-lg shadow mb-4 scroll-mt-24 border-2" style="border-color:#0053e2">
-  <h3 class="text-lg font-bold mb-1">3.1 低估区 180d 超额反弹排名</h3>
-  <p class="text-sm text-slate-600 mb-3">超额 = 低估区(分位≤20%)未来 180d 均收益 − 该指标全样本基线(主流链上类≈+33.8%)，<b>越正越强的拄底信号</b>。蓝=强(超额≥30%且命中≥80%)，金=弱有效，灰=不显著，红=反向(失效)，紫=宏观存疑。</p>
+  <h3 class="text-lg font-bold mb-1">3.1 低估区 180d 超额反弹排名（事件级·主口径）</h3>
+  <p class="text-sm text-slate-600 mb-3">超额 = 低估段<b>首日</b>未来 180d 均收益 − 统一基线(+34.5%)，<b>事件级去重</b>(每指标仅 N=2~6 个独立周期)。仅展示链上指标（宏观/情绪类 N≤3 且与日频矛盾，已剖出图外，见 §7）。蓝=微弱正 edge(超额&gt;0且命中≥60%)，灰=不显著，红=左侧失效(超额&lt;0)。</p>
   <div class="chart-box tall"><canvas id="chartExcess"></canvas></div>
-  <p class="text-xs text-slate-500 mt-2">注：估值/长持类（AVIV / MVRV-Z / LTH-NUPL）进入蓝色强信号区；STH 族与恐惧贪婪转红(反向)；DXY/TNX 超额最高但为宏观样本偏差(见 §7)。</p>
+  <p class="text-xs text-slate-500 mt-2">注：事件级下仅 <b>Reserve Risk / AVIV / MVRV-Z 微弱正超额</b>（+6~12%）；初版冠军 LTH-NUPL / NUPL <b>翻负</b>（左侧首日接飞刀）。这与日频 87% 神器叙事截然相反。</p>
 </section>
 <section id="s3-2" class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
-  <h3 class="text-lg font-bold mb-3">3.2 完整结果表</h3>
+  <h3 class="text-lg font-bold mb-3">3.2 完整结果表（事件级主 / 日频仅排序）</h3>
   <div class="overflow-x-auto max-h-[640px]">
   <table class="dt" id="fullTable">
     <thead><tr>
       <th>指标</th><th>类别</th>
-      <th class="num">90d 超额</th><th class="num">90d 命中</th>
-      <th class="num">180d 超额</th><th class="num">180d 命中</th>
-      <th>判定 (180d)</th>
+      <th class="num">事件N</th>
+      <th class="num">事件180d超额</th><th class="num">事件180d命中</th>
+      <th class="num">日频180d超额<br><span class="text-xs font-normal text-slate-400">(重叠·仅排序)</span></th>
+      <th>判定 (事件级)</th>
     </tr></thead>
     <tbody><!-- filled by JS --></tbody>
   </table>
@@ -163,25 +169,29 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
 <!-- ===== 4 ===== -->
 <div class="mt-8 mb-3"><h2 id="s4" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">4. 长周期效应 (命中率随窗口)</h2></div>
 <section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
-  <p class="text-sm text-slate-700 mb-3">底部与顶部最大的不对称：<b>底部是长周期游戏</b>。优质抄底信号的低估区命中率随持有窗口单调爬升至 80%+；反例(恐惧贪婪 / STH-NUPL)反而走平甚至下滑——印证“短期抄底接飞刀，长周期才有 edge”。</p>
+  <div class="border-l-4 rounded p-3 mb-3" style="background:#fde7e6;border-color:#ea1100">
+    <p class="text-xs" style="color:#a30d00"><b>警示：本图用日频(重叠)命中率，仅供趋势观察。</b>“命中率随窗口爬升至 80%+”部分是重叠伪象（越长窗口越多重叠日集中在同一周期底。事件级首日口径下 180d 命中多仅 33~67%）。但“<b>短期抄底(30d)无 edge</b>”这个定性结论仍成立。</p>
+  </div>
+  <p class="text-sm text-slate-700 mb-3">底部与顶部最大的不对称：<b>底部是长周期游戏</b>。优质抄底信号的低估区日频命中率随持有窗口抬升；反例(恐惧贪婪 / STH-NUPL)反而走平甚至下滑——印证“短期抄底接飞刀，长周期才有 edge”。</p>
   <div class="chart-box"><canvas id="chartHit"></canvas></div>
-  <p class="text-xs text-slate-500 mt-2">纵轴=低估区未来正收益占比；实线=底部主力，虚线=反例。30d 几乎无区分度（都在 55% 附近），180d 拉开到 45% vs 87%。</p>
+  <p class="text-xs text-slate-500 mt-2">纵轴=低估区未来正收益占比（<b>日频重叠口径·仅趋势</b>）；实线=初版主力，虚线=反例。注意：这里 180d“拉开到 87%”是重叠伪象，事件级首日口径下该值跌至 33~67%（见 §3 / §5）。但 30d 无区分度这个定性结论可靠。</p>
 </section>
 
 <!-- ===== 5 ===== -->
 <div class="mt-8 mb-3"><h2 id="s5" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">5. 顶部 vs 底部 (冠军换人)</h2></div>
 <section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
-  <p class="text-sm text-slate-700 mb-3">同一批链上指标，在两端的角色截然不同。<b>顶部硬 alpha Reserve Risk 在底部的日频条件分位排名让位</b>，底部主力换成估值/长持盈亏类——这是“底部 ≠ 顶部反操作”最直接的证据。<b>但注意</b>：Reserve Risk 的“退位”仅限于日频超额排名；按事件去重口径（§7）它仍是最强之一，不可简单判定失效。</p>
+  <p class="text-sm text-slate-700 mb-3">同一批链上指标，在两端的角色截然不同。<b>但事件级口径下出现了关键反转</b>：初版说“Reserve Risk 在底部退位、估值类上位”，但那是日频重叠排名的幻觉。<b>事件级下 Reserve Risk 反而是底部唯一相对稳的信号</b>（+12.4%/命中75%/N=4）；LTH-NUPL/NUPL 的“初版冠军”身份<b>翻负</b>（日频 +40% 是重叠伪象，事件级首日接飞刀 −19~−36%）。“底部 ≠ 顶部反操作”仍成立，但方向与初版相反。</p>
   <div class="overflow-x-auto">
   <table class="dt">
     <thead><tr><th>指标</th><th>顶部 90d RankIC / t</th><th>顶部角色</th><th>底部 180d 超额 / 命中</th><th>底部角色</th></tr></thead>
     <tbody>
-      <tr><td class="font-medium">Reserve Risk</td><td class="num">-0.429 / -2.65</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">顶部唯一硬 alpha</span></td><td class="num">+24.7% / 82%</td><td class="text-slate-500">日频排名让位<br><span class="text-xs">(事件口径仍强)</span></td></tr>
-      <tr><td class="font-medium">AVIV 比率</td><td class="num">-0.214 / -1.24</td><td class="text-slate-500">Layer B 候选</td><td class="num">+53.4% / 87%</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">底部主力</span></td></tr>
-      <tr><td class="font-medium">MVRV-Z</td><td class="num">-0.261 / -1.53</td><td class="text-slate-600">Layer B 确认</td><td class="num">+47.7% / 83%</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">底部主力</span></td></tr>
-      <tr><td class="font-medium">LTH-NUPL</td><td class="num">-0.270 / -1.56</td><td class="text-slate-600">Layer B 确认</td><td class="num">+41.1% / 84%</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">底部主力</span></td></tr>
-      <tr><td class="font-medium">恐惧贪婪</td><td class="num">-0.028 / -0.16</td><td class="text-slate-500">噪音</td><td class="num">-30.6% / 48%</td><td><span class="badge" style="background:#fde7e6;color:#a30d00">反向避坑</span></td></tr>
-      <tr><td class="font-medium">STH-NUPL</td><td class="num">+0.024 / +0.13</td><td class="text-slate-500">噪音(反向)</td><td class="num">-15.0% / 45%</td><td><span class="badge" style="background:#fde7e6;color:#a30d00">反向避坑</span></td></tr>
+      <tr><td class="font-medium">Reserve Risk</td><td class="num">-0.429 / -2.65</td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">顶部唯一硬 alpha</span></td><td class="num">+12.4% / 75%<br><span class="text-xs text-slate-400">N=4</span></td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">底部最稳</span></td></tr>
+      <tr><td class="font-medium">AVIV 比率</td><td class="num">-0.214 / -1.24</td><td class="text-slate-500">Layer B 候选</td><td class="num">+10.5% / 67%<br><span class="text-xs text-slate-400">N=3</span></td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">微弱正 edge</span></td></tr>
+      <tr><td class="font-medium">MVRV-Z</td><td class="num">-0.261 / -1.53</td><td class="text-slate-600">Layer B 确认</td><td class="num">+6.6% / 67%<br><span class="text-xs text-slate-400">N=3</span></td><td><span class="badge" style="background:#cfe0ff;color:#0053e2">微弱正 edge</span></td></tr>
+      <tr><td class="font-medium">LTH-NUPL</td><td class="num">-0.270 / -1.56</td><td class="text-slate-600">Layer B 确认</td><td class="num">−35.7% / 67%<br><span class="text-xs text-slate-400">日频+40% 是幻觉</span></td><td><span class="badge" style="background:#fde7e6;color:#a30d00">左侧失效</span></td></tr>
+      <tr><td class="font-medium">NUPL</td><td class="num">-0.250 / -1.46</td><td class="text-slate-600">Layer B 确认</td><td class="num">−19.3% / 33%<br><span class="text-xs text-slate-400">日频+40% 是幻觉</span></td><td><span class="badge" style="background:#fde7e6;color:#a30d00">左侧失效</span></td></tr>
+      <tr><td class="font-medium">恐惧贪婪</td><td class="num">-0.028 / -0.16</td><td class="text-slate-500">噪音</td><td class="num">事+46% vs 日−27%<br><span class="text-xs text-slate-400">口径矛盾</span></td><td><span class="badge" style="background:#efe6fb;color:#6b21a8">存疑不稳</span></td></tr>
+      <tr><td class="font-medium">STH-NUPL</td><td class="num">+0.024 / +0.13</td><td class="text-slate-500">噪音(反向)</td><td class="num">−13.9% / 50%</td><td><span class="badge" style="background:#fde7e6;color:#a30d00">反向避坑</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -196,9 +206,9 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
   <table class="dt">
     <thead><tr><th>层</th><th>角色</th><th>用什么 (底部)</th><th>与顶部的关键差异</th></tr></thead>
     <tbody>
-      <tr><td class="font-medium" style="color:#0053e2">A 主信号</td><td>定机会等级</td><td><b>MVRV-Z / AVIV</b> expanding 历史低分位</td><td>不再是 Reserve Risk；底部估值类更强</td></tr>
-      <tr><td class="font-medium" style="color:#995213">B 确认信号</td><td>防单信号误报</td><td><b>LTH-NUPL（首选）</b> + NUPL + LTH-MVRV，≥2 低位=确认</td><td>仍是长持族，但取“低估”而非“高位”</td></tr>
-      <tr><td class="font-medium text-slate-600">C 触发择时</td><td><b>防接飞刀（右侧）</b></td><td>站上 SMA50 / 周线 MACD 转正 / 放量突破</td><td><b>权重更高</b>：底部必须右侧确认才建仓</td></tr>
+      <tr><td class="font-medium" style="color:#0053e2">A 主信号</td><td>定机会区间</td><td><b>Reserve Risk</b>(事件级最稳) + AVIV / MVRV-Z expanding 历史低分位</td><td>事件级下 RR 仍最稳（初版误判其退位）；但仅微弱 edge</td></tr>
+      <tr><td class="font-medium" style="color:#995213">B 确认信号</td><td>防单信号误报</td><td>AVIV + MVRV-Z 互验，≥2 低位=确认（<b>慎用 LTH-NUPL/NUPL：左侧首日翻负</b>）</td><td>不再把 LTH-NUPL 当首选；事件级它接飞刀</td></tr>
+      <tr><td class="font-medium text-slate-600">C 触发择时</td><td><b>防接飞刀（右侧）</b></td><td>站上 SMA50 / 周线 MACD 转正 / 放量突破</td><td><b>权重最高</b>：事件级已证明左侧入场全废，右侧是刚需</td></tr>
     </tbody>
   </table>
   </div>
@@ -212,18 +222,21 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
       <p class="text-xs text-slate-700">逃顶错=踏空(仅机会成本)；<b>抄底错=接飞刀(真亏本金)</b>。加上底部样本稀少、统计弱，故宁可右侧追，不可左侧接。</p>
     </div>
   </div>
-  <p class="text-sm text-slate-700 mt-4"><b>工程落地</b>：把 topping 抽象成双向“周期研判”框架（逃顶 / 抄底双 tab，共享 expanding 分位引擎），避免 DRY 违规，补全周期择时闭环。</p>
+  <p class="text-sm text-slate-700 mt-4"><b>工程落地</b>：把 topping 抽象成双向“周期研判”框架（逃顶 / 拄底双 tab，共享 expanding 分位引擎），避免 DRY 违规，补全周期择时闭环。</p>
+  <div class="border-l-4 rounded p-3 mt-3" style="background:#fff8e6;border-color:#ffc220">
+    <p class="text-xs text-slate-700"><b>本位说明（币本位视角）：</b>本框架服务于<b>币本位周期择时</b>——目标是低点用稳定币接回 BTC、高点减仓，最终<b>攒到更多 BTC</b>，而非最大化 USD Sharpe。命中率 / 超额用 USD 价格收益口径仅为<b>判断信号方向 + 给指标排座次</b>；最终成败以「轮动后 BTC 数量 vs 全程 HODL」衡量（见 §8 路线图 #5）。</p>
+  </div>
 </section>
 
 <!-- ===== 7 ===== -->
 <div class="mt-8 mb-3"><h2 id="s7" class="text-2xl font-bold text-slate-800 border-b-2 pb-1 scroll-mt-24" style="border-color:#0053e2">7. 局限与红线 (机构手册)</h2></div>
 <section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
   <ol class="list-decimal list-inside text-sm text-slate-700 space-y-1.5">
-    <li><b>子样本 IC 不显著</b>：低估区非重叠采样 N&lt;8，t-stat 做不出。BTC 史仅 3–4 大底的结构性限制，非代码缺陷 → 底部框架统计严谨度天然弱于顶部。</li>
-    <li><b>命中率 / 超额为日频重叠计数（违反手册 §2.1 非重叠铁律）</b>：例如 MVRV-Z 的 358 个“低估天”其实只对应 6 段连续低估期，非 358 个独立样本。故该类指标仅能用于<b>候选排序</b>，不能当独立同分布硬结论。<b>事件去重 sanity check</b>（把连续低估日合并为“低估事件段”看首/末日 180d 收益）揭示：AVIV 两口径都强；NUPL 日频强但事件段首日 38.5% 命中/-1.0% 明显走弱（依赖连续低估区内部重叠权重）；Reserve Risk 事件段首日 83.3% 命中/+91.1% 仍强。<b>晋升前必须重跑事件级 + 右侧触发回测。</b></li>
+    <li><b>事件级是主口径，日频重叠仅排序（本版已收口）</b>：MVRV-Z 的 358 个“低估天”其实只对应 ~3–6 段独立低估期。初版 headline 用日频重叠（87% 命中）被证伪。事件级一去重：<b>左侧首日进场大部分指标 180d 超额转负</b>（LTH-NUPL −35.7%、NUPL −19.3%）；仅 Reserve Risk / AVIV / MVRV-Z 微弱正（+6~12%）。这是「必须右侧确认」的硬证据。</li>
+    <li><b>子样本 IC 不显著</b>：事件去重后每指标仅 N=2~6，t-stat 几乎全 n/a。BTC 史仅 3–4 大底的结构性宿命，非代码缺陷 → 底部框架统计严谨度天然弱于顶部，只能做排序不能做显著性。</li>
     <li><b>DXY/TNX 超额最高但存疑</b>：DXY 180d 超额 +87% 极可能是样本偏差 + regime 巧合（大底恰逢美元宽松周期），是宏观流动性因果而非 DXY 预测力。仅作背景旁证，<b>不可当独立 alpha</b>。</li>
     <li><b>链上数据回填风险 (Layer 0)</b>：回测可能虚高，live 表现打折扣。</li>
-    <li><b>只测线性单调 / 分位预测力</b>：不含成本、滑点、延迟，真实收益需 Layer 5 回测验证。</li>
+    <li><b>只测线性单调 / 分位预测力</b>：不含成本、滑点、延迟；验证靠<b>币本位轮动回测</b>(期末 BTC 数量 vs HODL)，粗算手续费即可，非机构级滑点精度。</li>
   </ol>
 </section>
 
@@ -232,11 +245,11 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
 <section class="border-l-4 p-4 mb-4 rounded scroll-mt-24" style="background:#eef3ff;border-color:#0053e2">
   <h3 class="text-lg font-bold text-slate-800 mb-2">核心结论</h3>
   <ul class="list-disc list-inside text-sm text-slate-700 space-y-1.5">
-    <li><b>底部 alpha 有迹象存在，但强度应分层</b>（估值类低估区命中 80%+、180d 超额 +40–53%），但<b>不是顶部镜像</b>——<b>AVIV / MVRV-Z 是更稳的 Layer A 候选</b>；LTH-NUPL / NUPL / LTH-MVRV 更适合作确认层。</li>
-    <li><b>Reserve Risk 在日频条件分位排名不再第一</b>，但事件去重口径下仍可能很强，<b>不能简单判定退位</b>，需事件级回测进一步验证。</li>
-    <li><b>底部是长周期游戏</b>，短期抄底无 edge；<b>极恐抄底是伪命题</b>，必须右侧确认。</li>
-    <li><b>统计上比顶部弱</b>（样本稀少），框架应降级为“长周期参考 + 右侧确认”，UI 诚实标注。</li>
-    <li>本框架是<b>仓位管理工具，不是抄底神器</b>。任何指标都无法 100% 预判底部。</li>
+    <li><b>事件级一去重，底部 alpha 远比初版弱</b>：仅 Reserve Risk / AVIV / MVRV-Z 有微弱正超额（180d +6~12%，vs 基线+34.5%）；初版“87% 命中冠军”LTH-NUPL/NUPL <b>事件级翻负</b>。</li>
+    <li><b>初版说法被反转</b>：Reserve Risk 事件级反而是底部<b>最稳</b>的信号（非退位）；估值类 AVIV/MVRV-Z 仅微弱领先。</li>
+    <li><b>左侧首日抄底被证伪</b>：这用硬数据印证“底部是长周期游戏 + 必须右侧确认”；短期抄底无 edge，极恐抄底伪命题。</li>
+    <li><b>统计上比顶部弱很多</b>（事件 N=2~6），框架只能定位为“长周期机会区间排序 + 右侧确认”，UI 诚实标注。</li>
+    <li>本框架是<b>币本位仓位管理工具，不是抄底神器</b>。任何指标都无法 100% 预判底部；能不能攒更多币需路线图 #5 币本位轮动回测验证。</li>
   </ul>
 </section>
 <section class="bg-white p-5 rounded-lg shadow mb-6 scroll-mt-24">
@@ -249,7 +262,7 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
       <tr><td>2. 本 HTML 报告</td><td>btc_bottoming_ic_analysis_20260608.html</td><td><span class="badge" style="background:#e3f1dc;color:#1f6b02">完成</span></td></tr>
       <tr><td>3. 底部钝化检验</td><td>验证 MVRV-Z 底部绝对阈值是否比顶部稳</td><td><span class="badge" style="background:#fff3d6;color:#995213">高优先级</span></td></tr>
       <tr><td>4. 周期研判双 tab 框架</td><td>topping 抽象成双向 cycle_extreme(direction)</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
-      <tr><td>5. 右侧确认建仓回测</td><td>分批建仓 vs 买入持有 vs 左侧抄底 的 Calmar</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
+      <tr><td>5. 币本位轮动回测</td><td>右侧确认分批建仓 vs 全程 HODL vs 左侧拄底：对比<b>期末 BTC 数量</b>(币本位)，非 USD Calmar</td><td><span class="badge" style="background:#f0f1f2;color:#46474a">待做</span></td></tr>
     </tbody>
   </table>
   </div>
@@ -264,42 +277,40 @@ low        = { t : pct[t] &lt;= 20% }                     # 极度低估子样�
 </div>
 
 <script>
-// ====== 数据 (来自 experiments/research/bottoming_indicator_ic.csv, 按 180d 超额降序) ======
+// ====== 数据 (来自 experiments/research/bottoming_indicator_ic.csv, V2 事件级主口径) ======
+// name, category, evN(事件数), evHit(事件命中%), evX(事件180d超额%), dX(日频180d超额%·仅排序), suspect
 const ROWS = [
-  // name, category, ex90, hit90, ex180, hit180, suspect
-  ["DXY 美元指数","宏观(存疑)",46.8,74,87.2,79,true],
-  ["美债 10Y (TNX)","宏观(存疑)",6.7,62,59.6,69,true],
-  ["AVIV 比率","链上估值",13.7,65,53.4,87,false],
-  ["MVRV-Z","链上估值",17.0,62,47.7,83,false],
-  ["NUPL","链上盈亏",14.1,62,41.1,81,false],
-  ["LTH-NUPL","链上长持",15.1,65,41.1,84,false],
-  ["Puell 倍数","矿工",1.4,59,30.5,68,false],
-  ["LTH-MVRV","链上长持",13.1,62,29.9,79,false],
-  ["Reserve Risk","链上",9.1,69,24.7,82,false],
-  ["LTH-SOPR","链上长持",6.7,58,16.1,67,false],
-  ["资金费率(均值)","衍生",4.2,68,10.6,65,false],
-  ["CDD 币天销毁","链上",0.4,58,6.1,68,false],
-  ["SOPR","链上",-1.1,60,4.6,58,false],
-  ["CDD 调整(终端)","链上",-3.1,59,-7.1,69,false],
-  ["STH-SOPR","短持",-6.5,48,-11.8,47,false],
-  ["STH-MVRV","短持",-8.6,46,-13.2,45,false],
-  ["STH-NUPL","短持",-9.3,47,-15.0,45,false],
-  ["恐惧贪婪指数","情绪",-12.8,48,-30.6,48,false],
+  ["资金费率(均值)","衰生(史短·存疑)",3,100,139.6,5.0,true],
+  ["恐惧贪婪指数","情绪(矛盾·存疑)",4,75,46.3,-26.8,true],
+  ["DXY 美元指数","宏观(N=1·存疑)",1,100,237.3,88.2,true],
+  ["美债 10Y (TNX)","宏观(N=1·存疑)",1,0,-51.2,60.6,true],
+  ["Reserve Risk","链上",4,75,12.4,23.9,false],
+  ["AVIV 比率","链上估值",3,67,10.5,52.6,false],
+  ["MVRV-Z","链上估值",3,67,6.6,46.9,false],
+  ["Puell 倍数","矿工",5,60,-7.6,29.7,false],
+  ["STH-MVRV","短持",6,50,-8.9,-14.0,false],
+  ["STH-NUPL","短持",6,50,-13.9,-15.7,false],
+  ["NUPL","链上盈亏",3,33,-19.3,40.4,false],
+  ["CDD 币天销毁","链上",2,50,-19.5,5.3,false],
+  ["LTH-MVRV","链上长持",3,33,-34.0,29.1,false],
+  ["LTH-NUPL","链上长持",3,67,-35.7,40.4,false],
+  ["SOPR","链上",4,50,-35.9,3.8,false],
+  ["STH-SOPR","短持",3,33,-36.7,-12.5,false],
+  ["CDD 调整(终端)","链上",3,33,-54.4,-7.8,false],
+  ["LTH-SOPR","链上长持",2,0,-83.3,15.4,false],
 ];
 
-// 颜色规则 (底部: 超额越正越强)
-function barColor(ex, hit, suspect){
-  if(suspect) return "#9333ea";              // 宏观存疑 = 紫
-  if(ex < 0) return "#ea1100";               // 反向 = 失效红
-  if(ex >= 30 && hit >= 80) return "#0053e2"; // 强 = Walmart blue
-  if(ex >= 10) return "#ffc220";             // 弱有效 = spark
-  return "#9aa0a6";                          // 不显著
+// 颜色规则 (V2 事件级: 微弱正 edge / 左侧失效 / 存疑 / 不显著)
+function barColor(evX, evHit, evN, suspect){
+  if(suspect) return "#9333ea";                       // 宏观/情绪存疑 = 紫
+  if(evX < 0) return "#ea1100";                        // 左侧失效(接飞刀) = 红
+  if(evX > 0 && evHit >= 60 && evN >= 3) return "#0053e2"; // 微弱正 edge = 蓝
+  return "#9aa0a6";                                    // 不显著
 }
-function verdict(ex, hit, suspect){
-  if(suspect) return ["宏观存疑","#efe6fb","#6b21a8"];
-  if(ex < 0) return ["反向(避坑)","#fde7e6","#a30d00"];
-  if(ex >= 30 && hit >= 80) return ["强(底部主力)","#e3f1dc","#1f6b02"];
-  if(ex >= 10) return ["弱有效","#fff3d6","#995213"];
+function verdict(evX, evHit, evN, suspect){
+  if(suspect) return ["宏观/情绪存疑","#efe6fb","#6b21a8"];
+  if(evX < 0) return ["左侧失效(接飞刀)","#fde7e6","#a30d00"];
+  if(evX > 0 && evHit >= 60 && evN >= 3) return ["微弱正 edge","#cfe0ff","#0053e2"];
   return ["不显著","#f0f1f2","#46474a"];
 }
 
@@ -307,29 +318,31 @@ function verdict(ex, hit, suspect){
 (function(){
   const tb = document.querySelector("#fullTable tbody");
   ROWS.forEach(r=>{
-    const [name,cat,ex90,hit90,ex180,hit180,suspect] = r;
-    const [vtxt,vbg,vfg] = verdict(ex180,hit180,suspect);
+    const [name,cat,evN,evHit,evX,dX,suspect] = r;
+    const [vtxt,vbg,vfg] = verdict(evX,evHit,evN,suspect);
     const sign = v => (v>0?"+":"")+v.toFixed(1)+"%";
     const tr = document.createElement("tr");
     tr.innerHTML =
       `<td class="font-medium">${name}</td>`+
       `<td class="text-xs text-slate-600">${cat}</td>`+
-      `<td class="num">${sign(ex90)}</td><td class="num">${hit90}%</td>`+
-      `<td class="num font-semibold">${sign(ex180)}</td><td class="num font-semibold">${hit180}%</td>`+
+      `<td class="num">${evN}</td>`+
+      `<td class="num font-semibold">${sign(evX)}</td><td class="num font-semibold">${evHit}%</td>`+
+      `<td class="num text-slate-400">${sign(dX)}</td>`+
       `<td><span class="badge" style="background:${vbg};color:${vfg}">${vtxt}</span></td>`;
     tb.appendChild(tr);
   });
 })();
 
-// ====== 图1: 180d 超额反弹排名 ======
+// ====== 图1: 事件级 180d 超额反弹排名 (仅链上, 剖宏观/情绪存疑) ======
+const CHART_ROWS = ROWS.filter(r=>!r[6]).slice().sort((a,b)=>b[4]-a[4]);
 new Chart(document.getElementById("chartExcess"), {
   type:"bar",
   data:{
-    labels: ROWS.map(r=>r[0]),
+    labels: CHART_ROWS.map(r=>r[0]),
     datasets:[{
-      label:"180d 超额反弹 (%)",
-      data: ROWS.map(r=>r[4]),
-      backgroundColor: ROWS.map(r=>barColor(r[4],r[5],r[6])),
+      label:"事件级 180d 超额反弹 (%)",
+      data: CHART_ROWS.map(r=>r[4]),
+      backgroundColor: CHART_ROWS.map(r=>barColor(r[4],r[3],r[2],r[6])),
       borderRadius:3,
     }]
   },
@@ -337,10 +350,10 @@ new Chart(document.getElementById("chartExcess"), {
     indexAxis:"y", responsive:true, maintainAspectRatio:false,
     plugins:{
       legend:{display:false},
-      tooltip:{callbacks:{label:(c)=>{const r=ROWS[c.dataIndex];return `超额=${r[4]>0?'+':''}${r[4]}%  命中=${r[5]}%  [${r[1]}]`;}}}
+      tooltip:{callbacks:{label:(c)=>{const r=CHART_ROWS[c.dataIndex];return `事件超额=${r[4]>0?'+':''}${r[4]}%  命中=${r[3]}%  N=${r[2]}  [${r[1]}]`;}}}
     },
     scales:{
-      x:{title:{display:true,text:"低估区 180d 超额反弹 vs 全样本基线 (%)"},grid:{color:"#eceef0"}},
+      x:{title:{display:true,text:"事件级 低估段首日 180d 超额 vs 统一基线+34.5% (%)"},grid:{color:"#eceef0"}},
       y:{ticks:{font:{size:11}}}
     }
   }
