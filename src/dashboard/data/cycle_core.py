@@ -126,6 +126,15 @@ def layer_c_signals(direction: str) -> list[dict]:
 
 
 # ---------- 历史点灯回放 (方向相关) ----------
+def _subsample(s: pd.Series, hist_points: int) -> pd.Series:
+    """抽稀到约 hist_points 个点, 但【始终保留最后一个点】(否则图尾会缺最新数据)。"""
+    step = max(1, len(s) // hist_points)
+    idx = list(range(0, len(s), step))
+    if idx[-1] != len(s) - 1:
+        idx.append(len(s) - 1)
+    return s.iloc[idx]
+
+
 def replay_history(
     driver: pd.Series, fire_threshold: float, direction: str, hist_points: int = 120
 ) -> dict:
@@ -138,8 +147,7 @@ def replay_history(
     if driver is None or driver.empty:
         return hist
     pct_series = expanding_pct(driver)
-    step = max(1, len(pct_series) // hist_points)
-    sampled = pct_series.iloc[::step]
+    sampled = _subsample(pct_series, hist_points)
     try:
         from src.dashboard.data import load_display_ohlcv
         price = load_display_ohlcv()[0]["close"]
@@ -167,8 +175,7 @@ def replay_dual(
     if driver is None or driver.empty:
         return out
     pct_series = expanding_pct(driver)
-    step = max(1, len(pct_series) // hist_points)
-    sampled = pct_series.iloc[::step]
+    sampled = _subsample(pct_series, hist_points)
     try:
         from src.dashboard.data import load_display_ohlcv
         price = load_display_ohlcv()[0]["close"]
