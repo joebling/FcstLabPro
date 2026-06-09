@@ -1,6 +1,6 @@
 # 周期研判页 (`/cycle`) 设计文档
 
-> 版本: v1.0 (2026-06-09)
+> 版本: v1.2 (2026-06-09, ahr999 重审 + 信号口径硬约束)
 > 维护: FcstLabPro 核心架构组
 > 关联代码: `src/dashboard/data/{cycle,topping,bottoming,cycle_core}.py`,
 >           `src/dashboard/templates/pages/cycle.html`,
@@ -259,6 +259,20 @@ topping.build()   bottoming.build()
 - 这正是为何 `verdict.warn=True` 时 HERO 卡显示红字警告——不是为了好看, 是给
   用户一个具体的「为什么现在不动」的实证依据
 
+> **(2026-06-09 V1.2 重审 caveat)**: 上表是真实 BTC 价格事件, 不变。但触发
+> 条件的口径有更新 — 旧版用 ahr999 expanding 分位 ≤15% 触发, audit Phase 2
+> (`docs/plans/ahr999_recheck_20260609.md`) 在 rolling-2y 口径下重审:
+>
+> | 口径 | 事件 N | 命中率 (h=30) | 超额 (h=30) |
+> |---|---|---|---|
+> | expanding ≤20% (旧) | 6 | 83% | +14.8% |
+> | **rolling-2y ≤20% (新)** | **6** | **50%** | **+8.6%** |
+>
+> 旧报告的 83% 是 expanding 口径独有的幸存者偏差 (触发集中在 2018-2020 RR
+> 史上最低期, 恰对应 2020 V 底), 真实命中率约 50%。**这反而强化双峰分布
+> 洞察, 加强 §8 DCA 五桶不 all-in 的必要性** — 真实历史抄底区下半数会失败,
+> 不是 1/3。
+
 ---
 
 ## 7. 顶部 vs 底部的关键不对称
@@ -391,17 +405,42 @@ topping.build()   bottoming.build()
 
 按时间倒序，每条记录一个"为什么这样做"：
 
-### 10.1 (2026-06-09) ahr999 **不接入** Layer A
-- **背景**：从 fuckbtc.com 参考看板学到 ahr999 定投指数，写了纯公式实现
-- **IC 验证**：单因子 90d IC=-0.321/\|t\|=1.83 (第二强，但未达 \|t\|≥2 门槛)
-  条件分位 30d: 6 事件 83% 命中 +14.8% 超额 (强)
-- **致命发现**：ahr999 vs RR Spearman **ρ=0.910 (冗余级)**，本质同一信号的公式差异
-- **决策**：不接进 Layer A (双倍计票 RR, 违反 SOLID 单一职责)
+### 10.1 (2026-06-09 V1.2 重审) ahr999 **不接入** Layer A
+
+**结论不变, 但三条依据全部修订** (audit Phase 2, commit `864407e`,
+详见 `docs/plans/ahr999_recheck_20260609.md`):
+
+- **背景**: 从 fuckbtc.com 参考看板学到 ahr999 定投指数, 写了纯公式实现
+
+- **依据 (1) 单因子 IC** (h=90d 非重叠, raw value 信号):
+  - ahr999 \|t\|=1.83 (弱有效, 未达 \|t\|≥2 门槛)
+  - 对照 RR \|t\|=2.73 (强)
+  - 注: rolling-2y 分位作 IC 信号会破坏跨周期单调性, \|t\| 退化到 0.45
+    → IC 检验必须用 raw value, 见 §12.1 信号口径要求
+
+- **依据 (2) 共线性** vs RR Spearman ρ:
+  - raw value ρ=**0.909** (基线, 不依赖任何分位口径)
+  - expanding 分位 ρ=0.941, rolling-2y 分位 ρ=0.932
+  - **关键**: ρ 不来自"expanding 口径锚死", 而来自两指标 raw 公式
+    本就度量同一现象 (价格相对长期持仓成本偏离) — audit §5.2 假设
+    "rolling-2y 下可能解耦" **被否决**
+
+- **依据 (3) 6 事件条件分位** (≤20%, h=30):
+  - rolling-2y 口径: **6 事件 50% 命中 +8.6% 超额** (真实数字)
+  - expanding 口径: 6 事件 83% 命中 +14.8% 超额 (幸存者偏差,
+    触发集中 2018-2020 RR 史上最低期, 恰对应 2020 V 底)
+  - 即便最佳口径下, 仍弱于 RR 互补能力 (Jaccard rolling-2y 0.09, 但
+    Jaccard 低 ≠ 解耦, 见 §12.1)
+
+- **决策**: 不接进 Layer A (双倍计票 RR, 违反 SOLID 单一职责)
   保留作 (a) Layer 0 容灾备份 (纯公式零 API, RR 断供时顶上)
         (b) 未来可选 dashboard 附属并列展示, 不入 regime gate
-- **教训写入**：未来添加任何"看似新"的指标，必须先跑共线性 + 双门槛
-  (单因子 IC \|t\|≥2 且 vs 已有 ρ<0.7 才算新 alpha)
-- **决策**: `repo:decisions` drawer 160, commit `5b200b0`
+
+- **教训写入**: 未来添加任何"看似新"的指标, 必须严格遵守 §12.1 双门槛 +
+  信号口径要求 (IC 用 raw value, ρ 用 raw value, 不用 Jaccard 替代 ρ)
+
+- **决策**: `repo:decisions` drawer 160 / 183, commit `5b200b0` (原决策) +
+  `864407e` (V1.2 重审)
 
 ### 10.2 (2026-06-09) 方案 D：删除 `/topping` 和 `/bottoming`
 - **背景**：两 tab 并列产生"双结论打架 → 决策瘫痪"
@@ -458,18 +497,48 @@ topping.build()   bottoming.build()
 任何添加新指标到 Layer A/B 的 PR **必须通过以下检查**才能合并：
 
 ### 12.1 IC 双门槛 (硬要求)
-新指标必须同时满足：
+新指标必须同时满足:
 
-1. **单因子 IC \|t\| ≥ 2** (h=90d 非重叠采样)
-2. **vs 已有 Layer A/B 全部指标 Spearman ρ < 0.7** (避免冗余)
+1. **单因子 IC \|t\| ≥ 2** (h=90d 非重叠采样, **使用 raw value 作信号**)
+2. **vs 已有 Layer A/B 全部指标 Spearman ρ < 0.7** (**raw value 上算 ρ**)
 
-操作：
+#### 12.1.1 信号口径硬约束 (2026-06-09 V1.2 加入)
+
+**陷阱 1 — IC 检验 vs Dashboard 触发用不同口径, 严禁混用**:
+
+| 用途 | 推荐口径 | 理由 |
+|---|---|---|
+| **IC 显著性检验** | raw value | rolling-2y 分位破坏跨周期单调性 |
+| **Dashboard 触发** | rolling-2y 分位 | 演化资产需周期相对位置 (audit §3) |
+
+实证: ahr999 重审中 (commit `864407e`) raw value h=90 \|t\|=1.83, 切到
+rolling-2y 分位作 IC 信号后 \|t\| 退化到 **0.45** (噪音区), RR 同样从 2.73
+退化到 0.74。任何用 rolling 分位跑 IC 的结果都会"自动失效", 不能据此否决指标。
+
+**陷阱 2 — Spearman ρ on raw value 才是冗余金标准, Jaccard 不能替代**:
+
+实证: ahr999 vs RR 在三种口径下:
+- raw value ρ=0.909
+- expanding 分位 ρ=0.941
+- rolling-2y 分位 ρ=0.932
+
+但低估日 Jaccard 在 rolling-2y 口径下骤降到 0.09 (expanding 下 0.57)。
+Jaccard 低**不能**反推解耦 — ρ 衡量连续信号同向变化, Jaccard 衡量离散触发
+集合重合, 两者完全不同。**ρ 才是判断冗余的唯一指标**。
+
+#### 12.1.2 操作流程
+
 ```bash
 # 1. 把新指标加进 INDICATORS dict
 vim scripts/research/topping_indicator_ic.py
-# 2. 跑底部 IC (会包含顶部 + 条件分位 + 全样本)
+
+# 2. 跑底部 IC (Layer 0 数据契约 + 全样本/条件分位 IC, 使用 raw value)
 python scripts/research/bottoming_indicator_ic.py
-# 3. 跑共线性检查 (单写, 见 commit 5b200b0 中 ahr999 的例子)
+
+# 3. 跑共线性检查 — 必须用 raw value Spearman ρ, 不用 Jaccard
+#    参考脚本: scripts/research/ahr999_recheck_rolling2y.py Block A
+
+# 4. 若决定不接, 在 §10 加决策记录 (含三条依据的真实数字)
 ```
 
 ### 12.2 数据层契约 (Layer 0)
@@ -514,6 +583,10 @@ python scripts/research/bottoming_indicator_ic.py
 - **2026-06-09**: ahr999 IC 验证完成，决定不接入 (commit `5b200b0`)
 - **2026-06-09**: 本设计文档 v1.0 落地
 - **2026-06-09** v1.1: 补 §6.2.1 事件级真相 (双峰分布) + §8 DCA 五桶策略框架
+- **2026-06-09** v1.2: ahr999 决策重审 (commit `864407e`) — §10.1 三条依据全部
+  改写理由 (结论不变); §6.2.1 加 rolling-2y caveat (真命中率 50% 而非 83%);
+  §12.1 加信号口径硬约束 + Jaccard 陷阱警告。审计报告:
+  `docs/plans/ahr999_recheck_20260609.md`
 
 ---
 
