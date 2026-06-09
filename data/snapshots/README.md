@@ -19,9 +19,15 @@ data/snapshots/
   fgi_20260609.csv                 # data/live/fear_greed_index.csv 副本
   state_e20c-conservative-prune_20260609.json
   state_e8-touch_20260609.json
+  reports/                         # 机器生成的常规报告 (每天起一份)
+    pnl_replay_e20c-conservative-prune_20260609.md
+    pnl_replay_e8-touch_20260609.md
 ```
 
 日期 = UTC 当日, 每次 dump 都新文件不覆盖. git log 可看 dump 频率.
+
+**reports/** 子目录是 `partial_bar_pnl_replay.py` 机器生成的报告,
+每个非空 state 一份. 锁定为该脚本的官方输出地 — 别手动在这里添加人写报告 (那些放 docs/research/).
 
 ---
 
