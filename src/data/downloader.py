@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pandas as pd
 
@@ -82,6 +82,58 @@ def _guard_raw_overwrite(output_path: Path, allow_overwrite_raw: bool) -> None:
         )
 
 
+def _drop_incomplete_tail_bar(
+    df: pd.DataFrame,
+    interval: str,
+    *,
+    now_utc: datetime | None = None,
+) -> pd.DataFrame:
+    """剔除末尾可能的未闭合 bar (lesson_0609 双保险).
+
+    Binance 返回的 K 线列表中, 最后一根可能是未闭合的 partial bar:
+      - 1d: 未过 UTC 24:00 的 bar
+      - 1w: 未过本周 UTC 周一 00:00 的 bar
+      ...
+
+    判定: bar 的 open_time (= index) >= 当前周期起点 → 未闭合 → drop.
+
+    为什么在 downloader 层 drop 而不仅靠下游防护:
+      - downloader 写 csv 的那一刻就刪雨量, 都下游 (live_signal / freshness gate /
+        人手工打开 csv) 只能看到完整数据, 避免 "多防护依赖" 的获果.
+      - lesson_0602 / lesson_0609 共同教训: 越靠上游拦截越好.
+
+    Parameters
+    ----------
+    interval : '1d', '1w', '1M' — Binance K 线周期
+    now_utc : 注入 UTC 时刻, 仅供测试
+    """
+    if df.empty:
+        return df
+    now = now_utc or datetime.now(timezone.utc)
+    last_open = df.index[-1]
+    # 当前周期的起点 (open_time 应处于此点之前才是完整 bar)
+    if interval == "1d":
+        period_start = pd.Timestamp(now.date())  # UTC 今日 00:00
+    elif interval == "1w":
+        # Binance 周线的 open_time = 本周一 UTC 00:00
+        days_since_monday = now.weekday()
+        period_start = pd.Timestamp(now.date()) - pd.Timedelta(days=days_since_monday)
+    elif interval == "1M":
+        period_start = pd.Timestamp(year=now.year, month=now.month, day=1)
+    else:
+        # 未知 interval, 保守不 drop 仅会 logger.warning
+        logger.warning(f"_drop_incomplete_tail_bar: 未知 interval={interval}, 跳过 drop")
+        return df
+
+    if last_open.normalize() >= period_start:
+        logger.warning(
+            f"剔除未闭合 bar (open_time={last_open.date()}, interval={interval}); "
+            f"使用倒数第二根 {df.index[-2].date()} 作为最新完整 bar (lesson_0609)"
+        )
+        return df.iloc[:-1]
+    return df
+
+
 def download_binance_klines(
     symbol: str = "BTCUSDT",
     interval: str = "1d",
@@ -89,6 +141,8 @@ def download_binance_klines(
     end: str | None = None,
     output_path: str | Path | None = None,
     allow_overwrite_raw: bool = False,
+    *,
+    drop_incomplete_bar: bool = True,
 ) -> pd.DataFrame:
     """从 Binance API 下载 K 线数据.
 
@@ -104,11 +158,14 @@ def download_binance_klines(
         结束日期, None 表示到当前
     output_path : str | Path | None
         保存路径, None 则不保存
+    drop_incomplete_bar : bool, default True
+        lesson_0609 双保险: 剔除末尾未闭合 bar.
+        默认 True (安全优先). 仅在背面测试 / 调试需要看实时中 bar 时设 False.
 
     Returns
     -------
     pd.DataFrame
-        OHLCV 数据, 列名: open_time, open, high, low, close, volume
+        OHLCV 数据, 列名: open_time(date), open, high, low, close, volume
     """
     base_urls = _binance_base_urls()
     active_base_url = base_urls[0]
@@ -159,6 +216,10 @@ def download_binance_klines(
     df = df[["open_time", "open", "high", "low", "close", "volume", "quote_volume", "trades"]].copy()
     df = df.rename(columns={"open_time": "date"})
     df = df.set_index("date")
+
+    # lesson_0609: 下载后立即剔除末尾未闭合 bar (双保险, 上游拦截)
+    if drop_incomplete_bar:
+        df = _drop_incomplete_tail_bar(df, interval)
 
     if output_path:
         output_path = Path(output_path)
