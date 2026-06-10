@@ -10,6 +10,14 @@ data/live/
 # 不进 git: 免 churn + 免跟 git pull 打架 (同 data/live 理念)
 data/external/cmd_*.csv
 
+# 派生指标 — 可重算/可重建的再生数据, 不进 git (同 cmd_*.csv / data/live 理念):
+#   ahr999.csv      纯公式可重算 (compute_ahr999.py)
+#   reserve_risk.csv  history 基底 + REST API 可重建 (update_reserve_risk.py)
+# 之前误 tracked -> VPS working tree 永久 dirty + git pull 冲突炸弹, 现降级 ignored。
+# 注意: reserve_risk_history.csv 是事故抢救的冻结基底, 不可重算, 保持 tracked, 勿加这里。
+data/external/onchain/ahr999.csv
+data/external/onchain/reserve_risk.csv
+
 # Experiments outputs (keep configs, ignore large files)
 experiments/**/model.joblib
 experiments/**/predictions.csv
