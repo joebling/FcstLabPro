@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import json
 
+import pandas as pd
+
 from src.dashboard.data import signals, market, models
 
 
@@ -147,3 +149,43 @@ def test_perfmon_no_state_graceful(monkeypatch, tmp_path):
     monkeypatch.setattr(ledger, "STATE_DIR", tmp_path)
     c = perfmon.build("nope", "conservative")
     assert c["has_state"] is False and c["n_trades"] == 0
+
+
+def test_ledger_cycle_regime_slices(monkeypatch):
+    """真实成交按开仓日 RR regime 切片, 不影响邮件原汇总口径."""
+    from src.dashboard.data import cycle_regime, ledger
+
+    pct = pd.Series(
+        [80.0, 50.0, 20.0],
+        index=pd.to_datetime(["2026-01-01", "2026-02-01", "2026-03-01"]),
+    )
+    monkeypatch.setattr(cycle_regime, "rr_pct_series", lambda: pct)
+    rows = ledger.summarize_by_cycle_regime([
+        {"entry_date": "2026-01-05", "pnl": -0.03},
+        {"entry_date": "2026-02-05", "pnl": 0.01},
+        {"entry_date": "2026-03-05", "pnl": 0.06},
+    ])
+    by_key = {r["key"]: r for r in rows}
+    assert by_key["top"]["count"] == 1 and by_key["top"]["win_rate"] == 0.0
+    assert by_key["neutral"]["avg_pnl"] == 0.01
+    assert by_key["bottom"]["wins"] == 1 and by_key["bottom"]["avg_rr_pct"] == 20.0
+
+
+def test_coherence_banner_conflict(monkeypatch):
+    """顶部区 × BUY 必须提示冲突, 但只读不改信号."""
+    from src.dashboard.data import coherence
+
+    monkeypatch.setattr(coherence.cycle, "build", lambda hist_points=40: {
+        "available": True,
+        "rr_pct": 88.0,
+        "regime": {"key": "top", "label": "顶部区"},
+    })
+    monkeypatch.setattr(coherence.ledger, "position", lambda model: {
+        "has_state": True,
+        "last_signal": "BUY",
+        "last_signal_date": "2026-06-09",
+    })
+    c = coherence.build("m")
+    assert c["available"] is True
+    assert c["level"] == "conflict"
+    assert c["signal"] == "BUY" and c["regime_key"] == "top"

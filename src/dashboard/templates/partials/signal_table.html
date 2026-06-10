@@ -12,6 +12,7 @@
         <th class="py-2 px-2 font-semibold">信号数</th>
         <th class="py-2 px-2 font-semibold">BUY</th>
         <th class="py-2 px-2 font-semibold">SILENT</th>
+        <th class="py-2 px-2 font-semibold text-left" title="信号日 Reserve Risk rolling-2y 分位">RR区间</th>
         <th class="py-2 px-2 font-semibold text-emerald-600"
             title="该批次 BUY 信号涨的比例 (成熟后)">命中率</th>
         <th class="py-2 px-2 font-semibold"
@@ -26,6 +27,13 @@
         <td class="py-1.5 px-2">{{ r.n_signals }}</td>
         <td class="py-1.5 px-2 font-semibold text-indigo-600">{{ r.n_buy }}</td>
         <td class="py-1.5 px-2 text-slate-400">{{ r.n_silent }}</td>
+        {% set cr = r.cycle_regime or {} %}
+        <td class="py-1.5 px-2 text-left">
+          <span class="inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold {{ cr.bg }} {{ cr.text }} {{ cr.border }}"
+                title="RR {{ cr.pct if cr.pct is not none else '—' }} 分位">
+            {{ cr.short or '?' }} {{ cr.pct if cr.pct is not none else '—' }}
+          </span>
+        </td>
 
         {% if r.status == 'PENDING' %}
         <td class="py-1.5 px-2 text-center text-slate-400"
@@ -52,7 +60,7 @@
         <td class="py-1.5 px-2 font-mono text-slate-400 text-left">{{ r.model_hash[:8] }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="py-6 text-center text-slate-500">无数据</td></tr>
+      <tr><td colspan="8" class="py-6 text-center text-slate-500">无数据</td></tr>
       {% endfor %}
     </tbody>
   </table>

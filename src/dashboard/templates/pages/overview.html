@@ -68,6 +68,28 @@
        "理论T=21样本", "text-slate-700", "") }}
 </div>
 
+{# ── 周期 × 信号一致性 (弱耦合: 只提示, 不改模型信号) ── #}
+{% if coherence and coherence.available %}
+<div class="rounded-xl border shadow-sm p-4 mb-4 {{ coherence.classes }}">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+    <div>
+      <div class="text-sm font-bold">{{ coherence.title }}</div>
+      <div class="text-xs mt-1 opacity-90">
+        周期: <b>{{ coherence.regime_label }}</b> (RR {{ coherence.rr_pct }} 分位)
+        × 模型: <b>{{ coherence.signal }}</b>
+        {% if coherence.signal_date %}<span class="opacity-70">· {{ coherence.signal_date }}</span>{% endif %}
+      </div>
+      <div class="text-sm mt-2">{{ coherence.message }}</div>
+      <div class="text-xs mt-1 opacity-90">{{ coherence.action }}</div>
+    </div>
+    <div class="flex gap-2 shrink-0">
+      <a href="/cycle" class="text-xs font-semibold rounded-lg bg-white/70 px-3 py-2 border border-current/10 hover:bg-white">查看周期</a>
+      <a href="/perfmon" class="text-xs font-semibold rounded-lg bg-white/70 px-3 py-2 border border-current/10 hover:bg-white">看历史切片</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {# ── 持仓研判 (与每日邮件同源: 生产持仓账本) ── #}
 {% set ps = position.last_signal %}
 {% set sig_cls = ('bg-emerald-50 border-emerald-200 text-emerald-700' if ps == 'BUY'

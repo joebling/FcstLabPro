@@ -35,6 +35,31 @@ const FcstCharts = (function () {
     };
   }
 
+  function cycleZonePlugin(zones) {
+    const colors = { top: ROSE + '12', bottom: EMERALD + '12' };
+    return {
+      id: 'cycleZoneBands',
+      beforeDatasetsDraw(chart) {
+        if (!zones || !zones.length) return;
+        const { ctx, chartArea, scales } = chart;
+        const x = scales.x;
+        if (!x || !chartArea) return;
+        ctx.save();
+        zones.forEach((z, i) => {
+          if (!colors[z]) return;
+          const center = x.getPixelForValue(i);
+          const leftN = i === 0 ? chartArea.left : x.getPixelForValue(i - 1);
+          const rightN = i === zones.length - 1 ? chartArea.right : x.getPixelForValue(i + 1);
+          const left = i === 0 ? chartArea.left : (leftN + center) / 2;
+          const right = i === zones.length - 1 ? chartArea.right : (rightN + center) / 2;
+          ctx.fillStyle = colors[z];
+          ctx.fillRect(left, chartArea.top, right - left, chartArea.bottom - chartArea.top);
+        });
+        ctx.restore();
+      }
+    };
+  }
+
   // ---- 总览页 ----
   function renderOverview() {
     const d = _data('ov-data');
@@ -95,10 +120,20 @@ const FcstCharts = (function () {
     const labels = rows.map(r => r.score_date);
     const hit = rows.map(r => r.hit_rate);
     const ret = rows.map(r => r.avg_realized_return);
-    line('sigChart', labels, [
-      ds('命中率%', hit, EMERALD, false),
-      ds('实现收益%', ret, INDIGO, false)
-    ]);
+    const el = document.getElementById('sigChart');
+    if (!el) return;
+    new Chart(el, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          ds('命中率%', hit, EMERALD, false),
+          ds('实现收益%', ret, INDIGO, false)
+        ]
+      },
+      options: BASE_OPTS,
+      plugins: [cycleZonePlugin(d.rr_zones)]
+    });
   }
 
   // ---- 周期研判页 (双向点灯: 顶红三角 + 底绿三角) ----

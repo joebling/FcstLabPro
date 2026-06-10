@@ -79,6 +79,42 @@
   </div>
 </div>
 
+<!-- RR regime 切片 -->
+{% call ui.card("按周期 regime 切片 · LightGBM Alpha 集中在哪", "") %}
+<div class="text-xs text-slate-400 mb-2">
+  按每笔真实交易的 <b>开仓日</b> 映射 Reserve Risk rolling-2y 分位; 顶部≥70 / 底部≤30。只做监控研究, 不自动改信号。
+</div>
+<table class="w-full text-sm">
+  <thead><tr class="text-slate-400 text-left text-xs">
+    <th class="py-1">开仓区间</th><th>交易数</th><th>平均 RR</th><th>胜率</th><th>均盈</th><th>总贡献</th></tr></thead>
+  <tbody>
+  {% for r in regime_slices %}
+    <tr class="border-t border-slate-50">
+      <td class="py-2">
+        <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold {{ r.bg }} {{ r.text }} {{ r.border }}">
+          {{ r.label }}
+        </span>
+      </td>
+      <td class="text-slate-700">{{ r.count }}</td>
+      <td class="text-slate-500">{{ "%.1f"|format(r.avg_rr_pct) if r.avg_rr_pct is not none else "—" }}</td>
+      <td class="{{ 'text-slate-400' if r.count == 0 else ('text-emerald-600' if r.win_rate >= 0.5 else 'text-rose-600') }}">
+        {{ "{:.0%}".format(r.win_rate) if r.count else "—" }}
+      </td>
+      <td class="{{ 'text-slate-400' if r.count == 0 else ('text-emerald-600' if r.avg_pnl >= 0 else 'text-rose-600') }}">
+        {{ "{:+.2%}".format(r.avg_pnl) if r.count else "—" }}
+      </td>
+      <td class="{{ 'text-slate-400' if r.count == 0 else ('text-emerald-600' if r.total_pnl >= 0 else 'text-rose-600') }}">
+        {{ "{:+.2%}".format(r.total_pnl) if r.count else "—" }}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="text-[11px] text-slate-400 mt-3">
+  读法: 如果顶部期开仓长期亏、底部期开仓明显优, overview 的一致性提示就应该更硬; 反之就保持温和。别让 UI 比数据更自信，小心变玄学仪表盘。
+</div>
+{% endcall %}
+
 <!-- Live vs Backtest 对照 -->
 {% call ui.card("Live vs Backtest 对照 · 衰减警报", "") %}
 {% if backtest %}

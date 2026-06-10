@@ -8,7 +8,7 @@ import calendar as _cal
 from datetime import date
 
 from src.dashboard.data import signals, market, ledger
-from src.dashboard.data import cycle_gauge
+from src.dashboard.data import coherence, cycle_gauge
 from src.performance import service
 
 
@@ -54,6 +54,7 @@ def build(model_name: str | None) -> dict:
     # 生产持仓账本 (与邮件同源): 当前持仓 + regime + 真实交易战绩
     position = ledger.position(model_name)
     trades = ledger.trade_history(model_name)
+    coh = coherence.build(model_name)
 
     # 当月信号日历
     today = date.today()
@@ -78,6 +79,7 @@ def build(model_name: str | None) -> dict:
         "summary": summary,
         "position": position,
         "trades": trades,
+        "coherence": coh,
         "distribution": dist,
         "calendar": calendar,
         "calendar_grid": _calendar_grid(today.year, today.month),

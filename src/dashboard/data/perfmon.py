@@ -98,6 +98,9 @@ def build(model_name: str, variant: str | None = None) -> dict:
     # 退出方式拆解 (复用 ledger 的口径)
     exit_stats = ledger.trade_history(model_name).get("exit_stats", {})
 
+    # 弱耦合研究视图: LightGBM 真实成交按开仓日 RR regime 切片。
+    regime_slices = ledger.trade_history_by_cycle_regime(model_name)
+
     bt = backtest_baseline(model_name, variant)
 
     # Live vs Backtest 对照 (n 足够才有意义)
@@ -126,6 +129,7 @@ def build(model_name: str, variant: str | None = None) -> dict:
         "max_drawdown": curve["max_drawdown"],
         "curve": curve,
         "exit_stats": exit_stats,
+        "regime_slices": regime_slices,
         "backtest": bt,
         "cmp_rows": cmp_rows,
         "in_position": state.get("in_position", False),

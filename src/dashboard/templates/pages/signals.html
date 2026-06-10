@@ -28,7 +28,10 @@
 
   <div class="lg:col-span-2">
     {% call ui.card("信号质量 · 命中率/实现收益时序 (理论 T=21 回填)", "") %}
-    <div class="text-[11px] text-slate-400 mb-2">衡量信号预测力(研究态), 非实盘业绩 — 实盘看「实盘」页</div>
+    <div class="text-[11px] text-slate-400 mb-2">
+      衡量信号预测力(研究态), 非实盘业绩 — 实盘看「实盘」页。
+      背景浅红=RR顶部期, 浅绿=RR底部期。
+    </div>
     <div style="height:240px"><canvas id="sigChart"></canvas></div>
     {% endcall %}
   </div>
@@ -70,7 +73,7 @@
 {% endcall %}
 </div>
 
-<script id="sig-data" type="application/json">{{ {"batches": batches} | tojson }}</script>
+<script id="sig-data" type="application/json">{{ {"batches": batches, "rr_zones": rr_zones} | tojson }}</script>
 <script src="/static/charts.js"></script>
 <script>FcstCharts.renderSignals();</script>
 

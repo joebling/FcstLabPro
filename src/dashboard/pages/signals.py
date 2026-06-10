@@ -4,7 +4,7 @@
 """
 from __future__ import annotations
 
-from src.dashboard.data import signals
+from src.dashboard.data import cycle_regime, signals
 from src.performance import service
 
 
@@ -19,6 +19,8 @@ def build(model_name: str | None) -> dict:
         batches, _ = service.get_batches(model_name)
     except Exception:
         batches = []
+    batches = cycle_regime.annotate_rows(batches, "score_date")
+    rr_zones = [r.get("cycle_regime", {}).get("key", "unknown") for r in reversed(batches)]
 
     # 注: 不算 get_summary —— 信号页模板不用 summary (仅 overview 页用),
     # 以前白白多跑一次 load_live_ohlcv + 聚合 (~35ms 冷算), YAGNI 删除。
@@ -28,4 +30,5 @@ def build(model_name: str | None) -> dict:
         "latest": latest,
         "paper": paper,
         "batches": batches,
+        "rr_zones": rr_zones,
     }
