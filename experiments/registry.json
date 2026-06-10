@@ -2010,5 +2010,33 @@
       "cohen_kappa": 0.4287576997437166
     },
     "error": null
+  },
+  {
+    "experiment_id": "v0610_E24_weekly_trend_tb",
+    "name": "v0610_E24_weekly_trend_tb",
+    "description": "周级别趋势确认模型 (8周/T=56) — Triple Barrier 三分类: 续跌/趋稳/转势",
+    "category": "weekly",
+    "tags": [
+      "weekly",
+      "trend",
+      "cycle",
+      "triple_barrier",
+      "v0610"
+    ],
+    "created_at": "2026-06-10T09:21:09.274763",
+    "status": "completed",
+    "duration_seconds": 471.4,
+    "git_commit": "e653e56",
+    "git_branch": "main",
+    "git_dirty": true,
+    "seed": 42,
+    "aggregate_metrics": {
+      "accuracy": 0.34555984555984554,
+      "cohen_kappa": -0.03949603367372356,
+      "f1_macro": 0.32571377486008285,
+      "precision_macro": 0.34228042240639783,
+      "recall_macro": 0.32457305246092677
+    },
+    "error": null
   }
 ]

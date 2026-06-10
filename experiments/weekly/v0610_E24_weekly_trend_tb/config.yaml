@@ -1,0 +1,69 @@
+experiment:
+  name: v0610_E24_weekly_trend_tb
+  description: '周级别趋势确认模型 (8周/T=56) — Triple Barrier 三分类: 续跌/趋稳/转势'
+  tags:
+  - weekly
+  - trend
+  - cycle
+  - triple_barrier
+  - v0610
+  category: weekly
+  hypothesis: '填补战术层(T=21d择时)与RR周期gate(中长期定位)之间的空档。 用 8 周 horizon 的三屏障标签 {0=续跌, 1=趋稳横盘,
+    2=转势反弹} 做方向研判, 动态 ATR×4 屏障 (regime 自适应, 拒绝固定阈值, 与 rolling-2y 哲学一致)。 门槛: Rank IC>0.02
+    且 IC t-stat>1.5 才算有效, 否则判噪音放弃 (手册 §2.3/§3.3)。 对照: 直接回应 WolfyXBT ''刻舟求剑'' — 我们不预测顶底点,
+    只给带置信的概率研判。
+
+    '
+data:
+  source: binance
+  symbol: BTCUSDT
+  interval: 1d
+  start: '2018-01-01'
+  end: '2026-06-01'
+  path: data/raw/btc_binance_BTCUSDT_1d.csv
+features:
+  sets:
+  - technical
+  - volume
+  - flow
+  - market_structure
+  - external_fgi
+  drop_na_method: ffill_then_drop
+  scaling: standard
+label:
+  strategy: triple_barrier
+  T: 56
+  X: 0.08
+  dynamic_threshold: true
+  atr_window: 14
+  atr_multiplier: 4.0
+  sl_ratio: 1.0
+model:
+  type: lightgbm
+  params:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.05
+    num_leaves: 31
+    subsample: 0.8
+    colsample_bytree: 0.8
+    min_child_samples: 20
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    random_state: 42
+    verbose: -1
+    auto_scale_pos_weight: false
+    n_jobs: 1
+evaluation:
+  method: walk_forward
+  init_train: 730
+  oos_window: 56
+  step: 56
+  metrics:
+  - accuracy
+  - cohen_kappa
+  - f1_macro
+  - precision_macro
+  - recall_macro
+  purge_gap: 56
+seed: 42
