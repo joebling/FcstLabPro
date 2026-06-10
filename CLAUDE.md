@@ -178,6 +178,45 @@ python scripts/weekly_signal.py --download --save
 
 ---
 
+### 5.5 数据流向与 git 同步纪律 (Data Flow Discipline)
+
+> **铁律: VPS 是 live 数据的【终点】, 不是源头。**
+>
+> 代码单向流动: 本地/开发机 `commit → push` → VPS `git pull`。
+> 数据本地生成、本地消费, 【绝不回流 remote】。
+
+**为什么**: dashboard 只在 VPS 本地跑+消费。把每天重写的再生数据 push 回 remote 会:
+- 制造海量 churn (git log 被数据 commit 淹没)
+- VPS working tree 永久 dirty → 阻塞 `git pull --ff-only`
+- 多机/手动 `git add .` 引发 merge 冲突
+
+**数据分三类, 命运不同**:
+
+| 类别 | 文件 | git | 说明 |
+| --- | --- | --- | --- |
+| **再生数据** | `data/live/`, `cmd_*.csv`, `signals/`, `state/`, `ahr999.csv`, `reserve_risk.csv` | **ignored** | 可重下载/重算, 不进 git |
+| **冻结基底** | `data/raw/*.csv`, `reserve_risk_history.csv` | **tracked** | sha 锁定/事故抢救, 不可重算, 必须进 git |
+| **快照账本** | `data/snapshots/` | **tracked + push** | 实盘复盘需要, 由 `dump_live_snapshot.sh --commit` 单独推送 |
+
+**禁止行为**:
+- 严禁在 VPS 上 `git add . && commit -m update && push` (会把再生数据回流; 2026-06-10 实际踩坑, commit `803fa1b` 回流 +8148 行)
+- 严禁给 `ahr999.csv` / `reserve_risk.csv` 加 push (它们是 ignored 再生数据, 留 VPS 本地即可)
+- **唯一允许的 VPS → remote 推送**: `data/snapshots/` (snapshot cron 00:30)
+
+**价格源单一真相 (lesson_0602)**: 所有生产 live 链脚本读 `src/serving/paths.py` 的 `LIVE_OHLCV_PATH` (= `data/live/`), 严禁硬编码 `data/raw/` (那是冻结训练基准, 会导致指标滞后; 2026-06-10 ahr999 踩坑, commit `30087cb`)。
+
+**VPS 同步被再生数据污染时的修复**:
+
+```bash
+cd /root/FcstLabPro
+git fetch origin && git reset --hard origin/main   # 弃掉本地再生数据改动
+.venv/bin/python scripts/compute_ahr999.py         # 重新生成 (现 ignored)
+.venv/bin/python scripts/update_reserve_risk.py
+git status -s                                      # 必须 clean
+```
+
+---
+
 ## 六、 本地 vs GPU 训练
 
 ### 6.1 训练环境选择
@@ -313,6 +352,7 @@ tail -f experiments/weekly/{exp_name}/train.log
 * **2026-02-27**: 添加 vast.ai GPU 远程训练命令规范。
 * **2026-03-08**: 添加复现性验证流程 (E1/E8 bit-exact 确认)；torch 模型改为可选导入；记录 DRY 违规清单。
 * **2026-06-08**: 新增第九章「协作与输出约定」— 报告禁止分享 Puppy Pages。
+* **2026-06-10**: 新增 §5.5「数据流向与 git 同步纪律」— VPS 是 live 数据终点不是源头, 再生数据不回流 remote; ahr999.csv/reserve_risk.csv 降级 ignored (commit e0f63d9); ahr999 价格源修正 data/raw→data/live (commit 30087cb)。
 
 ---
 
