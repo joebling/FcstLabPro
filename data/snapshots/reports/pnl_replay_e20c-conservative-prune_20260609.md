@@ -1,21 +1,25 @@
-# Partial Bar PnL Replay - `e8-touch`
+# Partial Bar PnL Replay - `e20c-conservative-prune`
 
-State updated: `?`
+State last signal: `2026-06-09`
 In-position: `False`
 Closed trades reassessed: **2**
+
+##  Partial Bar Warnings
+
+-  exit_date 2026-06-09 看起来是 csv 中的 partial bar. exit_true / pnl_delta 不准, 等 UTC 下一日重跑。
 
 ## Per-trade reassessment
 
 | Entry | Exit | Entry rec | Entry true | Entry dev | Exit rec | Exit true | Exit dev | PnL rec | PnL true | PnL delta | Reason |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| 2026-05-28 | 2026-06-07 | 73,428.94 | 73,617.51 | **-0.26%** | 60,865.64 | 63,332.01 | **-3.89%** | -17.11% | -13.97% | **+3.14%** | regime=熊市, 强制平仓 (63d收益≤-10%) |
+| 2026-06-05 | 2026-06-07 | 63,186.00 | 61,056.47 | **+3.49%** | 60,865.64 | 63,332.01 | **-3.89%** | -3.67% | +3.73% | **+7.40%** | regime=熊市, 强制平仓 (63d收益≤-10%) |
 | 2026-06-08 | 2026-06-09 | 63,186.00 | 63,085.99 | **+0.16%** | 63,032.13 | 63,032.13 | **+0.00%** | -0.24% | -0.09% | **+0.15%** | regime=熊市, 强制平仓 (63d收益≤-10%) |
 
 ## Aggregate
 
 - Trades with valid reassessment: **2**
-- Net cumulative PnL delta (true - recorded): **+3.29%**  (bug HURT account)
-- Bug HURT the account: **2** trades (worst +3.14% on 2026-06-07)
+- Net cumulative PnL delta (true - recorded): **+7.55%**  (bug HURT account)
+- Bug HURT the account: **2** trades (worst +7.40% on 2026-06-07)
 - Bug HELPED the account: **0** trades
 - Neutral: 0
 

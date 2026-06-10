@@ -69,7 +69,43 @@ if [[ ${SHOT_COUNT} -eq 0 ]]; then
     echo "[WARN] no state JSON found in ${DATA_DIR}/state/"
 fi
 
-# 4. 可选 commit + push
+# 4. 跑 PnL replay (lesson_0609 followup) — 为每个非空 state 生成报告
+REPORT_DIR="${SNAPSHOT_DIR}/reports"
+mkdir -p "${REPORT_DIR}"
+OHLCV_SNAPSHOT="${SNAPSHOT_DIR}/btc_live_${TODAY}.csv"
+PY_VENV="${REPO_DIR}/.venv/bin/python"
+if [[ ! -x "${PY_VENV}" ]]; then
+    PY_VENV="python3"  # fallback
+fi
+REPLAY_SCRIPT="${REPO_DIR}/scripts/research/partial_bar_pnl_replay.py"
+
+echo
+if [[ -f "${OHLCV_SNAPSHOT}" && -f "${REPLAY_SCRIPT}" ]]; then
+    for STATE_SNAP in "${SNAPSHOT_DIR}/state_"*"_${TODAY}.json"; do
+        [[ -f "${STATE_SNAP}" ]] || continue
+        # 检查 history 是否为空 (e1 退役模型 history=[] 跳过)
+        if python3 -c "import json,sys; sys.exit(0 if json.load(open('${STATE_SNAP}')).get('history') else 1)" 2>/dev/null; then
+            STATE_BASE=$(basename "${STATE_SNAP}" .json)
+            MODEL_NAME=$(echo "${STATE_BASE}" | sed -E "s/^state_//; s/_${TODAY}\$//")
+            REPORT_PATH="${REPORT_DIR}/pnl_replay_${MODEL_NAME}_${TODAY}.md"
+            if "${PY_VENV}" "${REPLAY_SCRIPT}" \
+                --state-file "${STATE_SNAP}" \
+                --ohlcv-file "${OHLCV_SNAPSHOT}" \
+                --output "${REPORT_PATH}" 2>&1; then
+                echo "[OK] Replay -> ${REPORT_PATH}"
+            else
+                echo "[WARN] Replay failed for ${MODEL_NAME}"
+            fi
+        else
+            MODEL_NAME=$(basename "${STATE_SNAP}" .json | sed -E "s/^state_//; s/_${TODAY}\$//")
+            echo "[SKIP] Replay for ${MODEL_NAME}: history is empty"
+        fi
+    done
+else
+    echo "[SKIP] Replay: ohlcv snapshot or script not found"
+fi
+
+# 5. 可选 commit + push
 if [[ "${COMMIT_FLAG}" == "--commit" ]]; then
     cd "${REPO_DIR}"
     if git diff --quiet -- data/snapshots/; then
@@ -78,7 +114,7 @@ if [[ "${COMMIT_FLAG}" == "--commit" ]]; then
         exit 0
     fi
     git add data/snapshots/
-    git commit -m "snapshot(live): dump ${TODAY} (ohlcv + fgi + state JSONs)"
+    git commit -m "snapshot(live): dump ${TODAY} (ohlcv + fgi + state + replay reports)"
     git push origin main
     echo
     echo "[OK] committed + pushed."
