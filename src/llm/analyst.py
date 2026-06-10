@@ -414,3 +414,83 @@ def generate_analysis(
         logger.warning("⚠️ LLM 分析生成失败，将跳过")
 
     return analysis
+
+
+# ── 周期研判 LLM (复用上面的 _resolve_provider / _DISPATCH 底座, DRY) ──
+
+CYCLE_SYSTEM_PROMPT = """你是一位专业的加密货币周期分析师，负责解读 FcstLabPro 的「周期研判」。
+
+## 周期研判框架 (与模型择时信号正交, 是两个独立维度)
+
+- **周期位置 = Reserve Risk 的 rolling-2y 历史分位** (0=深底, 100=极顶), 单一标尺。
+- **regime gate**: 分位 >=70 顶部区(逃顶, 倾向 BTC 换稳定币) / <=30 底部区(抄底, 倾向换回 BTC) / 其间中性区(持有不动)。
+- **ahr999**: 定投/抄底辅助指标 (<0.45 抄底 | 0.45-1.2 定投 | 1.2-5 观望 | >=5 泡沫)。
+- **历史战绩**: 历史上每次跨入该区后 BTC 前瞻 30/90 天的均收益与方向命中率 (顶部跌为胜, 底部涨为胜)。
+
+## 分析原则
+1. 周期研判是【中长期仓位定位】, 不是短线择时, 别和模型 BUY/SELL 信号混为一谈。
+2. 若 RR 分位 与 ahr999 打架 (如 RR 高位 但 ahr999 仍抄底区), 必须点明这种背离并解释。
+3. 结合历史战绩判断当前研判的可信度 (命中率高=该区历史上靠谱; 低=偏早/噪音多)。
+4. 永远提醒: 单指标周期判断有局限, 顶部区不等于顶、底部区不等于底。
+5. 不要重复原始数据, 直接给判断。
+"""
+
+CYCLE_USER_PROMPT_TEMPLATE = """以下是今日周期研判数据，请给出分析。
+
+## 今日周期定位
+- 日期: {date}
+- BTC 价格: ${price:,.2f}
+- 当前 regime: {regime_label} ({regime_desc})
+- 建议仓位倾向: {stance}
+- Reserve Risk 分位 (rolling-2y 主口径): {rr_pct}
+- Reserve Risk 分位 (expanding 旧口径, 仅参考): {rr_pct_legacy}
+- ahr999: {ahr999_val} [{ahr999_zone}]
+
+## 历史战绩 (事件研究, 跨入该区后前瞻收益)
+{event_study}
+
+请用中文给出分析 (250 字以内, 简洁有力):
+1. **周期定位**: 现在处于牛熊周期什么位置, regime 含义
+2. **指标一致性**: RR 与 ahr999 是否同向, 有无背离及含义
+3. **历史参照**: 结合战绩判断当前研判可信度
+4. **仓位建议**: 中长期仓位倾向 (非短线)
+
+注意: 不要重复原始数据, 直接给判断。"""
+
+
+def _format_event_study(es: dict) -> str:
+    """把 cycle_stats.regime_event_study 输出格式化进 prompt."""
+    if not es or not es.get("available"):
+        return "（历史战绩数据不可用）"
+    lines = []
+    for side, label in (("top", "顶部区"), ("bottom", "底部区")):
+        blk = es.get(side, {})
+        parts = [f"{label} (历史 {blk.get('events', 0)} 次跨入):"]
+        for h in es.get("horizons", []):
+            d = blk.get(f"h{h}", {})
+            if d.get("n"):
+                parts.append(f"  后{h}天: 样本{d['n']} 均收益{d['avg']:+}% 命中率{d['hit']}%")
+        lines.append("\n".join(parts))
+    return "\n".join(lines)
+
+
+def generate_cycle_analysis(ctx: dict) -> Optional[str]:
+    """周期研判 LLM 解读. ctx 由 cycle_email 组装 (regime/rr/ahr999/event_study)."""
+    provider, cfg = _resolve_provider()
+    if not provider:
+        logger.info("未配置 LLM provider/key，跳过周期 LLM 分析")
+        return None
+    user_prompt = CYCLE_USER_PROMPT_TEMPLATE.format(
+        date=ctx.get("date", ""),
+        price=ctx.get("price", 0) or 0,
+        regime_label=ctx.get("regime_label", ""),
+        regime_desc=ctx.get("regime_desc", ""),
+        stance=ctx.get("stance", ""),
+        rr_pct=ctx.get("rr_pct", "N/A"),
+        rr_pct_legacy=ctx.get("rr_pct_legacy", "N/A"),
+        ahr999_val=ctx.get("ahr999_val", "N/A"),
+        ahr999_zone=ctx.get("ahr999_zone", "N/A"),
+        event_study=_format_event_study(ctx.get("event_study", {})),
+    )
+    logger.info("调用 %s (%s) 生成周期研判分析...", provider, cfg.get("model"))
+    return _DISPATCH[provider](CYCLE_SYSTEM_PROMPT, user_prompt, cfg)

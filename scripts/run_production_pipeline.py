@@ -252,11 +252,27 @@ def _try_email(signal_json: Path, tags: list[str]) -> None:
         print(f"⚠️  邮件发送失败 (不阻断): {e}")
 
 
+def _stage_cycle_email(ctx: PipelineCtx) -> str:
+    """周期研判邮件 — 与模型信号正交的独立维度 (中长期仓位定位).
+
+    required=False: 失败不 halt (输出侧, 同信号邮件 best-effort 语义)。
+    数据依赖 reserve_risk.csv(cron 00:05) + ahr999.csv(00:08), 须在本 pipeline 前跑完;
+    缺失时 cycle.build() 返回 available=False, 邮件会标「数据未就绪」而非静默用旧值。
+    """
+    if not ctx.enable_email:
+        return "跳过 (无 SMTP 凭据)"
+    from scripts.cycle_email import send_cycle_email
+
+    ok = send_cycle_email()
+    return "周期研判邮件已发" if ok else "发送失败 (不阻断)"
+
+
 STAGES: list[Stage] = [
     Stage("1.download_ohlcv", _stage_download_ohlcv),
     Stage("2.download_fgi", _stage_download_fgi),
     Stage("3.validate_data", _stage_validate_data),
     Stage("4.signals", _stage_signals),
+    Stage("5.cycle_email", _stage_cycle_email, required=False),
 ]
 
 

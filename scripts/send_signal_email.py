@@ -412,20 +412,51 @@ def build_plain_text(data: dict) -> str:
 # Email Sending
 # =====================================================================
 
-def send_email(signal_path: str) -> bool:
-    """发送信号邮件."""
-    smtp_host = os.environ.get("SMTP_HOST", "smtp.qq.com")
-    smtp_port = int(os.environ.get("SMTP_PORT", "465"))
-    smtp_user = os.environ.get("SMTP_USER", "")
-    smtp_pass = os.environ.get("SMTP_PASS", "")
-    mail_to = os.environ.get("MAIL_TO", "")
-
-    if not smtp_user or not smtp_pass:
+def get_smtp_config() -> dict | None:
+    """读 SMTP 环境配置. 缺关键项返回 None (并打印原因). 信号/周期邮件共用."""
+    cfg = {
+        "host": os.environ.get("SMTP_HOST", "smtp.qq.com"),
+        "port": int(os.environ.get("SMTP_PORT", "465")),
+        "user": os.environ.get("SMTP_USER", ""),
+        "pass": os.environ.get("SMTP_PASS", ""),
+        "to": os.environ.get("MAIL_TO", ""),
+    }
+    if not cfg["user"] or not cfg["pass"]:
         print("⚠️ 未配置 SMTP_USER / SMTP_PASS，跳过邮件发送")
+        return None
+    if not cfg["to"]:
+        print("⚠️ 未配置 MAIL_TO，跳过邮件发送")
+        return None
+    return cfg
+
+
+def send_mime(msg: MIMEMultipart, cfg: dict | None = None) -> bool:
+    """通用 SMTP 发送底座: 设 From/To + SSL 登录 + sendmail.
+
+    信号邮件与周期研判邮件共用 (DRY). msg 只需设好 Subject + body/附件;
+    From/To 由本函数按 cfg 填。cfg 缺省时自动读环境。
+    """
+    cfg = cfg or get_smtp_config()
+    if cfg is None:
+        return False
+    msg["From"] = cfg["user"]
+    msg["To"] = cfg["to"]
+    try:
+        recipients = [addr.strip() for addr in cfg["to"].split(",")]
+        with smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=30) as server:
+            server.login(cfg["user"], cfg["pass"])
+            server.sendmail(cfg["user"], recipients, msg.as_string())
+        print(f"✅ 邮件已发送至 {cfg['to']}")
+        return True
+    except Exception as e:  # noqa: BLE001
+        print(f"❌ 邮件发送失败: {e}")
         return False
 
-    if not mail_to:
-        print("⚠️ 未配置 MAIL_TO，跳过邮件发送")
+
+def send_email(signal_path: str) -> bool:
+    """发送信号邮件."""
+    cfg = get_smtp_config()
+    if cfg is None:
         return False
 
     with open(signal_path) as f:
@@ -449,9 +480,6 @@ def send_email(signal_path: str) -> bool:
         f"{style['emoji']} {style['label']} | "
         f"${price:,.0f} | {model_name} {model_ver}"
     )
-    msg["From"] = smtp_user
-    msg["To"] = mail_to
-
     # 纯文本备用
     msg.attach(MIMEText(build_plain_text(data), "plain", "utf-8"))
 
@@ -467,17 +495,7 @@ def send_email(signal_path: str) -> bool:
     )
     msg.attach(attachment)
 
-    # 发送
-    try:
-        recipients = [addr.strip() for addr in mail_to.split(",")]
-        with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=30) as server:
-            server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_user, recipients, msg.as_string())
-        print(f"✅ 邮件已发送至 {mail_to}")
-        return True
-    except Exception as e:
-        print(f"❌ 邮件发送失败: {e}")
-        return False
+    return send_mime(msg, cfg)
 
 
 if __name__ == "__main__":
