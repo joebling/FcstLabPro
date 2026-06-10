@@ -82,11 +82,17 @@
 <!-- RR regime 切片 -->
 {% call ui.card("按周期 regime 切片 · LightGBM Alpha 集中在哪", "") %}
 <div class="text-xs text-slate-400 mb-2">
-  按每笔真实交易的 <b>开仓日</b> 映射 Reserve Risk rolling-2y 分位; 顶部≥70 / 底部≤30。只做监控研究, 不自动改信号。
+  按每笔真实交易的 <b>开仓日</b> 映射 Reserve Risk rolling-2y <b>分位</b>; 顶部≥70 / 底部≤30。只做监控研究, 不自动改信号。
 </div>
+{% if not regime_slice_sample_ok or regime_slice_low_n %}
+<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 mb-3 text-xs text-amber-800">
+  样本不足: 当前仅 <b>{{ regime_slice_n }}</b> 笔可归因交易{% if regime_slice_low_n %}, 且存在单区间 n&lt;5{% endif %}。
+  切片结果只能观察, 不能当 alpha 判据或自动 gate 依据。
+</div>
+{% endif %}
 <table class="w-full text-sm">
   <thead><tr class="text-slate-400 text-left text-xs">
-    <th class="py-1">开仓区间</th><th>交易数</th><th>平均 RR</th><th>胜率</th><th>均盈</th><th>总贡献</th></tr></thead>
+    <th class="py-1">开仓区间</th><th>交易数</th><th>平均 RR分位</th><th>胜率</th><th>均盈</th><th>总贡献</th></tr></thead>
   <tbody>
   {% for r in regime_slices %}
     <tr class="border-t border-slate-50">
@@ -95,7 +101,9 @@
           {{ r.label }}
         </span>
       </td>
-      <td class="text-slate-700">{{ r.count }}</td>
+      <td class="text-slate-700">
+        {{ r.count }}{% if r.count > 0 and r.count < 5 %}<span class="ml-1 text-[10px] text-amber-600" title="单区间样本不足">*</span>{% endif %}
+      </td>
       <td class="text-slate-500">{{ "%.1f"|format(r.avg_rr_pct) if r.avg_rr_pct is not none else "—" }}</td>
       <td class="{{ 'text-slate-400' if r.count == 0 else ('text-emerald-600' if r.win_rate >= 0.5 else 'text-rose-600') }}">
         {{ "{:.0%}".format(r.win_rate) if r.count else "—" }}
@@ -111,7 +119,7 @@
   </tbody>
 </table>
 <div class="text-[11px] text-slate-400 mt-3">
-  读法: 如果顶部期开仓长期亏、底部期开仓明显优, overview 的一致性提示就应该更硬; 反之就保持温和。别让 UI 比数据更自信，小心变玄学仪表盘。
+  读法: 只有样本逐步足够后, 才能判断顶部/底部是否真的影响 LightGBM 实盘表现。样本不足时只看方向感, 不下结论。
 </div>
 {% endcall %}
 

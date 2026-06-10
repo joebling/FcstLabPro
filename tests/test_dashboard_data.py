@@ -138,6 +138,8 @@ def test_perfmon_equity_drawdown_and_gating(monkeypatch, tmp_path):
     c = perfmon.build("m", "conservative")
     assert c["n_trades"] == 3
     assert c["sample_ok"] is False           # n<20 → gated
+    assert c["regime_slice_n"] == 0  # fixture lacks entry_date → not attributable
+    assert c["regime_slice_sample_ok"] is False
     assert len(c["curve"]["equity"]) == 3
     assert c["max_drawdown"] <= 0
     # 净值 = 1.05 * 0.97 * 0.963 ≈ 0.9806
@@ -188,4 +190,5 @@ def test_coherence_banner_conflict(monkeypatch):
     c = coherence.build("m")
     assert c["available"] is True
     assert c["level"] == "conflict"
+    assert "不自动改信号" in c["action"]
     assert c["signal"] == "BUY" and c["regime_key"] == "top"

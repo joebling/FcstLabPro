@@ -100,6 +100,9 @@ def build(model_name: str, variant: str | None = None) -> dict:
 
     # 弱耦合研究视图: LightGBM 真实成交按开仓日 RR regime 切片。
     regime_slices = ledger.trade_history_by_cycle_regime(model_name)
+    regime_slice_n = sum(r.get("count", 0) for r in regime_slices)
+    regime_slice_sample_ok = regime_slice_n >= MIN_SAMPLE
+    regime_slice_low_n = any(0 < r.get("count", 0) < 5 for r in regime_slices)
 
     bt = backtest_baseline(model_name, variant)
 
@@ -130,6 +133,9 @@ def build(model_name: str, variant: str | None = None) -> dict:
         "curve": curve,
         "exit_stats": exit_stats,
         "regime_slices": regime_slices,
+        "regime_slice_n": regime_slice_n,
+        "regime_slice_sample_ok": regime_slice_sample_ok,
+        "regime_slice_low_n": regime_slice_low_n,
         "backtest": bt,
         "cmp_rows": cmp_rows,
         "in_position": state.get("in_position", False),
