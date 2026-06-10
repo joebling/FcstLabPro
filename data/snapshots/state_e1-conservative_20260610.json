@@ -1,0 +1,12 @@
+{
+  "in_position": false,
+  "entry_date": null,
+  "entry_price": null,
+  "days_held": 0,
+  "last_signal_date": "2026-06-01",
+  "last_signal": "SILENT",
+  "last_reason": "无信号: y_pred=0",
+  "last_regime": "非熊市",
+  "last_regime_detail": "63d 滚动收益 = +9.2% (threshold=-10%)",
+  "history": []
+}
